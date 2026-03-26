@@ -33,8 +33,8 @@ const navColumns = [
   'Micro Influencers',
 ],
     subSection: {
-      title: 'Marketing',
-      links: ['All-in-one Digital Marketing', 'Search Engine Optimisation (SEO)'],
+      title: 'SUPPORT',
+      links: ['FAQs', 'Contact Support', 'Creator Support', 'Brand Support'],
     },
   },
   {
@@ -74,6 +74,11 @@ const navColumns = [
   {
     title: 'About',
     links: ['About ViralBridgge', 'Careers', 'Blog', 'Partnerships'],
+     subSection: {
+      title: 'LEGAL',
+      links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Disclaimer', 'Payment Terms'],
+    },
+    
   },
 ];
 
