@@ -1,240 +1,222 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
-import Icon from '@/src/components/ui/AppIcon';
+import React, { useEffect, useRef } from 'react';
+import Link from 'next/link';
+import AppImage from '@/src/components/ui/AppImage';
 
-const stats = [
-  { label: 'Active Campaigns', value: '12,400+' },
-  { label: 'Creator Network', value: '85K+' },
-  { label: 'Avg. ROI', value: '6.2x' },
-];
+const creatorAvatars = [
+{ src: "https://images.unsplash.com/photo-1610533384348-bb69420eb838", alt: 'Creator Priya Sharma, lifestyle influencer' },
+{ src: "https://img.rocket.new/generatedImages/rocket_gen_img_1be15d8e9-1772068858387.png", alt: 'Creator Marcus Williams, fitness influencer' },
+{ src: "https://images.unsplash.com/photo-1695141306855-d2fb0ade5c33", alt: 'Creator Sofia Reyes, fashion influencer' }];
+
 
 export default function HeroSection() {
-  const linesRef = useRef<HTMLSpanElement[]>([]);
-  const [graphProgress, setGraphProgress] = useState(0);
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Line reveal with stagger
-    linesRef.current.forEach((el, i) => {
-      if (!el) return;
-      setTimeout(() => {
-        el.parentElement?.classList.add('revealed');
-      }, 300 + i * 180);
-    });
-
-    // Graph animation
-    let frame = 0;
-    const interval = setInterval(() => {
-      frame += 2;
-      setGraphProgress(Math.min(frame, 100));
-      if (frame >= 100) clearInterval(interval);
-    }, 20);
-
-    return () => clearInterval(interval);
+    const el = dashboardRef.current;
+    if (!el) return;
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 12;
+      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 8;
+      el.style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${-y}deg)`;
+    };
+    const onMouseLeave = () => {
+      el.style.transform = 'perspective(1000px) rotateY(-4deg) rotateX(2deg)';
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    el.addEventListener('mouseleave', onMouseLeave);
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      el.removeEventListener('mouseleave', onMouseLeave);
+    };
   }, []);
 
-  const addToRefs = (el: HTMLSpanElement | null, i: number) => {
-    if (el) linesRef.current[i] = el;
-  };
-
-  // SVG graph path based on progress
-  const graphPoints = [
-    [0, 80], [15, 72], [30, 68], [45, 55], [60, 48], [75, 35], [90, 22], [100, 12]
-  ];
-  const pathD = graphPoints
-    .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${(x / 100) * 220} ${y}`)
-    .join(' ');
-
   return (
-    <section className="relative min-h-screen flex items-center pt-24 pb-16 px-6 noise-overlay overflow-hidden">
-      {/* Background blobs */}
-      <div
-        className="blob absolute -top-20 -left-20 w-96 h-96 rounded-full opacity-20 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #7C3AED 0%, transparent 70%)' }}
-      />
-      <div
-        className="blob absolute bottom-10 right-0 w-80 h-80 rounded-full opacity-10 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #F97316 0%, transparent 70%)', animationDelay: '4s' }}
-      />
+    <section className="relative min-h-[90vh] flex items-center pt-24 pb-16 overflow-hidden bg-bg-base">
+      {/* Background glows */}
+      <div className="hero-glow w-[600px] h-[600px] bg-primary/10 top-[-100px] right-[-100px] absolute" />
+      <div className="hero-glow w-[400px] h-[400px] bg-cta/6 bottom-[-80px] left-[-80px] absolute" />
 
-      <div className="max-w-7xl mx-auto w-full relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      {/* Grid pattern */}
+      <div
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(78,64,241,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(78,64,241,0.04) 1px, transparent 1px)',
+          backgroundSize: '48px 48px'
+        }} />
+      
 
-          {/* LEFT: Typography */}
-          <div className="lg:col-span-7">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border outline-primary bg-primary/10 mb-8 scroll-reveal-hidden revealed">
-              <span className="w-2 h-2 rounded-full bg-vb-green pulse-dot" />
-              <span className="text-xs font-display font-600 text-primary-light uppercase tracking-widest">
-                Live Platform · 85K+ Creators
+      <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+        <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 items-center">
+
+          {/* LEFT — Content */}
+          <div className="space-y-8">
+            {/* Badge */}
+            <div className="animate-clip-in">
+              <span className="badge badge-primary">
+                <span className="live-dot" />
+                Live on 3,200+ active campaigns
               </span>
             </div>
 
             {/* Headline */}
-            <h1 className="font-display font-800 leading-[1.05] tracking-tight mb-6"
-              style={{ fontSize: 'clamp(2.8rem, 7vw, 5.5rem)' }}>
-              <span className="line-reveal">
-                <span ref={el => addToRefs(el, 0)} className="block text-fg">Launch Influencer</span>
-              </span>
-              <span className="line-reveal">
-                <span ref={el => addToRefs(el, 1)} className="block text-fg">Campaigns in</span>
-              </span>
-              <span className="line-reveal">
-                <span ref={el => addToRefs(el, 2)} className="block gradient-text">Minutes — Not Weeks</span>
-              </span>
-            </h1>
-
-            {/* Subtext */}
-            <p className="text-lg md:text-xl text-fg-muted leading-relaxed max-w-xl mb-10 scroll-reveal-hidden" style={{ transitionDelay: '0.6s' }}>
-              Real-time tracking. Pay-as-you-go. No agencies.
-              Start, scale, and optimize campaigns instantly.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-4 mb-14 scroll-reveal-hidden" style={{ transitionDelay: '0.75s' }}>
-              <a
-                href="#final-cta"
-                className="btn-primary text-white font-display font-700 px-8 py-4 rounded-full text-base flex items-center gap-2 group"
-              >
-                Start Campaign
-                <Icon name="ArrowRightIcon" size={18} className="group-hover:translate-x-1 transition-transform" />
-              </a>
-              <a
-                href="#creators"
-                className="border border-white/15 text-fg font-display font-600 px-8 py-4 rounded-full text-base hover:border-primary/50 hover:bg-primary/10 transition-all"
-              >
-                Explore Creators
-              </a>
+            <div className="animate-clip-in delay-100">
+              <h1 className="font-display text-[52px] lg:text-[60px] font-700 leading-[1.08] tracking-tight text-heading">
+                Launch Influencer<br />
+                Campaigns in{' '}
+                <span className="text-gradient-primary">Minutes</span>
+                <br />
+                <span className="text-[42px] lg:text-[50px] font-300 text-sub">— Not Weeks</span>
+              </h1>
             </div>
 
-            {/* Stats row */}
-            <div className="flex flex-wrap gap-8 scroll-reveal-hidden" style={{ transitionDelay: '0.9s' }}>
-              {stats.map((s, i) => (
-                <div key={i}>
-                  <div className="font-display font-800 text-2xl text-fg">{s.value}</div>
-                  <div className="text-xs text-fg-dim font-medium mt-0.5">{s.label}</div>
-                </div>
-              ))}
+            {/* Subheading */}
+            <p className="animate-fade-up delay-200 text-[17px] leading-relaxed text-sub max-w-[520px]">
+              ViralBridgge connects brands with high-performing creators and
+              influencers with brand deals. Real-time ROI tracking, verified creators,
+              performance-based pricing.
+            </p>
+
+            {/* CTA row */}
+            <div className="animate-fade-up delay-300 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <Link href="#" className="btn-primary text-base">
+                Launch Your Campaign
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+              <Link href="#marketplace" className="btn-secondary text-base">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M6.5 5.5l4 2.5-4 2.5V5.5z" fill="currentColor" />
+                </svg>
+                Browse Creators
+              </Link>
+            </div>
+
+            {/* Trust line */}
+            <div className="animate-fade-up delay-400 flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {creatorAvatars.map((av, i) =>
+                <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                    <AppImage src={av.src} alt={av.alt} width={32} height={32} className="object-cover w-full h-full" />
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-sub">
+                Trusted by <span className="font-semibold text-heading">500+ brands</span> and{' '}
+                <span className="font-semibold text-heading">12K+ creators</span>
+              </p>
             </div>
           </div>
 
-          {/* RIGHT: Dashboard Mock */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-sm animate-float">
+          {/* RIGHT — Dashboard Mock UI */}
+          <div className="relative flex justify-center lg:justify-end">
+            <div
+              ref={dashboardRef}
+              className="relative w-full max-w-[540px]"
+              style={{ transform: 'perspective(1000px) rotateY(-4deg) rotateX(2deg)', transition: 'transform 0.3s ease-out' }}>
+              
               {/* Main dashboard card */}
-              <div className="gradient-border glow-violet rounded-2xl p-5 bg-surface">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 animate-clip-in delay-300">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-vb-green pulse-dot" />
-                    <span className="text-xs font-display font-600 text-fg-muted">Live Dashboard</span>
+                  <div>
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wider">Campaign Overview</p>
+                    <p className="text-base font-semibold text-heading mt-0.5">Q1 2026 Performance</p>
                   </div>
-                  <span className="text-[10px] font-mono text-primary-light bg-primary/10 px-2 py-1 rounded-full">
-                    ↑ Trending Delhi
+                  <span className="badge badge-primary text-xs">
+                    <span className="live-dot" />
+                    Live
                   </span>
                 </div>
 
-                {/* Metric row */}
+                {/* Metrics row */}
                 <div className="grid grid-cols-3 gap-3 mb-5">
-                  <div className="bg-surface-2 rounded-xl p-3">
-                    <div className="text-[10px] text-fg-dim mb-1">Views</div>
-                    <div className="font-display font-800 text-base text-fg">1.2M</div>
-                    <div className="text-[10px] text-vb-green font-600">+18%</div>
-                  </div>
-                  <div className="bg-surface-2 rounded-xl p-3">
-                    <div className="text-[10px] text-fg-dim mb-1">Engagement</div>
-                    <div className="font-display font-800 text-base text-fg">+32%</div>
-                    <div className="text-[10px] text-vb-green font-600">↑</div>
-                  </div>
-                  <div className="bg-surface-2 rounded-xl p-3">
-                    <div className="text-[10px] text-fg-dim mb-1">Reach</div>
-                    <div className="font-display font-800 text-base text-fg">3.5M</div>
-                    <div className="text-[10px] text-vb-green font-600">₹12K</div>
-                  </div>
+                  {[
+                  { label: 'Total Views', value: '2.4M', change: '+18%', up: true },
+                  { label: 'Engagement', value: '8.2%', change: '+2.1%', up: true },
+                  { label: 'Avg ROI', value: '3.4x', change: '+0.6x', up: true }].
+                  map((m, i) =>
+                  <div key={i} className="bg-bg-base rounded-xl p-3">
+                      <p className="text-xs text-muted mb-1">{m.label}</p>
+                      <p className="font-display text-xl font-700 text-heading">{m.value}</p>
+                      <p className="text-xs font-semibold text-green-500 mt-0.5">{m.change}</p>
+                    </div>
+                  )}
                 </div>
 
-                {/* Mini graph */}
-                <div className="bg-surface-2 rounded-xl p-3 mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] text-fg-dim">Campaign Performance</span>
-                    <span className="text-[10px] text-accent font-600">Last 7 days</span>
-                  </div>
-                  <svg viewBox="0 0 220 100" className="w-full h-20">
+                {/* SVG Chart */}
+                <div className="bg-bg-base rounded-xl p-4 mb-4">
+                  <p className="text-xs font-semibold text-muted mb-3 uppercase tracking-wider">Views over time</p>
+                  <svg viewBox="0 0 360 90" className="w-full h-20" preserveAspectRatio="none">
                     <defs>
-                      <linearGradient id="graphGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#7C3AED" stopOpacity="0" />
+                      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#4E40F1" stopOpacity="0.18" />
+                        <stop offset="100%" stopColor="#4E40F1" stopOpacity="0" />
                       </linearGradient>
-                      <clipPath id="graphClip">
-                        <rect x="0" y="0" width={`${graphProgress * 2.2}`} height="100" />
-                      </clipPath>
                     </defs>
-                    {/* Area fill */}
                     <path
-                      d={`${pathD} L 220 100 L 0 100 Z`}
-                      fill="url(#graphGrad)"
-                      clipPath="url(#graphClip)"
-                    />
-                    {/* Line */}
+                      d="M0,72 L30,65 L60,58 L90,52 L120,44 L150,38 L180,30 L210,24 L240,18 L270,14 L300,10 L330,7 L360,4 L360,90 L0,90 Z"
+                      fill="url(#chartGrad)" />
+                    
                     <path
-                      d={pathD}
+                      d="M0,72 L30,65 L60,58 L90,52 L120,44 L150,38 L180,30 L210,24 L240,18 L270,14 L300,10 L330,7 L360,4"
                       fill="none"
-                      stroke="#7C3AED"
-                      strokeWidth="2"
+                      stroke="#4E40F1"
+                      strokeWidth="2.5"
                       strokeLinecap="round"
-                      clipPath="url(#graphClip)"
-                    />
-                    {/* Accent line */}
-                    <path
-                      d="M 0 85 L 40 80 L 80 72 L 120 65 L 160 58 L 220 50"
-                      fill="none"
-                      stroke="#F97316"
-                      strokeWidth="1.5"
-                      strokeDasharray="4 3"
-                      strokeLinecap="round"
-                      clipPath="url(#graphClip)"
-                    />
-                    {/* Latest dot */}
-                    {graphProgress >= 98 && (
-                      <circle cx="220" cy="12" r="4" fill="#7C3AED">
-                        <animate attributeName="r" values="4;6;4" dur="1.5s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite" />
-                      </circle>
-                    )}
+                      strokeLinejoin="round" />
+                    
+                    {[30, 90, 150, 210, 270, 330].map((cx, i) => {
+                      const cys = [65, 52, 38, 24, 14, 7];
+                      return <circle key={i} cx={cx} cy={cys[i]} r="3" fill="white" stroke="#4E40F1" strokeWidth="2" />;
+                    })}
                   </svg>
                 </div>
 
-                {/* Budget row */}
-                <div className="flex items-center justify-between bg-accent/10 border border-accent/20 rounded-xl px-4 py-3">
-                  <div>
-                    <div className="text-[10px] text-fg-dim mb-0.5">Budget Spent</div>
-                    <div className="font-display font-800 text-accent text-base">₹12,000</div>
-                  </div>
-                  <Icon name="ArrowRightIcon" size={16} className="text-accent/50" />
-                  <div className="text-right">
-                    <div className="text-[10px] text-fg-dim mb-0.5">Total Reach</div>
-                    <div className="font-display font-800 text-vb-green text-base">3.5M</div>
-                  </div>
+                {/* Creator mini cards */}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider">Top Performing Creators</p>
+                  {[
+                  { name: 'Ananya Kapoor', cat: 'Fashion', followers: '420K', eng: '9.1%', src: "https://images.unsplash.com/photo-1695141306855-d2fb0ade5c33", alt: 'Ananya Kapoor fashion influencer profile' },
+                  { name: 'Jordan Davis', cat: 'Fitness', followers: '310K', eng: '7.8%', src: "https://img.rocket.new/generatedImages/rocket_gen_img_15893e37c-1773034293433.png", alt: 'Jordan Davis fitness influencer profile' }].
+                  map((c, i) =>
+                  <div key={i} className="flex items-center gap-3 bg-bg-base rounded-xl px-3 py-2">
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                        <AppImage src={c.src} alt={c.alt} width={32} height={32} className="object-cover w-full h-full" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-heading truncate">{c.name}</p>
+                        <p className="text-xs text-muted">{c.cat}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-xs font-semibold text-heading">{c.followers}</p>
+                        <p className="text-xs text-green-500 font-medium">{c.eng}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Floating badge: trending */}
-              <div className="absolute -top-4 -right-4 bg-accent text-white text-[11px] font-display font-700 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                🔥 Trending in Delhi
+              {/* Floating ROI badge */}
+              <div className="absolute -top-4 -right-4 glass-card px-4 py-3 animate-float shadow-md">
+                <p className="text-xs text-muted">Campaign ROI</p>
+                <p className="font-display text-xl font-700 text-primary">3.4x</p>
               </div>
 
-              {/* Floating mini card: creator joined */}
-              <div className="absolute -bottom-5 -left-6 bg-surface-2 border border-white/8 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-xl">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm">👤</div>
-                <div>
-                  <div className="text-[10px] text-fg-dim">Creator joined</div>
-                  <div className="text-xs font-display font-700 text-fg">Riya Sharma</div>
+              {/* Floating live badge */}
+              <div className="absolute -bottom-4 -left-4 glass-card px-4 py-3 animate-float shadow-md" style={{ animationDelay: '1.5s' }}>
+                <div className="flex items-center gap-2">
+                  <span className="live-dot" />
+                  <p className="text-xs font-semibold text-heading">120K views today</p>
                 </div>
-                <span className="w-2 h-2 rounded-full bg-vb-green pulse-dot ml-1" />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }

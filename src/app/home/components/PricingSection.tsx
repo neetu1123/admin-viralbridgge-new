@@ -1,154 +1,145 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
-import Icon from '@/src/components/ui/AppIcon';
+import Link from 'next/link';
 
-const walletTiers = [
+const plans = [
   {
-    amount: '₹2,000',
-    label: 'Starter',
-    reach: '~200K reach',
-    perks: ['5 creator invites', 'Basic analytics', 'Instagram + YouTube'],
-    highlight: false,
+    name: 'Pay Per Campaign',
+    price: '$299',
+    period: 'per campaign',
+    desc: 'Perfect for brands testing influencer marketing for the first time.',
+    features: [
+      'Up to 5 creator collaborations',
+      'Basic campaign analytics',
+      'Standard creator matching',
+      '14-day campaign window',
+      'Email support',
+    ],
+    cta: 'Start a Campaign',
+    featured: false,
   },
   {
-    amount: '₹5,000',
-    label: 'Growth',
-    reach: '~600K reach',
-    perks: ['15 creator invites', 'Real-time dashboard', 'All platforms', 'Priority support'],
-    highlight: true,
+    name: 'Performance Plan',
+    price: '$999',
+    period: 'per month',
+    desc: 'For growth-stage brands running campaigns continuously.',
+    features: [
+      'Unlimited creator collaborations',
+      'Real-time ROI dashboard',
+      'AI-powered creator matching',
+      'Unlimited campaign duration',
+      'Priority support + account manager',
+      'Fraud detection & verified creators',
+    ],
+    cta: 'Get Started',
+    featured: true,
+    badge: 'Most Popular',
   },
   {
-    amount: '₹15,000',
-    label: 'Scale',
-    reach: '~2M reach',
-    perks: ['Unlimited invites', 'Advanced ROI tracking', 'Dedicated manager', 'Custom reports'],
-    highlight: false,
+    name: 'Commission-Based',
+    price: '8%',
+    period: 'of campaign spend',
+    desc: 'For agencies and large brands. Pay only when campaigns deliver.',
+    features: [
+      'Everything in Performance',
+      'Multi-brand management',
+      'Custom reporting & exports',
+      'API access',
+      'Dedicated success manager',
+      'White-label option available',
+    ],
+    cta: 'Talk to Sales',
+    featured: false,
   },
-];
-
-const highlights = [
-  { icon: 'WalletIcon' as const, title: 'Wallet-Based', desc: 'Top up anytime. Spend only when creators deliver.' },
-  { icon: 'BoltIcon' as const, title: 'No Minimum', desc: 'Start with ₹500. Scale when you see results.' },
-  { icon: 'ChartBarIcon' as const, title: 'Pay Per Performance', desc: 'Only pay when campaign goals are met.' },
 ];
 
 export default function PricingSection() {
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const refs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.querySelectorAll('.scroll-reveal-hidden').forEach((el, i) => {
-              setTimeout(() => el.classList.add('revealed'), i * 120);
-            });
-          }
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('revealed');
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.15 }
     );
-    if (sectionRef.current) observer.observe(sectionRef.current);
+    refs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, []);
 
   return (
-    <section id="pricing" ref={sectionRef} className="py-28 px-6 relative">
-      {/* Background accent */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(124,58,237,0.08) 0%, transparent 70%)' }} />
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Heading */}
-        <div className="text-center mb-16 scroll-reveal-hidden">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border outline-primary mb-8 ">
-          <span className="w-2 h-2 rounded-full bg-vb-green pulse-dot" />
-          <span className="text-xs font-display font-600 text-primary-light uppercase tracking-widest">
- Transparent Pricing
-          </span>
-        </div>
-        
-          <h2 className="font-display font-800 text-fg mb-4"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
-            Simple, Transparent Pricing
+    <section id="pricing" className="section-padding bg-bg-base">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center max-w-xl mx-auto mb-14">
+          <span className="badge badge-primary mb-4">Pricing</span>
+          <h2 className="font-display text-[32px] lg:text-[40px] font-700 text-heading tracking-tight leading-tight">
+            Transparent pricing,<br />zero surprises
           </h2>
-          <p className="text-fg-muted text-lg max-w-xl mx-auto">
-            Recharge ₹5,000 → Launch instantly. No contracts. No hidden fees. No agency markups.
+          <p className="text-[17px] text-sub mt-4">
+            No retainers. No hidden fees. Pay for what you use.
           </p>
         </div>
 
-        {/* Highlights */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
-          {highlights.map((h, i) => (
+        <div className="grid md:grid-cols-3 gap-5 items-start">
+          {plans.map((p, i) => (
             <div
               key={i}
-              className="scroll-reveal-hidden bg-surface border border-primary/10 rounded-2xl p-6 flex items-start gap-4 card-hover hover:border-accent hover:shadow-lg transition-all"
+              ref={(el) => { refs.current[i] = el; }}
+              className={`scroll-reveal pricing-card ${p.featured ? 'featured' : ''}`}
               style={{ transitionDelay: `${i * 0.1}s` }}
             >
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.25)' }}>
-                <Icon name={h.icon} size={20} className="text-primary" />
-              </div>
-              <div>
-                <div className="font-display font-700 text-fg mb-1">{h.title}</div>
-                <div className="text-sm text-fg-muted">{h.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Wallet tier cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {walletTiers.map((tier, i) => (
-            <div
-              key={i}
-              className={`scroll-reveal-hidden card-hover rounded-2xl p-8 relative overflow-hidden hover:border-accent/60 hover:shadow-lg transition-all ${
-                tier.highlight
-                  ? 'glow-violet'
-                  : 'bg-surface border border-white/6'
-              }`}
-              style={{
-                transitionDelay: `${i * 0.12}s`,
-                ...(tier.highlight ? {
-                  background: 'linear-gradient(135deg, rgba(124,58,237,0.25) 0%, rgba(124,58,237,0.08) 100%)',
-                  border: '1px solid rgba(124,58,237,0.4)',
-                } : { border: '1px solid rgba(124,58,237,0.4)'}),
-              }}
-            >
-              {tier.highlight && (
-                <div className="absolute top-4 right-4 bg-primary text-white text-[10px] font-display font-700 uppercase tracking-widest px-3 py-1 rounded-full shadow-md">
-                  Most Popular
+              {/* Badge */}
+              {p.badge && (
+                <div className="mb-4">
+                  <span className="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    {p.badge}
+                  </span>
                 </div>
               )}
+
+              <h3 className={`font-display text-[18px] font-700 mb-1 ${p.featured ? 'text-white' : 'text-heading'}`}>
+                {p.name}
+              </h3>
+              <p className={`text-[13px] mb-5 ${p.featured ? 'text-white/70' : 'text-sub'}`}>{p.desc}</p>
+
+              {/* Price */}
               <div className="mb-6">
-                <div className="text-xs font-display font-700 uppercase tracking-widest text-fg-dim mb-2">{tier.label}</div>
-                <div className="font-display font-800 text-4xl text-fg mb-1">{tier.amount}</div>
-                <div className="text-sm text-vb-green font-display font-600">{tier.reach}</div>
+                <span className={`font-display text-[40px] font-700 ${p.featured ? 'text-white' : 'text-heading'}`}>
+                  {p.price}
+                </span>
+                <span className={`text-sm ml-1 ${p.featured ? 'text-white/70' : 'text-muted'}`}>/ {p.period}</span>
               </div>
+
+              {/* Features */}
               <ul className="space-y-3 mb-8">
-                {tier.perks.map(perk => (
-                  <li key={perk} className="flex items-center gap-3 text-sm text-fg-muted">
-                    <Icon name="CheckCircleIcon" size={16} className="text-vb-green flex-shrink-0" variant="solid" />
-                    {perk}
+                {p.features.map((f, j) => (
+                  <li key={j} className="flex items-start gap-2.5">
+                    <svg
+                      width="16" height="16" viewBox="0 0 16 16" fill="none"
+                      className={`mt-0.5 flex-shrink-0 ${p.featured ? 'text-white/80' : 'text-primary'}`}
+                    >
+                      <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className={`text-[14px] ${p.featured ? 'text-white/85' : 'text-sub'}`}>{f}</span>
                   </li>
                 ))}
               </ul>
-              <button
-                className={`w-full py-3.5 rounded-full font-display font-700 text-sm transition-all ${
-                  tier.highlight
-                    ? 'btn-primary text-white' :'border outline-primary text-fg hover:border-accent hover:bg-accent/10 transition-all'
+
+              {/* CTA */}
+              <Link
+                href="#"
+                className={`block text-center text-sm font-semibold py-3 rounded-xl transition-all ${
+                  p.featured
+                    ? 'bg-white text-primary hover:bg-bg-alt' :'bg-primary text-white hover:bg-primary-dark shadow-primary'
                 }`}
               >
-                Recharge Wallet
-              </button>
+                {p.cta}
+              </Link>
             </div>
           ))}
         </div>
-
-        {/* Fine print */}
-        <p className="text-center text-xs text-fg-dim mt-8 scroll-reveal-hidden">
-          Unused wallet balance never expires · GST included · Refunds available within 7 days
-        </p>
       </div>
     </section>
   );
