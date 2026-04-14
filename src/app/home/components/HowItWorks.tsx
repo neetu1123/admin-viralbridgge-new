@@ -1,175 +1,133 @@
-'use client';
-import React, { useEffect, useRef } from 'react';
-import Icon from '@/src/components/ui/AppIcon';
+import React from 'react';
+import { UserPlus, Send, DollarSign, Megaphone, Users, Handshake } from 'lucide-react';
+import Icon from '@/components/ui/AppIcon';
 
-const steps = [
+
+const CREATOR_STEPS = [
   {
-    number: '01',
-    icon: 'RocketLaunchIcon' as const,
-    title: 'Create Campaign',
-    description: 'Set your budget, platform, and goals in minutes. No forms, no waiting. Your campaign brief is live instantly.',
-    detail: 'Budget • Platform • Goals • Timeline',
-    color: '#7C3AED',
-    span: 'col-span-1 md:col-span-2',
-    tall: false,
+    id: 'creator-step-1',
+    step: '01',
+    icon: UserPlus,
+    title: 'Create Your Profile',
+    desc: 'Connect your social accounts, set your niche, and showcase your best content. Verification takes under 24 hours.',
+    color: '#7B2FF7',
+    bg: '#EFEAFF',
   },
   {
-    number: '02',
-    icon: 'UserGroupIcon' as const,
-    title: 'Get Matched with Creators',
-    description: 'Our algorithm surfaces the highest-performing creators for your niche, budget, and target audience. Invite in one click.',
-    detail: '85K+ creators · AI-matched · Instant connect',
-    color: '#F97316',
-    span: 'col-span-1',
-    tall: true,
+    id: 'creator-step-2',
+    step: '02',
+    icon: Send,
+    title: 'Apply to Campaigns',
+    desc: 'Browse campaigns that match your niche and audience. Apply with one click — no lengthy proposal required.',
+    color: '#F357A8',
+    bg: '#FFF0F6',
   },
   {
-    number: '03',
-    icon: 'ChartBarIcon' as const,
-    title: 'Track Performance Live',
-    description: 'Monitor reach, engagement, and ROI in real-time. Every rupee tracked. Pause, scale, or optimize without picking up the phone.',
-    detail: 'Real-time · ROI tracking · Full control',
-    color: '#22C55E',
-    span: 'col-span-1',
-    tall: false,
+    id: 'creator-step-3',
+    step: '03',
+    icon: DollarSign,
+    title: 'Create & Get Paid',
+    desc: 'Deliver your content, get brand approval, and receive payment directly to your bank — no chasing invoices.',
+    color: '#F9A826',
+    bg: '#FFF8EC',
   },
 ];
 
-export default function HowItWorks() {
-  const sectionRef = useRef<HTMLDivElement>(null);
+const BRAND_STEPS = [
+  {
+    id: 'brand-step-1',
+    step: '01',
+    icon: Megaphone,
+    title: 'Post Your Campaign',
+    desc: 'Define your deliverables, budget, timeline, and target audience. Your campaign goes live to 52,000+ creators instantly.',
+    color: '#7B2FF7',
+    bg: '#EFEAFF',
+  },
+  {
+    id: 'brand-step-2',
+    step: '02',
+    icon: Users,
+    title: 'Review Applicants',
+    desc: 'Browse creator profiles with verified stats — followers, engagement rates, past brand deals, and audience demographics.',
+    color: '#F357A8',
+    bg: '#FFF0F6',
+  },
+  {
+    id: 'brand-step-3',
+    step: '03',
+    icon: Handshake,
+    title: 'Collaborate & Grow',
+    desc: 'Approve content, track campaign performance in real time, and manage payments — all from your brand dashboard.',
+    color: '#F9A826',
+    bg: '#FFF8EC',
+  },
+];
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.querySelectorAll('.scroll-reveal-hidden').forEach((el, i) => {
-              setTimeout(() => el.classList.add('revealed'), i * 120);
-            });
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
+function StepCard({
+  step,
+}: {
+  step: { id: string; step: string; icon: React.ElementType; title: string; desc: string; color: string; bg: string };
+}) {
+  const Icon = step.icon;
   return (
-    <section id="how-it-works" ref={sectionRef} className="py-28 px-6 relative">
-      <div className="max-w-7xl mx-auto">
-        {/* Heading */}
-        <div className="mb-16 scroll-reveal-hidden">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border outline-primary mb-8 ">
-          <span className="w-2 h-2 rounded-full bg-vb-green pulse-dot" />
-          <span className="text-xs font-display font-600 text-primary-light uppercase tracking-widest">
-Simple by Design
+    <div className="group bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-card hover:shadow-card-hover transition-all duration-200 hover:-translate-y-1 relative overflow-hidden">
+      <div className="absolute top-4 right-4 font-display font-800 text-[48px] leading-none text-[#F2F3F7] select-none">
+        {step.step}
+      </div>
+      <div
+        className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 relative z-10"
+        style={{ backgroundColor: step.bg }}
+      >
+        <Icon size={22} style={{ color: step.color }} />
+      </div>
+      <h3 className="font-display font-700 text-[#1F1F2E] text-base mb-2 relative z-10">{step.title}</h3>
+      <p className="text-[#6B6B8A] text-sm leading-relaxed relative z-10">{step.desc}</p>
+    </div>
+  );
+}
+
+export default function HowItWorks() {
+  return (
+    <section className="py-24 bg-[#F8F7FC]">
+      <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <span className="inline-block text-[#7B2FF7] font-semibold text-sm uppercase tracking-widest mb-4 font-display">
+            How It Works
           </span>
-        </div>
-          
-          <h2 className="font-display font-800 text-fg leading-tight"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
-            Launch Campaigns in{' '}
-            <span className="gradient-text">3 Simple Steps</span>
+          <h2 className="font-display font-800 text-4xl text-[#1F1F2E] tracking-tight">
+            Built for both sides of the deal
           </h2>
+          <p className="text-[#6B6B8A] text-lg mt-4 max-w-xl mx-auto leading-relaxed">
+            Whether you are a creator looking for brand deals or a brand seeking authentic voices, ViralBridge makes it seamless.
+          </p>
         </div>
 
-        {/* Bento grid — asymmetric */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Step 01 — spans 2 cols */}
-          <div className="md:col-span-2 scroll-reveal-hidden">
-            <div className="gradient-border card-hover h-full rounded-2xl p-8 relative overflow-hidden group hover:border-accent hover:shadow-lg transition-all">
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
-              <div className="flex items-start justify-between mb-6">
-                <span className="font-display font-800 text-5xl text-white/5 select-none">01</span>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)' }}>
-                  <Icon name="RocketLaunchIcon" size={22} className="text-primary" />
-                </div>
-              </div>
-              <h3 className="font-display font-800 text-2xl text-fg mb-3">Create Campaign</h3>
-              <p className="text-fg-muted leading-relaxed mb-6 max-w-md">
-                Set your budget, platform, and goals in minutes. No forms, no waiting. Your campaign brief is live instantly.
-              </p>
-              {/* Mini UI preview */}
-              <div className="flex flex-wrap gap-2">
-                {['₹5K Budget', 'Instagram', 'Fashion', 'Delhi NCR', '7 days'].map(tag => (
-                  <span key={tag} className="text-xs font-display font-600 text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+        {/* Two-column grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Creators column */}
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-8 w-1.5 rounded-full" style={{ background: 'linear-gradient(180deg, #7B2FF7, #F357A8)' }} />
+              <h3 className="font-display font-700 text-xl text-[#1F1F2E]">For Creators</h3>
+            </div>
+            <div className="space-y-4">
+              {CREATOR_STEPS.map((step) => (
+                <StepCard key={step.id} step={step} />
+              ))}
             </div>
           </div>
 
-          {/* Step 02 — tall card */}
-          <div className="md:row-span-2 scroll-reveal-hidden" style={{ transitionDelay: '0.15s' }}>
-            <div className="gradient-border card-hover h-full rounded-2xl p-8 relative overflow-hidden group min-h-[360px] hover:border-accent hover:shadow-lg transition-all">
-              <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }} />
-              <div className="flex items-start justify-between mb-6">
-                <span className="font-display font-800 text-5xl text-white/5 select-none">02</span>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)' }}>
-                  <Icon name="UserGroupIcon" size={22} className="text-accent" />
-                </div>
-              </div>
-              <h3 className="font-display font-800 text-2xl text-fg mb-3">Get Matched with Creators</h3>
-              <p className="text-fg-muted leading-relaxed mb-6">
-                AI surfaces the highest-performing creators for your niche, budget, and audience. Invite in one click.
-              </p>
-              {/* Creator mini cards */}
-              <div className="space-y-3">
-                {[
-                  { name: 'Riya Sharma', niche: 'Lifestyle', score: 87 },
-                  { name: 'Arjun Mehta', niche: 'Tech', score: 92 },
-                  { name: 'Priya Nair', niche: 'Fitness', score: 79 },
-                ].map(c => (
-                  <div key={c.name} className="flex items-center justify-between bg-surface-2 rounded-xl px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 text-sm flex items-center justify-center">
-                        {c.name[0]}
-                      </div>
-                      <div>
-                        <div className="text-xs font-display font-700 text-fg">{c.name}</div>
-                        <div className="text-[10px] text-fg-dim">{c.niche}</div>
-                      </div>
-                    </div>
-                    <div className="text-xs font-display font-700 text-accent">⚡ {c.score}</div>
-                  </div>
-                ))}
-              </div>
+          {/* Brands column */}
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-8 w-1.5 rounded-full" style={{ background: 'linear-gradient(180deg, #F357A8, #F9A826)' }} />
+              <h3 className="font-display font-700 text-xl text-[#1F1F2E]">For Brands</h3>
             </div>
-          </div>
-
-          {/* Step 03 */}
-          <div className="md:col-span-2 scroll-reveal-hidden" style={{ transitionDelay: '0.3s' }}>
-            <div className="gradient-border card-hover h-full rounded-2xl p-8 relative overflow-hidden group hover:border-accent hover:shadow-lg transition-all">
-              <div className="flex items-start justify-between mb-6">
-                <span className="font-display font-800 text-5xl text-white/5 select-none">03</span>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)' }}>
-                  <Icon name="ChartBarIcon" size={22} className="text-vb-green" />
-                </div>
-              </div>
-              <h3 className="font-display font-800 text-2xl text-fg mb-3">Track Performance Live</h3>
-              <p className="text-fg-muted leading-relaxed mb-6 max-w-md">
-                Monitor reach, engagement, and ROI in real-time. Every rupee tracked. Pause, scale, or optimize without picking up the phone.
-              </p>
-              {/* Mini stats */}
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Reach', val: '3.5M', up: true },
-                  { label: 'Engagement', val: '+32%', up: true },
-                  { label: 'ROI', val: '6.2x', up: true },
-                ].map(s => (
-                  <div key={s.label} className="bg-surface-2 rounded-xl p-3 text-center">
-                    <div className="font-display font-800 text-lg text-vb-green">{s.val}</div>
-                    <div className="text-[10px] text-fg-dim mt-0.5">{s.label}</div>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-4">
+              {BRAND_STEPS.map((step) => (
+                <StepCard key={step.id} step={step} />
+              ))}
             </div>
           </div>
         </div>

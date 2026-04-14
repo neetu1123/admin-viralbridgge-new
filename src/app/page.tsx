@@ -2,35 +2,23 @@ import React from 'react';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import HeroSection from './home/components/HeroSection';
-import SocialProofSection from './home/components/SocialProofSection';
-import FeaturesSection from './home/components/FeaturesSection';
-import LiveActivitySection from './home/components/LiveActivitySection';
-import CreatorMarketplaceSection from './home/components/CreatorMarketplaceSection';
-import ForBrandsCreatorsSection from './home/components/ForBrandsCreatorsSection';
-import HowItWorksSection from './home/components/HowItWorksSection';
-import CaseStudiesSection from './home/components/CaseStudiesSection';
-import AnalyticsDashboardSection from './home/components/AnalyticsDashboardSection';
-import PricingSection from './home/components/PricingSection';
-import ComparisonSection from './home/components/ComparisonSection';
-import FAQSection from './home/components/FAQSection';
-import FinalCTASection from './home/components/FinalCTASection';
+import SocialProofStrip from './home/components/SocialProofStrip';
+import HowItWorks from './home/components/HowItWorks';
+import FeaturedCampaigns from './home/components/FeaturedCampaigns';
+import TopCreators from './home/components/TopCreators';
+import CtaSection from './home/components/CtaSection';
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-bg-base overflow-x-hidden">
       <Header />
-      <HeroSection />
-      <SocialProofSection />
-      <ForBrandsCreatorsSection />
-      <FeaturesSection />
-      <LiveActivitySection />
-      <CreatorMarketplaceSection />
-      <HowItWorksSection />
-      <CaseStudiesSection />
-      <AnalyticsDashboardSection />
-      <PricingSection />
-      <ComparisonSection />
-      <FAQSection />
-      <FinalCTASection />
+      <main>
+        <HeroSection />
+        <SocialProofStrip />
+        <HowItWorks />
+        <FeaturedCampaigns />
+        <TopCreators />
+        <CtaSection />
+      </main>
       <Footer />
     </main>
   );
