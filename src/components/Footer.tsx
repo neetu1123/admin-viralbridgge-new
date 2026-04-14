@@ -155,14 +155,10 @@ export default function Footer() {
         {/* Email */}
         <div className="flex flex-col gap-1">
           <span className="text-xs font-bold uppercase tracking-widest text-accent mb-1">Email</span>
-          <a href="mailto:sales@viralbridgge.com" className="text-sm text-fg hover:text-accent transition-colors">
-            sales@viralbridgge.com
+          <a href="mailto:connect@viralbridgge.com" className="text-sm text-fg hover:text-accent transition-colors">
+            connect@viralbridgge.com
           </a>
-          <span className="text-[11px] text-fg-dim">(For Sales Inquiry)</span>
-          <a href="mailto:hr@viralbridgge.com" className="text-sm text-fg hover:text-accent transition-colors mt-1">
-            hr@viralbridgge.com
-          </a>
-          <span className="text-[11px] text-fg-dim">(For Hiring)</span>
+        
         </div>
 
         {/* Call */}

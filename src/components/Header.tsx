@@ -36,8 +36,9 @@ export default function Header() {
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-fg-muted">
           <a href="#how-it-works" className="hover:text-accent transition-colors">How it Works</a>
-          <a href="#pricing" className="hover:text-accent transition-colors">Pricing</a>
-          <a href="#creators" className="hover:text-accent transition-colors">Creators</a>
+          <a href="/pricing" className="hover:text-accent transition-colors">Pricing</a>
+          <a href="/campaigns-explore-page" className="hover:text-accent transition-colors">Explore</a>
+          <a href="/creators-explore-page" className="hover:text-accent transition-colors">Creators</a>
         </nav>
 
         {/* CTA */}

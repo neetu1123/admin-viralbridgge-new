@@ -1,16 +1,16 @@
 import React from 'react';
-// import Navbar from '@/components/Navbar';
-// import Footer from '@/app/homepage/components/Footer';
+import Header from '@/src/components/Header';
+import Footer from '@/src/components/Footer';
 import PricingClient from './components/PricingClient';
 
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#F8F7FC]">
-      {/* <Navbar /> */}
+       <Header />
       <main className="pt-16">
         <PricingClient />
       </main>
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 }
