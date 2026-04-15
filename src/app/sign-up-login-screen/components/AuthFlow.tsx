@@ -51,7 +51,8 @@ export default function AuthFlow() {
         >
           <div>
             <div className="flex items-center gap-2.5 mb-12">
-              <AppLogo size={36} />
+              <AppLogo src="/viralbridge_logo_transparent.png"
+            size={200} />
               <span className="font-display font-700 text-xl text-white">viralbridgge</span>
             </div>
 
@@ -83,8 +84,8 @@ export default function AuthFlow() {
         <div className="bg-white flex flex-col p-8 md:p-10">
           {/* Logo — mobile only */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
-            <AppLogo size={32} />
-            <span className="font-display font-700 text-lg text-[#1F1F2E]">viralbridgge</span>
+            <AppLogo src="/viralbridge_logo_transparent.png"
+            size={200} />
           </div>
 
           {mode === 'login' ? (

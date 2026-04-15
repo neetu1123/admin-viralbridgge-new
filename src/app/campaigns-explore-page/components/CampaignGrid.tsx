@@ -314,7 +314,6 @@ export default function CampaignGrid({ filters }: CampaignGridProps) {
               {/* Budget + Deadline + Applicants */}
               <div className="flex items-center gap-3 text-xs text-[#9AA0B4]">
                 <div className="flex items-center gap-1.5">
-                  <DollarSign size={12} className="text-[#7B2FF7]" />
                   <span className="font-semibold text-[#1F1F2E] tabular-nums">{campaign.budgetLabel}</span>
                 </div>
                 <div className="flex items-center gap-1.5">

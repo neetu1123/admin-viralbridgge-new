@@ -16,7 +16,7 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { label: 'Explore', href: '/campaigns-explore-page' },
+    { label: 'Campaign', href: '/campaigns-explore-page' },
     { label: 'Creators', href: '/creators-explore-page' },
     { label: 'Pricing', href: '/pricing' },
   ];
@@ -34,7 +34,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
              <AppLogo
-            src="/viralbridgge_logo_transparent.png"
+            src="/viralbridge_logo_transparent.png"
             size={150}
             className="text-primary"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

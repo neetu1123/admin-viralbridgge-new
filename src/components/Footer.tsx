@@ -76,7 +76,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
              <AppLogo
-             src="/viralbridgge_logo_transparent.png"
+             src="/viralbridge_logo_transparent.png"
             size={200}
             className="text-primary"
           />
