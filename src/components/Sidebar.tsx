@@ -53,7 +53,8 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
         <AppLogo size={32} />
         {!collapsed && (
-          <span className="font-bold text-slate-800 text-lg tracking-tight">ViralBridge</span>
+          <AppLogo src="/viralbridge_logo_transparent.png"
+            size={200} />
         )}
       </div>
 

@@ -103,8 +103,8 @@ export default function SignUpLoginClient() {
         <div className="relative z-10 flex flex-col h-full px-12 py-10">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <AppLogo size={36} />
-            <span className="text-white font-bold text-xl tracking-tight">ViralBridge</span>
+           <AppLogo src="/viralbridge_logo_transparent.png"
+            size={200} />
           </div>
 
           {/* Hero content */}
@@ -159,8 +159,8 @@ export default function SignUpLoginClient() {
         <div className="max-w-md w-full mx-auto">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <AppLogo size={32} />
-            <span className="font-bold text-slate-800 text-lg">ViralBridge</span>
+              <AppLogo src="/viralbridge_logo_transparent.png"
+            size={200} />
           </div>
 
           {/* Mode tabs */}
