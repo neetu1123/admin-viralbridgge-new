@@ -76,7 +76,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
              <AppLogo
-             src="/viralbridge_logo_transparent.png"
+             src="/viralbridgge_logo_transparent.png"
             size={200}
             className="text-primary"
           />
@@ -100,11 +100,11 @@ export default function Footer() {
 
           {/* Link columns */}
           {Object.entries(FOOTER_LINKS)?.map(([section, links]) => (
-            <div key={`footer-section-${section}`}>
+            <div key={`footer-section-₹{section}`}>
               <h4 className="font-display font-700 text-white text-sm mb-4 uppercase tracking-widest">{section}</h4>
               <ul className="space-y-3">
                 {links?.map((link) => (
-                  <li key={`footer-link-${link?.label}`}>
+                  <li key={`footer-link-₹{link?.label}`}>
                     <Link
                       href={link?.href}
                       className="text-white/50 text-sm hover:text-white transition-colors duration-150"
@@ -121,7 +121,7 @@ export default function Footer() {
         {/* Bottom row */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-sm">
-            © 2026 ViralBridge, Inc. All rights reserved.
+            © 2026 viralbridgge, Inc. All rights reserved.
           </p>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse-soft" />

@@ -181,7 +181,7 @@ function PlanCard({ plan, annual }: { plan: typeof CREATOR_PLANS[0]; annual: boo
 
   return (
     <div
-      className={`relative bg-white rounded-2xl border transition-all duration-200 p-6 flex flex-col gap-5 ${
+      className={`relative bg-white rounded-2xl border transition-all duration-200 p-6 flex flex-col gap-5 ₹{
         plan.popular
           ? 'border-[#7B2FF7] shadow-[0_0_0_3px_rgba(123,47,247,0.12)] shadow-card-hover'
           : 'border-[#E5E7EB] shadow-card hover:shadow-card-hover hover:-translate-y-0.5'
@@ -221,7 +221,7 @@ function PlanCard({ plan, annual }: { plan: typeof CREATOR_PLANS[0]; annual: boo
           </div>
         ) : (
           <div className="flex items-baseline gap-1">
-            <span className="font-display font-800 text-4xl text-[#1F1F2E]">${price}</span>
+            <span className="font-display font-800 text-4xl text-[#1F1F2E]">₹{price}</span>
             <span className="text-[#9AA0B4] text-sm font-medium">/ mo</span>
             {annual && (
               <span className="ml-2 text-[10px] font-semibold text-[#22C55E] bg-[#F0FDF4] px-2 py-0.5 rounded-full">
@@ -231,14 +231,14 @@ function PlanCard({ plan, annual }: { plan: typeof CREATOR_PLANS[0]; annual: boo
           </div>
         )}
         {annual && !isCustom && price > 0 && (
-          <p className="text-[#9AA0B4] text-xs mt-1">Billed annually · ${price * 12}/yr</p>
+          <p className="text-[#9AA0B4] text-xs mt-1">Billed annually · ₹{price * 12}/yr</p>
         )}
       </div>
 
       {/* CTA */}
       <Link
         href="/sign-up-login-screen"
-        className={`w-full text-center py-3 rounded-xl text-sm font-semibold transition-all duration-150 ${
+        className={`w-full text-center py-3 rounded-xl text-sm font-semibold transition-all duration-150 ₹{
           plan.ctaStyle === 'primary' ?'btn-primary' :'border border-[#7B2FF7] text-[#7B2FF7] hover:bg-[#EFEAFF]'
         }`}
       >
@@ -248,7 +248,7 @@ function PlanCard({ plan, annual }: { plan: typeof CREATOR_PLANS[0]; annual: boo
       {/* Features */}
       <div className="space-y-2.5">
         {plan.features.map((f) => (
-          <div key={`feat-${f}`} className="flex items-start gap-2.5">
+          <div key={`feat-₹{f}`} className="flex items-start gap-2.5">
             <div className="w-4 h-4 rounded-full bg-[#EFEAFF] flex items-center justify-center flex-shrink-0 mt-0.5">
               <Check size={10} className="text-[#7B2FF7]" strokeWidth={2.5} />
             </div>
@@ -256,7 +256,7 @@ function PlanCard({ plan, annual }: { plan: typeof CREATOR_PLANS[0]; annual: boo
           </div>
         ))}
         {plan.notIncluded?.map((f) => (
-          <div key={`not-feat-${f}`} className="flex items-start gap-2.5 opacity-40">
+          <div key={`not-feat-₹{f}`} className="flex items-start gap-2.5 opacity-40">
             <div className="w-4 h-4 rounded-full bg-[#F2F3F7] flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-[#9AA0B4] text-[10px] font-bold">–</span>
             </div>
@@ -293,7 +293,7 @@ export default function PricingClient() {
         <div className="inline-flex items-center gap-3 bg-white border border-[#E5E7EB] rounded-2xl p-1.5 shadow-card">
           <button
             onClick={() => setAnnual(false)}
-            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
+            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ₹{
               !annual ? 'bg-[#7B2FF7] text-white shadow-sm' : 'text-[#6B6B8A] hover:text-[#1F1F2E]'
             }`}
           >
@@ -301,12 +301,12 @@ export default function PricingClient() {
           </button>
           <button
             onClick={() => setAnnual(true)}
-            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-150 flex items-center gap-2 ${
+            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-150 flex items-center gap-2 ₹{
               annual ? 'bg-[#7B2FF7] text-white shadow-sm' : 'text-[#6B6B8A] hover:text-[#1F1F2E]'
             }`}
           >
             Annual
-            <span className={`text-[10px] font-700 px-1.5 py-0.5 rounded-full ${annual ? 'bg-white/20 text-white' : 'bg-[#F0FDF4] text-[#22C55E]'}`}>
+            <span className={`text-[10px] font-700 px-1.5 py-0.5 rounded-full ₹{annual ? 'bg-white/20 text-white' : 'bg-[#F0FDF4] text-[#22C55E]'}`}>
               Save 30%
             </span>
           </button>
@@ -319,7 +319,7 @@ export default function PricingClient() {
           <div className="inline-flex bg-white border border-[#E5E7EB] rounded-2xl p-1.5 shadow-card gap-1">
             <button
               onClick={() => setTab('creators')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ₹{
                 tab === 'creators' ?'bg-[#EFEAFF] text-[#7B2FF7]' :'text-[#6B6B8A] hover:text-[#1F1F2E]'
               }`}
             >
@@ -328,7 +328,7 @@ export default function PricingClient() {
             </button>
             <button
               onClick={() => setTab('brands')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ₹{
                 tab === 'brands' ?'bg-[#EFEAFF] text-[#7B2FF7]' :'text-[#6B6B8A] hover:text-[#1F1F2E]'
               }`}
             >
@@ -351,7 +351,7 @@ export default function PricingClient() {
             All plans include
           </h2>
           <p className="text-[#6B6B8A] mb-8 max-w-lg mx-auto">
-            Every ViralBridge account comes with these core features, no matter which plan you choose.
+            Every viralbridgge account comes with these core features, no matter which plan you choose.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
@@ -377,7 +377,7 @@ export default function PricingClient() {
           <div className="space-y-3">
             {FAQS.map((faq, i) => (
               <div
-                key={`faq-${i}`}
+                key={`faq-₹{i}`}
                 className="bg-white rounded-2xl border border-[#E5E7EB] shadow-card overflow-hidden"
               >
                 <button
@@ -385,7 +385,7 @@ export default function PricingClient() {
                   className="w-full flex items-center justify-between px-5 py-4 text-left"
                 >
                   <span className="font-display font-700 text-[#1F1F2E] text-sm pr-4">{faq.q}</span>
-                  <span className={`text-[#7B2FF7] font-bold text-lg flex-shrink-0 transition-transform duration-200 ${openFaq === i ? 'rotate-45' : ''}`}>
+                  <span className={`text-[#7B2FF7] font-bold text-lg flex-shrink-0 transition-transform duration-200 ₹{openFaq === i ? 'rotate-45' : ''}`}>
                     +
                   </span>
                 </button>

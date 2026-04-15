@@ -11,8 +11,8 @@ interface ActiveFilterChipsProps {
 }
 
 function formatFollowers(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  if (n >= 1000000) return `₹{(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `₹{(n / 1000).toFixed(0)}K`;
   return String(n);
 }
 
@@ -22,14 +22,14 @@ export default function ActiveFilterChips({ filters, updateFilter, onReset }: Ac
   if (filters.search) {
     chips.push({
       id: 'chip-search',
-      label: `"${filters.search}"`,
+      label: `"₹{filters.search}"`,
       onRemove: () => updateFilter('search', ''),
     });
   }
 
   filters.categories.forEach((cat) => {
     chips.push({
-      id: `chip-cat-${cat}`,
+      id: `chip-cat-₹{cat}`,
       label: cat,
       onRemove: () => updateFilter('categories', filters.categories.filter((c) => c !== cat)),
     });
@@ -37,7 +37,7 @@ export default function ActiveFilterChips({ filters, updateFilter, onReset }: Ac
 
   filters.platforms.forEach((p) => {
     chips.push({
-      id: `chip-platform-${p}`,
+      id: `chip-platform-₹{p}`,
       label: p,
       onRemove: () => updateFilter('platforms', filters.platforms.filter((pl) => pl !== p)),
     });
@@ -46,7 +46,7 @@ export default function ActiveFilterChips({ filters, updateFilter, onReset }: Ac
   if (filters.followersMin > 0 || filters.followersMax < 5000000) {
     chips.push({
       id: 'chip-followers',
-      label: `${formatFollowers(filters.followersMin)} – ${formatFollowers(filters.followersMax)} followers`,
+      label: `₹{formatFollowers(filters.followersMin)} – ₹{formatFollowers(filters.followersMax)} followers`,
       onRemove: () => { updateFilter('followersMin', 0); updateFilter('followersMax', 5000000); },
     });
   }
@@ -54,7 +54,7 @@ export default function ActiveFilterChips({ filters, updateFilter, onReset }: Ac
   if (filters.engagementMin > 0) {
     chips.push({
       id: 'chip-engagement',
-      label: `≥ ${filters.engagementMin}% engagement`,
+      label: `≥ ₹{filters.engagementMin}% engagement`,
       onRemove: () => updateFilter('engagementMin', 0),
     });
   }
@@ -62,7 +62,7 @@ export default function ActiveFilterChips({ filters, updateFilter, onReset }: Ac
   if (filters.rateMax < 10000) {
     chips.push({
       id: 'chip-rate',
-      label: `Rate ≤ $${filters.rateMax.toLocaleString()}`,
+      label: `Rate ≤ ₹₹{filters.rateMax.toLocaleString()}`,
       onRemove: () => updateFilter('rateMax', 10000),
     });
   }
@@ -81,7 +81,7 @@ export default function ActiveFilterChips({ filters, updateFilter, onReset }: Ac
           <button
             onClick={chip.onRemove}
             className="hover:text-[#5B1FD7] transition-colors"
-            aria-label={`Remove ${chip.label} filter`}
+            aria-label={`Remove ₹{chip.label} filter`}
           >
             <X size={11} />
           </button>

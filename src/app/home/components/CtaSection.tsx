@@ -28,7 +28,7 @@ export default function CtaSection() {
               Start Growing Today
             </h2>
             <p className="text-white/80 text-lg max-w-xl mx-auto leading-relaxed mb-10">
-              Whether you are a creator ready to monetize your audience or a brand looking for authentic partnerships — ViralBridge is where growth happens.
+              Whether you are a creator ready to monetize your audience or a brand looking for authentic partnerships — viralbridgge is where growth happens.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

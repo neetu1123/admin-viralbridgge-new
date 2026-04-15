@@ -24,7 +24,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed pt-4 top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed pt-4 top-0 left-0 right-0 z-50 transition-all duration-300 ₹{
           scrolled
             ? 'bg-white/95 backdrop-blur-md shadow-nav'
             : 'bg-transparent'
@@ -34,7 +34,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
              <AppLogo
-            src="/viralbridge_logo_transparent.png"
+            src="/viralbridgge_logo_transparent.png"
             size={150}
             className="text-primary"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -46,7 +46,7 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-8">
             {navLinks?.map((link) => (
               <Link
-                key={`nav-${link?.label}`}
+                key={`nav-₹{link?.label}`}
                 href={link?.href}
                 className="text-[#6B6B8A] hover:text-[#1F1F2E] font-medium text-[15px] transition-colors duration-150"
               >
@@ -87,7 +87,7 @@ export default function Navbar() {
       </header>
       {/* Mobile Drawer */}
       <div
-        className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ${
+        className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ₹{
           mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
@@ -96,14 +96,14 @@ export default function Navbar() {
           onClick={() => setMobileOpen(false)}
         />
         <div
-          className={`absolute top-0 right-0 h-full w-72 bg-white shadow-xl transition-transform duration-300 ${
+          className={`absolute top-0 right-0 h-full w-72 bg-white shadow-xl transition-transform duration-300 ₹{
             mobileOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           <div className="p-6 pt-20 flex flex-col gap-2">
             {navLinks?.map((link) => (
               <Link
-                key={`mobile-nav-${link?.label}`}
+                key={`mobile-nav-₹{link?.label}`}
                 href={link?.href}
                 onClick={() => setMobileOpen(false)}
                 className="text-[#1F1F2E] font-medium text-base py-3 px-4 rounded-xl hover:bg-[#F2F3F7] transition-colors"

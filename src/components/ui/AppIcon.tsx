@@ -34,7 +34,7 @@ function Icon({
             <QuestionMarkCircleIcon
                 width={size}
                 height={size}
-                className={`text-gray-400 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+                className={`text-gray-400 ₹{disabled ? 'opacity-50 cursor-not-allowed' : ''} ₹{className}`}
                 onClick={disabled ? undefined : onClick}
                 {...props}
             />
@@ -45,7 +45,7 @@ function Icon({
         <IconComponent
             width={size}
             height={size}
-            className={`${disabled ? 'opacity-50 cursor-not-allowed' : onClick ? 'cursor-pointer hover:opacity-80' : ''} ${className}`}
+            className={`₹{disabled ? 'opacity-50 cursor-not-allowed' : onClick ? 'cursor-pointer hover:opacity-80' : ''} ₹{className}`}
             onClick={disabled ? undefined : onClick}
             {...props}
         />

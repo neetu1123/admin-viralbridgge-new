@@ -44,7 +44,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 6.8,
   engagementDisplay: '6.8%',
   avgRate: 1800,
-  avgRateDisplay: '$1,800/post',
+  avgRateDisplay: '₹1,800/post',
   responseRate: 96,
   completedDeals: 42,
   rating: 4.9,
@@ -68,7 +68,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 4.2,
   engagementDisplay: '4.2%',
   avgRate: 3200,
-  avgRateDisplay: '$3,200/video',
+  avgRateDisplay: '₹3,200/video',
   responseRate: 88,
   completedDeals: 67,
   rating: 4.8,
@@ -92,7 +92,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 8.1,
   engagementDisplay: '8.1%',
   avgRate: 1200,
-  avgRateDisplay: '$1,200/post',
+  avgRateDisplay: '₹1,200/post',
   responseRate: 99,
   completedDeals: 28,
   rating: 5.0,
@@ -116,7 +116,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 3.6,
   engagementDisplay: '3.6%',
   avgRate: 4500,
-  avgRateDisplay: '$4,500/video',
+  avgRateDisplay: '₹4,500/video',
   responseRate: 82,
   completedDeals: 91,
   rating: 4.7,
@@ -140,7 +140,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 5.9,
   engagementDisplay: '5.9%',
   avgRate: 2400,
-  avgRateDisplay: '$2,400/post',
+  avgRateDisplay: '₹2,400/post',
   responseRate: 94,
   completedDeals: 55,
   rating: 4.9,
@@ -164,7 +164,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 7.4,
   engagementDisplay: '7.4%',
   avgRate: 5800,
-  avgRateDisplay: '$5,800/post',
+  avgRateDisplay: '₹5,800/post',
   responseRate: 78,
   completedDeals: 33,
   rating: 4.6,
@@ -188,7 +188,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 4.8,
   engagementDisplay: '4.8%',
   avgRate: 3800,
-  avgRateDisplay: '$3,800/post',
+  avgRateDisplay: '₹3,800/post',
   responseRate: 91,
   completedDeals: 48,
   rating: 4.8,
@@ -212,7 +212,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 6.2,
   engagementDisplay: '6.2%',
   avgRate: 2100,
-  avgRateDisplay: '$2,100/video',
+  avgRateDisplay: '₹2,100/video',
   responseRate: 97,
   completedDeals: 37,
   rating: 4.9,
@@ -236,7 +236,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 5.3,
   engagementDisplay: '5.3%',
   avgRate: 2900,
-  avgRateDisplay: '$2,900/post',
+  avgRateDisplay: '₹2,900/post',
   responseRate: 89,
   completedDeals: 61,
   rating: 4.7,
@@ -260,7 +260,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 3.9,
   engagementDisplay: '3.9%',
   avgRate: 4200,
-  avgRateDisplay: '$4,200/video',
+  avgRateDisplay: '₹4,200/video',
   responseRate: 85,
   completedDeals: 44,
   rating: 4.8,
@@ -284,7 +284,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 9.4,
   engagementDisplay: '9.4%',
   avgRate: 950,
-  avgRateDisplay: '$950/post',
+  avgRateDisplay: '₹950/post',
   responseRate: 100,
   completedDeals: 19,
   rating: 5.0,
@@ -308,7 +308,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 11.2,
   engagementDisplay: '11.2%',
   avgRate: 3600,
-  avgRateDisplay: '$3,600/post',
+  avgRateDisplay: '₹3,600/post',
   responseRate: 93,
   completedDeals: 26,
   rating: 4.9,
@@ -332,7 +332,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 7.6,
   engagementDisplay: '7.6%',
   avgRate: 1500,
-  avgRateDisplay: '$1,500/post',
+  avgRateDisplay: '₹1,500/post',
   responseRate: 98,
   completedDeals: 31,
   rating: 4.9,
@@ -356,7 +356,7 @@ const ALL_CREATORS: Creator[] = [
   engagement: 5.1,
   engagementDisplay: '5.1%',
   avgRate: 2800,
-  avgRateDisplay: '$2,800/video',
+  avgRateDisplay: '₹2,800/video',
   responseRate: 87,
   completedDeals: 52,
   rating: 4.7,
@@ -398,10 +398,10 @@ export default function CreatorGrid({ filters }: CreatorGridProps) {
       const next = new Set(prev);
       if (next.has(creatorId)) {
         next.delete(creatorId);
-        toast.success(`Removed ${name} from saved creators`);
+        toast.success(`Removed ₹{name} from saved creators`);
       } else {
         next.add(creatorId);
-        toast.success(`Saved ${name} to your list`);
+        toast.success(`Saved ₹{name} to your list`);
       }
       return next;
     });
@@ -546,7 +546,7 @@ export default function CreatorGrid({ filters }: CreatorGridProps) {
                       {/* Save button */}
                       <button
                         onClick={() => toggleSave(creator.id, creator.name)}
-                        className={`flex-shrink-0 p-1.5 rounded-lg transition-all duration-150 ${
+                        className={`flex-shrink-0 p-1.5 rounded-lg transition-all duration-150 ₹{
                         isSaved ?
                         'bg-[#FFF0F6] text-[#F357A8]' :
                         'text-[#9AA0B4] hover:bg-[#F2F3F7] hover:text-[#6B6B8A]'}`
@@ -582,7 +582,7 @@ export default function CreatorGrid({ filters }: CreatorGridProps) {
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   {creator.tags.map((tag) =>
                   <span
-                    key={`tag-${creator.id}-${tag}`}
+                    key={`tag-₹{creator.id}-₹{tag}`}
                     className="text-[10px] font-medium text-[#9AA0B4] bg-[#F2F3F7] px-2 py-0.5 rounded-full">
                     
                       {tag}
@@ -601,11 +601,11 @@ export default function CreatorGrid({ filters }: CreatorGridProps) {
                   icon: TrendingUp,
                   color: creator.engagement >= 6 ? '#22C55E' : creator.engagement >= 3 ? '#F9A826' : '#9AA0B4'
                 },
-                { label: 'Response', value: `${creator.responseRate}%`, icon: MessageCircle, color: '#7B2FF7' },
+                { label: 'Response', value: `₹{creator.responseRate}%`, icon: MessageCircle, color: '#7B2FF7' },
                 { label: 'Deals', value: String(creator.completedDeals), icon: null, color: '#1F1F2E' }].
                 map((stat, idx) =>
                 <div
-                  key={`stat-${creator.id}-${idx}`}
+                  key={`stat-₹{creator.id}-₹{idx}`}
                   className="flex flex-col items-center justify-center py-3 px-1 border-r border-[#F2F3F7] last:border-r-0">
                   
                     {stat.icon && <stat.icon size={11} style={{ color: stat.color }} className="mb-0.5" />}
@@ -636,7 +636,7 @@ export default function CreatorGrid({ filters }: CreatorGridProps) {
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => toast.success(`Invite sent to ${creator.name}!`)}
+                    onClick={() => toast.success(`Invite sent to ₹{creator.name}!`)}
                     className="py-2 rounded-xl text-white text-xs font-display font-700 transition-all duration-150 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                     style={{ background: 'linear-gradient(90deg, #7B2FF7, #F357A8)' }}>
                     
@@ -644,7 +644,7 @@ export default function CreatorGrid({ filters }: CreatorGridProps) {
                   </button>
                   <button
                     className="py-2 rounded-xl border border-[#E5E7EB] text-[#6B6B8A] text-xs font-medium hover:border-[#7B2FF7] hover:text-[#7B2FF7] hover:bg-[#EFEAFF] transition-all duration-150 flex items-center justify-center gap-1"
-                    onClick={() => toast.info(`Opening ${creator.name}'s full profile...`)}>
+                    onClick={() => toast.info(`Opening ₹{creator.name}'s full profile...`)}>
                     
                     <ExternalLink size={11} />
                     View Profile
@@ -685,9 +685,9 @@ export default function CreatorGrid({ filters }: CreatorGridProps) {
 
             return (
               <button
-                key={`page-btn-${pageNum}`}
+                key={`page-btn-₹{pageNum}`}
                 onClick={() => handlePageChange(pageNum)}
-                className={`w-9 h-9 rounded-xl text-sm font-display font-600 transition-all duration-150 ${
+                className={`w-9 h-9 rounded-xl text-sm font-display font-600 transition-all duration-150 ₹{
                 isActive ?
                 'text-white shadow-sm' :
                 'border border-[#E5E7EB] text-[#6B6B8A] hover:border-[#7B2FF7] hover:text-[#7B2FF7] hover:bg-[#EFEAFF]'}`

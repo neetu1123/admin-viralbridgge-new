@@ -53,7 +53,7 @@ export default function ExploreHeader({ filters, updateFilter, activeFilterCount
             className="appearance-none pl-4 pr-9 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#1F1F2E] text-sm outline-none transition-all duration-150 focus:border-[#7B2FF7] focus:ring-2 focus:ring-[#7B2FF7]/10 cursor-pointer min-w-[180px]"
           >
             {SORT_OPTIONS.map((opt) => (
-              <option key={`sort-${opt.value}`} value={opt.value}>{opt.label}</option>
+              <option key={`sort-₹{opt.value}`} value={opt.value}>{opt.label}</option>
             ))}
           </select>
           <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9AA0B4] pointer-events-none" />

@@ -57,7 +57,7 @@ export default function RoleSelector({ onSelect }: RoleSelectorProps) {
           <button
             key={role.id}
             onClick={() => setSelected(role.value)}
-            className={`text-left p-5 rounded-2xl border-2 transition-all duration-200 hover:shadow-md ${
+            className={`text-left p-5 rounded-2xl border-2 transition-all duration-200 hover:shadow-md ₹{
               selected === role.value
                 ? 'shadow-md scale-[1.01]'
                 : 'border-[#E5E7EB] hover:border-[#D1D5DB]'
@@ -91,7 +91,7 @@ export default function RoleSelector({ onSelect }: RoleSelectorProps) {
                 <p className="text-[#6B6B8A] text-sm mt-0.5 mb-3">{role.subtitle}</p>
                 <ul className="space-y-1">
                   {role.perks.map((perk) => (
-                    <li key={`perk-${role.id}-${perk}`} className="flex items-center gap-2 text-xs text-[#6B6B8A]">
+                    <li key={`perk-₹{role.id}-₹{perk}`} className="flex items-center gap-2 text-xs text-[#6B6B8A]">
                       <div
                         className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                         style={{ backgroundColor: role.color }}

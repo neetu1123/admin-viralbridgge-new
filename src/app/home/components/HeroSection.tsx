@@ -102,7 +102,7 @@ export default function HeroSection() {
                 <span className="gradient-text">Instantly</span>
               </h1>
               <p className="mt-6 text-[#6B6B8A] text-lg leading-relaxed max-w-lg font-body">
-                ViralBridge is the all-in-one platform where brands find authentic creators, launch campaigns, and track ROI — while creators discover paid opportunities that match their niche.
+                viralbridgge is the all-in-one platform where brands find authentic creators, launch campaigns, and track ROI — while creators discover paid opportunities that match their niche.
               </p>
             </div>
 
@@ -113,7 +113,7 @@ export default function HeroSection() {
               'Verified creators only',
               'Instant matching']?.
               map((item) =>
-              <div key={`trust-${item}`} className="flex items-center gap-1.5">
+              <div key={`trust-₹{item}`} className="flex items-center gap-1.5">
                   <CheckCircle size={15} className="text-[#7B2FF7]" />
                   <span className="text-[#6B6B8A] text-sm font-medium">{item}</span>
                 </div>
@@ -136,7 +136,7 @@ export default function HeroSection() {
               <span className="text-[#9AA0B4] text-sm font-medium">Works with</span>
               {PLATFORM_BADGES?.map((p) =>
               <span
-                key={`platform-badge-${p?.name}`}
+                key={`platform-badge-₹{p?.name}`}
                 className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#E5E7EB]"
                 style={{ color: p?.color, backgroundColor: p?.bg }}>
                 
@@ -181,7 +181,7 @@ export default function HeroSection() {
                 {MOCK_CREATORS?.map((creator, idx) =>
                 <div
                   key={creator?.id}
-                  className={`flex items-center gap-3 p-2.5 rounded-xl transition-all duration-300 cursor-pointer ${
+                  className={`flex items-center gap-3 p-2.5 rounded-xl transition-all duration-300 cursor-pointer ₹{
                   idx === activeCreator ?
                   'bg-[#EFEAFF] border border-[#7B2FF7]/20' :
                   'hover:bg-[#F8F7FC]'}`
@@ -227,8 +227,8 @@ export default function HeroSection() {
                   
                 </div>
                 <div className="flex justify-between text-[10px] text-[#9AA0B4] mt-1">
-                  <span>$8,160 spent</span>
-                  <span>$12,000 budget</span>
+                  <span>₹8,160 spent</span>
+                  <span>₹12,000 budget</span>
                 </div>
               </div>
             </div>
@@ -250,7 +250,7 @@ export default function HeroSection() {
               </div>
               <div>
                 <div className="text-[#1F1F2E] font-display font-700 text-xs">Payment Sent!</div>
-                <div className="text-[#9AA0B4] text-[10px]">$2,400 to Marcus Reid</div>
+                <div className="text-[#9AA0B4] text-[10px]">₹2,400 to Marcus Reid</div>
               </div>
             </div>
           </div>

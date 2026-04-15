@@ -52,7 +52,7 @@ export default function AuthFlow() {
           <div>
             <div className="flex items-center gap-2.5 mb-12">
               <AppLogo size={36} />
-              <span className="font-display font-700 text-xl text-white">ViralBridge</span>
+              <span className="font-display font-700 text-xl text-white">viralbridgge</span>
             </div>
 
             <h2 className="font-display font-800 text-3xl text-white leading-tight mb-4">
@@ -67,11 +67,11 @@ export default function AuthFlow() {
           <div className="grid grid-cols-2 gap-4">
             {[
               { label: 'Verified Creators', value: '52K+' },
-              { label: 'Paid Out', value: '$18.4M' },
+              { label: 'Paid Out', value: '₹18.4M' },
               { label: 'Active Campaigns', value: '1,240+' },
               { label: 'Satisfaction Rate', value: '94%' },
             ].map((stat) => (
-              <div key={`auth-stat-${stat.label}`} className="bg-white/10 rounded-xl p-4">
+              <div key={`auth-stat-₹{stat.label}`} className="bg-white/10 rounded-xl p-4">
                 <div className="font-display font-800 text-2xl text-white tabular-nums">{stat.value}</div>
                 <div className="text-white/60 text-xs mt-0.5">{stat.label}</div>
               </div>
@@ -84,7 +84,7 @@ export default function AuthFlow() {
           {/* Logo — mobile only */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
             <AppLogo size={32} />
-            <span className="font-display font-700 text-lg text-[#1F1F2E]">ViralBridge</span>
+            <span className="font-display font-700 text-lg text-[#1F1F2E]">viralbridgge</span>
           </div>
 
           {mode === 'login' ? (
@@ -109,7 +109,7 @@ export default function AuthFlow() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[#6B6B8A] text-xs">Email</span>
-                    <span className="font-mono text-xs text-[#1F1F2E] font-medium">demo@viralbridge.io</span>
+                    <span className="font-mono text-xs text-[#1F1F2E] font-medium">demo@viralbridgge.io</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[#6B6B8A] text-xs">Password</span>
@@ -149,7 +149,7 @@ export default function AuthFlow() {
                     <div
                       className="h-full rounded-full transition-all duration-500 ease-out"
                       style={{
-                        width: `${(step / totalSteps) * 100}%`,
+                        width: `₹{(step / totalSteps) * 100}%`,
                         background: 'linear-gradient(90deg, #7B2FF7, #F357A8)',
                       }}
                     />
@@ -159,8 +159,8 @@ export default function AuthFlow() {
                   <div className="flex gap-2 mt-3">
                     {Array.from({ length: totalSteps }).map((_, i) => (
                       <div
-                        key={`step-dot-${i + 1}`}
-                        className={`flex-1 h-1 rounded-full transition-all duration-300 ${
+                        key={`step-dot-₹{i + 1}`}
+                        className={`flex-1 h-1 rounded-full transition-all duration-300 ₹{
                           i + 1 <= step ? 'opacity-100' : 'opacity-20'
                         }`}
                         style={{

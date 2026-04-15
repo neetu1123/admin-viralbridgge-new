@@ -50,8 +50,8 @@ const BRAND_INDUSTRIES = [
 ];
 
 const BUDGET_RANGES = [
-  'Under $1,000/month', '$1,000 – $5,000/month', '$5,000 – $20,000/month',
-  '$20,000 – $50,000/month', '$50,000+/month',
+  'Under ₹1,000/month', '₹1,000 – ₹5,000/month', '₹5,000 – ₹20,000/month',
+  '₹20,000 – ₹50,000/month', '₹50,000+/month',
 ];
 
 const COMPANY_SIZES = ['1–10 employees', '11–50 employees', '51–200 employees', '201–1,000 employees', '1,000+ employees'];
@@ -82,7 +82,7 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
     await new Promise((resolve) => setTimeout(resolve, 1400));
     setLoading(false);
     setDone(true);
-    toast.success('Profile set up! Welcome to ViralBridge 🎉');
+    toast.success('Profile set up! Welcome to viralbridgge 🎉');
   };
 
   if (done) {
@@ -168,13 +168,13 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
             </label>
             <select
               {...register('niche' as keyof CreatorOnboarding, { required: 'Please select your niche' })}
-              className={`w-full px-4 py-2.5 rounded-xl border text-[#1F1F2E] text-sm outline-none transition-all duration-150 focus:border-[#7B2FF7] focus:ring-2 focus:ring-[#7B2FF7]/10 bg-white ${
+              className={`w-full px-4 py-2.5 rounded-xl border text-[#1F1F2E] text-sm outline-none transition-all duration-150 focus:border-[#7B2FF7] focus:ring-2 focus:ring-[#7B2FF7]/10 bg-white ₹{
                 errors['niche' as keyof typeof errors] ? 'border-red-400' : 'border-[#E5E7EB]'
               }`}
             >
               <option value="">Select your content niche</option>
               {CREATOR_NICHES.map((niche) => (
-                <option key={`niche-${niche}`} value={niche}>{niche}</option>
+                <option key={`niche-₹{niche}`} value={niche}>{niche}</option>
               ))}
             </select>
             {errors['niche' as keyof typeof errors] && (
@@ -193,7 +193,7 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
             >
               <option value="">Select follower range</option>
               {FOLLOWER_RANGES.map((range) => (
-                <option key={`followers-${range}`} value={range}>{range}</option>
+                <option key={`followers-₹{range}`} value={range}>{range}</option>
               ))}
             </select>
           </div>
@@ -232,7 +232,7 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
             >
               <option value="">Select your industry</option>
               {BRAND_INDUSTRIES.map((industry) => (
-                <option key={`industry-${industry}`} value={industry}>{industry}</option>
+                <option key={`industry-₹{industry}`} value={industry}>{industry}</option>
               ))}
             </select>
           </div>
@@ -248,7 +248,7 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
             >
               <option value="">Select company size</option>
               {COMPANY_SIZES.map((size) => (
-                <option key={`size-${size}`} value={size}>{size}</option>
+                <option key={`size-₹{size}`} value={size}>{size}</option>
               ))}
             </select>
           </div>
@@ -264,7 +264,7 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
             >
               <option value="">Select monthly budget</option>
               {BUDGET_RANGES.map((budget) => (
-                <option key={`budget-${budget}`} value={budget}>{budget}</option>
+                <option key={`budget-₹{budget}`} value={budget}>{budget}</option>
               ))}
             </select>
           </div>
@@ -280,7 +280,7 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
             >
               <option value="">Select primary goal</option>
               {CAMPAIGN_GOALS.map((goal) => (
-                <option key={`goal-${goal}`} value={goal}>{goal}</option>
+                <option key={`goal-₹{goal}`} value={goal}>{goal}</option>
               ))}
             </select>
           </div>
@@ -294,10 +294,10 @@ export default function OnboardingForm({ role }: OnboardingFormProps) {
             <div className="flex flex-wrap gap-2">
               {PLATFORMS.map((platform) => (
                 <button
-                  key={`platform-select-${platform}`}
+                  key={`platform-select-₹{platform}`}
                   type="button"
                   onClick={() => togglePlatform(platform)}
-                  className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 ${
+                  className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 ₹{
                     selectedPlatforms.includes(platform)
                       ? 'bg-[#7B2FF7] border-[#7B2FF7] text-white'
                       : 'border-[#E5E7EB] text-[#6B6B8A] hover:border-[#7B2FF7] hover:text-[#7B2FF7]'

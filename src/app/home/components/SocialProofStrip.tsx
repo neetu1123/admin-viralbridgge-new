@@ -2,7 +2,7 @@ import React from 'react';
 
 const STATS = [
   { id: 'proof-1', value: '52,000+', label: 'Verified Creators' },
-  { id: 'proof-2', value: '$18.4M', label: 'Paid to Creators' },
+  { id: 'proof-2', value: '₹18.4M', label: 'Paid to Creators' },
   { id: 'proof-3', value: '1,240+', label: 'Active Campaigns' },
   { id: 'proof-4', value: '94%', label: 'Brand Satisfaction' },
 ];

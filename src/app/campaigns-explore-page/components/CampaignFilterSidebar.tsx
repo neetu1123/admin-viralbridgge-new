@@ -65,8 +65,8 @@ function FilterSection({
 }
 
 function formatBudget(n: number): string {
-  if (n >= 1000) return `$${(n / 1000).toFixed(0)}K`;
-  return `$${n}`;
+  if (n >= 1000) return `₹₹{(n / 1000).toFixed(0)}K`;
+  return `₹₹{n}`;
 }
 
 export default function CampaignFilterSidebar({ filters, updateFilter, onReset }: CampaignFilterSidebarProps) {
@@ -159,18 +159,18 @@ export default function CampaignFilterSidebar({ filters, updateFilter, onReset }
           {/* Budget presets */}
           <div className="flex flex-wrap gap-1.5">
             {[
-              { label: 'Under $1K', min: 0, max: 1000 },
-              { label: '$1K–$5K', min: 1000, max: 5000 },
-              { label: '$5K–$15K', min: 5000, max: 15000 },
-              { label: '$15K+', min: 15000, max: 50000 },
+              { label: 'Under ₹1K', min: 0, max: 1000 },
+              { label: '₹1K–₹5K', min: 1000, max: 5000 },
+              { label: '₹5K–₹15K', min: 5000, max: 15000 },
+              { label: '₹15K+', min: 15000, max: 50000 },
             ].map((preset) => (
               <button
-                key={`budget-preset-${preset.label}`}
+                key={`budget-preset-₹{preset.label}`}
                 onClick={() => {
                   updateFilter('budgetMin', preset.min);
                   updateFilter('budgetMax', preset.max);
                 }}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all duration-150 ${
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all duration-150 ₹{
                   filters.budgetMin === preset.min && filters.budgetMax === preset.max
                     ? 'bg-[#EFEAFF] border-[#7B2FF7] text-[#7B2FF7]'
                     : 'border-[#E5E7EB] text-[#9AA0B4] hover:border-[#7B2FF7] hover:text-[#7B2FF7]'
@@ -188,9 +188,9 @@ export default function CampaignFilterSidebar({ filters, updateFilter, onReset }
         <div className="flex flex-wrap gap-2">
           {PLATFORMS.map((p) => (
             <button
-              key={`filter-platform-${p}`}
+              key={`filter-platform-₹{p}`}
               onClick={() => togglePlatform(p)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150 ₹{
                 filters.platforms.includes(p)
                   ? 'bg-[#7B2FF7] border-[#7B2FF7] text-white'
                   : 'border-[#E5E7EB] text-[#6B6B8A] hover:border-[#7B2FF7] hover:text-[#7B2FF7]'
@@ -207,12 +207,12 @@ export default function CampaignFilterSidebar({ filters, updateFilter, onReset }
         <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
           {CATEGORIES.map((cat) => (
             <label
-              key={`filter-cat-${cat}`}
+              key={`filter-cat-₹{cat}`}
               className="flex items-center gap-2.5 cursor-pointer group py-0.5"
             >
               <div
                 onClick={() => toggleCategory(cat)}
-                className={`w-4 h-4 rounded flex items-center justify-center border transition-all duration-150 flex-shrink-0 cursor-pointer ${
+                className={`w-4 h-4 rounded flex items-center justify-center border transition-all duration-150 flex-shrink-0 cursor-pointer ₹{
                   filters.categories.includes(cat)
                     ? 'bg-[#7B2FF7] border-[#7B2FF7]'
                     : 'border-[#D1D5DB] group-hover:border-[#7B2FF7]'
@@ -226,7 +226,7 @@ export default function CampaignFilterSidebar({ filters, updateFilter, onReset }
               </div>
               <span
                 onClick={() => toggleCategory(cat)}
-                className={`text-sm transition-colors ${
+                className={`text-sm transition-colors ₹{
                   filters.categories.includes(cat) ? 'text-[#7B2FF7] font-medium' : 'text-[#6B6B8A] group-hover:text-[#1F1F2E]'
                 }`}
               >
@@ -242,9 +242,9 @@ export default function CampaignFilterSidebar({ filters, updateFilter, onReset }
         <div className="space-y-1.5">
           {DEADLINE_OPTIONS.map((opt) => (
             <button
-              key={`deadline-${opt.value}`}
+              key={`deadline-₹{opt.value}`}
               onClick={() => updateFilter('deadline', opt.value)}
-              className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-all duration-150 ${
+              className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-all duration-150 ₹{
                 filters.deadline === opt.value
                   ? 'bg-[#EFEAFF] text-[#7B2FF7] font-medium'
                   : 'text-[#6B6B8A] hover:bg-[#F2F3F7] hover:text-[#1F1F2E]'
