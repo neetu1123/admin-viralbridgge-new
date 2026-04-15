@@ -46,16 +46,15 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
 
   return (
     <aside
-      className={`relative flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}
+      className={`relative  bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}
       style={{ minHeight: '100vh' }}
     >
       {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
-        <AppLogo size={32} />
-        {!collapsed && (
+      <div className={` px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
+        {/* <AppLogo size={32} /> */}
+        
           <AppLogo src="/viralbridge_logo_transparent.png"
             size={200} />
-        )}
       </div>
 
       {/* Role badge */}
