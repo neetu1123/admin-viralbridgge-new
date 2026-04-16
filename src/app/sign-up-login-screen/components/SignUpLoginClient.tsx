@@ -29,9 +29,9 @@ interface SignupForm {
 }
 
 const demoCredentials = [
-  { role: 'Creator', email: 'sofia@viralbridge.io', password: 'creator_demo_2026' },
-  { role: 'Brand',   email: 'brand@novaspark.co',  password: 'brand_demo_2026' },
-  { role: 'Admin',   email: 'admin@viralbridge.io', password: 'admin_demo_2026' },
+  { role: 'Creator', email: 'creator@gmail.com', password: 'creator@1234' },
+  { role: 'Brand',   email: 'brand@gmail.com',  password: 'brand@1234' },
+  { role: 'Admin',   email: 'admin@gmail.com', password: 'admin@1234' },
 ];
 
 const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing', 'Parenting', 'Sustainability'];
