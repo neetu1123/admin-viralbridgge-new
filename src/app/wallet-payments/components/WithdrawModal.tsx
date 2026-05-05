@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import Modal from '@/src/components/ui/Modal';
 import { DollarSign, AlertCircle } from 'lucide-react';
 
@@ -18,22 +18,26 @@ interface WithdrawModalProps {
 
 export default function WithdrawModal({ availableBalance, onClose, onSuccess }: WithdrawModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<WithdrawForm>({
+  const { register, handleSubmit, formState: { errors }, control, setValue } = useForm<WithdrawForm>({
     defaultValues: { method: 'paypal' }
   });
+  
 
-  const amount = parseFloat(watch('amount') || '0');
-  const fee = amount > 0 ? Math.min(amount * 0.015, 15) : 0;
-  const net = amount - fee;
 
-  const onSubmit = async (data: WithdrawForm) => {
+
+  const onSubmit = async () => {
     setIsSubmitting(true);
-    // BACKEND: POST /api/wallet/withdraw { amount: data.amount, method: data.method, accountDetail: data.accountDetail }
+    // BACKEND: POST /api/wallet/withdraw { amount, method, accountDetail }
     await new Promise(r => setTimeout(r, 1200));
     setIsSubmitting(false);
     onSuccess();
   };
 
+  // Use useWatch to avoid memoization issues with React Compiler
+  const amountValue = useWatch({ control, name: 'amount' }) || '0';
+  const amount = parseFloat(amountValue);
+  const fee = amount > 0 ? Math.min(amount * 0.015, 15) : 0;
+  const net = amount - fee;
   return (
     <Modal open onClose={onClose} title="Withdraw Funds" size="sm">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -134,7 +138,7 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
         )}
 
         <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <AlertCircle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle size={14} className="text-amber-600 shrink-0 mt-0.5" />
           <p className="text-xs text-amber-700">Processing takes 1–3 business days. Funds must not be in escrow to withdraw.</p>
         </div>
 

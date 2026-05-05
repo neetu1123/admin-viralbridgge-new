@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppLogo from './ui/AppLogo';
-import { Search, Briefcase, Wallet, MessageSquare, ShieldCheck, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, TrendingUp, Users, FileText, CreditCard } from 'lucide-react';
-// import Icon from '@/components/ui/AppIcon';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
+import AppIcon from './ui/AppIcon';
 
 
 interface SidebarProps {
@@ -22,49 +22,202 @@ const creatorNav = [
 const brandNav = [
   { label: 'Campaigns', icon: Briefcase, href: '/brand-campaign-management', badge: null },
   { label: 'Applicants', icon: Users, href: '/brand-campaign-management', badge: '12' },
+  { label: 'Creator Discovery', icon: Compass, href: '/creator-discovery', badge: null },
+  { label: 'My Creators', icon: BookOpen, href: '/my-creators', badge: null },
   { label: 'Messages', icon: MessageSquare, href: '/messaging-inbox', badge: '2' },
   { label: 'Wallet & Spend', icon: CreditCard, href: '/wallet-payments', badge: null },
-  { label: 'Analytics', icon: TrendingUp, href: '/brand-campaign-management', badge: null },
+  { label: 'Analytics', icon: BarChart3, href: '/analytics', badge: null },
 ];
 
-const adminNav = [
-  { label: 'Admin Panel', icon: ShieldCheck, href: '/admin-panel', badge: null },
-  { label: 'Users', icon: Users, href: '/admin-panel', badge: '4' },
-  { label: 'Campaigns', icon: Briefcase, href: '/admin-panel', badge: null },
-  { label: 'Transactions', icon: CreditCard, href: '/admin-panel', badge: null },
-  { label: 'Withdrawals', icon: Wallet, href: '/admin-panel', badge: '7' },
+interface AdminNavSection {
+  section: string;
+  items: { label: string; icon: React.ElementType; href: string; badge?: string | null; badgeColor?: string }[];
+}
+
+const adminNavSections: AdminNavSection[] = [
+  {
+    section: 'Core',
+    items: [
+      { label: 'Dashboard', icon: LayoutDashboard, href: '/admin-panel', badge: null },
+      { label: 'Users', icon: Users, href: '/admin-panel/users', badge: '4', badgeColor: 'violet' },
+      { label: 'Campaigns', icon: Briefcase, href: '/admin-panel/campaigns', badge: null },
+    ],
+  },
+  {
+    section: 'Finance',
+    items: [
+      { label: 'Transactions', icon: CreditCard, href: '/admin-panel/transactions', badge: null },
+      { label: 'Escrow', icon: Lock, href: '/admin-panel/escrow', badge: null },
+      { label: 'Payouts', icon: DollarSign, href: '/admin-panel/payouts', badge: '5', badgeColor: 'amber' },
+    ],
+  },
+  {
+    section: 'Moderation',
+    items: [
+      { label: 'Flagged Content', icon: Flag, href: '/admin-panel/flagged', badge: '1', badgeColor: 'red' },
+      { label: 'Disputes', icon: Scale, href: '/admin-panel/disputes', badge: '2', badgeColor: 'orange' },
+    ],
+  },
+  {
+    section: 'System',
+    items: [
+      { label: 'Notifications', icon: Bell, href: '/admin-panel/notifications', badge: null },
+      { label: 'Settings', icon: Settings, href: '/admin-panel/settings', badge: null },
+      { label: 'Admin Roles', icon: UserCog, href: '/admin-panel/roles', badge: null },
+      { label: 'Audit Logs', icon: ClipboardList, href: '/admin-panel/audit-logs', badge: null },
+    ],
+  },
 ];
+
+const badgeColorMap: Record<string, string> = {
+  violet: 'bg-violet-100 text-violet-700',
+  amber: 'bg-amber-100 text-amber-700',
+  red: 'bg-red-100 text-red-700',
+  orange: 'bg-orange-100 text-orange-700',
+};
 
 export default function Sidebar({ role = 'creator' }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
-
-  const navItems = role === 'admin' ? adminNav : role === 'brand' ? brandNav : creatorNav;
 
   const roleLabel = role === 'admin' ? 'Admin' : role === 'brand' ? 'Brand' : 'Creator';
   const roleColor = role === 'admin' ? 'bg-red-100 text-red-700' : role === 'brand' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700';
 
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const isAdminRouteActive = (href: string) => {
+    if (href === '/admin-panel') return pathname === '/admin-panel';
+    return pathname.startsWith(href);
+  };
+
+  if (role === 'admin') {
+    return (
+      <aside
+        className={`relative flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex-shrink-0 ${collapsed ? 'w-16' : 'w-[280px]'}`}
+        style={{ minHeight: '100vh' }}
+      >
+        {/* Logo */}
+        <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
+          <AppLogo size={32} />
+          {!collapsed && (
+            <div>
+              <span className="font-bold text-slate-800 text-lg tracking-tight">ViralBridge</span>
+              <span className="ml-2 text-xs font-medium bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md">Admin</span>
+            </div>
+          )}
+        </div>
+
+        {/* Nav sections */}
+        <nav className="flex-1 px-2 py-3 overflow-y-auto scrollbar-thin">
+          {adminNavSections.map((section) => (
+            <div key={section.section} className="mb-1">
+              {!collapsed && (
+                <button
+                  onClick={() => toggleSection(section.section)}
+                  className="w-full flex items-center justify-between px-2 py-1.5 mb-0.5 group"
+                >
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">
+                    {section.section}
+                  </span>
+                  {collapsedSections[section.section]
+                    ? <ChevronDown size={12} className="text-slate-300" />
+                    : <ChevronUp size={12} className="text-slate-300" />
+                  }
+                </button>
+              )}
+              {!collapsedSections[section.section] && (
+                <div className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const isActive = isAdminRouteActive(item.href);
+                    const Icon = item.icon;
+                    const badgeCls = item.badgeColor ? badgeColorMap[item.badgeColor] : 'bg-violet-100 text-violet-700';
+                    return (
+                      <Link
+                        key={`admin-nav-${item.label}`}
+                        href={item.href}
+                        className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg transition-all duration-150 relative ${
+                          isActive
+                            ? 'bg-violet-600 text-white shadow-sm'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                        } ${collapsed ? 'justify-center' : ''}`}
+                        title={collapsed ? item.label : undefined}
+                      >
+                        <Icon size={17} className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'}`} />
+                        {!collapsed && <span className="text-sm flex-1 font-medium">{item.label}</span>}
+                        {!collapsed && item.badge && (
+                          <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${isActive ? 'bg-white/20 text-white' : badgeCls}`}>
+                            {item.badge}
+                          </span>
+                        )}
+                        {collapsed && item.badge && (
+                          <span className={`absolute top-1 right-1 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none ${item.badgeColor === 'red' ? 'bg-red-500' : item.badgeColor === 'amber' ? 'bg-amber-500' : 'bg-violet-600'}`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+              {!collapsed && <div className="mt-2 mb-1 border-b border-slate-100" />}
+            </div>
+          ))}
+        </nav>
+
+        {/* User footer */}
+        <div className={`border-t border-slate-100 p-3 ${collapsed ? 'flex justify-center' : ''}`}>
+          {!collapsed ? (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-xs font-semibold">AD</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-800 truncate">Admin User</p>
+                <p className="text-xs text-slate-400 truncate">admin@viralbridge.io</p>
+              </div>
+              <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
+                <LogOut size={15} className="text-slate-400" />
+              </button>
+            </div>
+          ) : (
+            <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
+              <LogOut size={16} className="text-slate-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Collapse toggle */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-20 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-150 z-10"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={12} className="text-slate-500" /> : <ChevronLeft size={12} className="text-slate-500" />}
+        </button>
+      </aside>
+    );
+  }
+
+  // ── Creator / Brand sidebar (unchanged) ──────────────────────────────────
+  const navItems = role === 'brand' ? brandNav : creatorNav;
+
   return (
     <aside
-      className={`relative  bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}
+      className={`relative flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}
       style={{ minHeight: '100vh' }}
     >
-      {/* Logo */}
-      <div className={` px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
-        {/* <AppLogo size={32} /> */}
-        
-          <AppLogo src="/viralbridge_logo_transparent.png"
-            size={200} />
+      <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
+        <AppLogo size={32} />
+        {!collapsed && <span className="font-bold text-slate-800 text-lg tracking-tight">ViralBridge</span>}
       </div>
-
-      {/* Role badge */}
       {!collapsed && (
         <div className="px-4 pt-3 pb-1">
           <span className={`text-xs font-600 px-2 py-0.5 rounded-full font-medium ${roleColor}`}>{roleLabel} Account</span>
         </div>
       )}
-
-      {/* Nav */}
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto scrollbar-thin">
         <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${collapsed ? 'hidden' : ''}`}>Navigation</p>
         {navItems.map((item) => {
@@ -75,28 +228,21 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
               key={`nav-${item.label}`}
               href={item.href}
               className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg transition-all duration-150 relative ${
-                isActive
-                  ? 'bg-violet-50 text-violet-700 font-medium'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                isActive ? 'bg-violet-50 text-violet-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
               } ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? item.label : undefined}
             >
               <Icon size={18} className={`flex-shrink-0 ${isActive ? 'text-violet-600' : 'text-slate-500 group-hover:text-slate-700'}`} />
               {!collapsed && <span className="text-sm flex-1">{item.label}</span>}
               {!collapsed && item.badge && (
-                <span className="bg-violet-100 text-violet-700 text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                  {item.badge}
-                </span>
+                <span className="bg-violet-100 text-violet-700 text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{item.badge}</span>
               )}
               {collapsed && item.badge && (
-                <span className="absolute top-1 right-1 bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                  {item.badge}
-                </span>
+                <span className="absolute top-1 right-1 bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">{item.badge}</span>
               )}
             </Link>
           );
         })}
-
         <div className="pt-4">
           <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${collapsed ? 'hidden' : ''}`}>Other</p>
           <Link href="/sign-up-login-screen" className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Notifications' : undefined}>
@@ -109,36 +255,22 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
           </Link>
         </div>
       </nav>
-
-      {/* User footer */}
       <div className={`border-t border-slate-100 p-3 ${collapsed ? 'flex justify-center' : ''}`}>
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-violet-700 text-xs font-semibold">
-                {role === 'admin' ? 'AD' : role === 'brand' ? 'NK' : 'SM'}
-              </span>
+              <span className="text-violet-700 text-xs font-semibold">{role === 'brand' ? 'NK' : 'SM'}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">
-                {role === 'admin' ? 'Admin User' : role === 'brand' ? 'NovaSpark Co.' : 'Sofia Martinez'}
-              </p>
-              <p className="text-xs text-slate-400 truncate">
-                {role === 'admin' ? 'admin@viralbridge.io' : role === 'brand' ? 'brand@novaspark.co' : 'sofia@creators.io'}
-              </p>
+              <p className="text-sm font-medium text-slate-800 truncate">{role === 'brand' ? 'NovaSpark Co.' : 'Sofia Martinez'}</p>
+              <p className="text-xs text-slate-400 truncate">{role === 'brand' ? 'brand@novaspark.co' : 'sofia@creators.io'}</p>
             </div>
-            <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
-              <LogOut size={15} className="text-slate-400" />
-            </button>
+            <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out"><LogOut size={15} className="text-slate-400" /></button>
           </div>
         ) : (
-          <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
-            <LogOut size={16} className="text-slate-400" />
-          </button>
+          <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out"><LogOut size={16} className="text-slate-400" /></button>
         )}
       </div>
-
-      {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-20 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-150 z-10"
