@@ -34,12 +34,12 @@ export default function EscrowContent() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-gradient-to-br from-violet-600 to-violet-800 rounded-2xl p-5 text-white">
           <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide mb-2">Total Locked</p>
-          <p className="text-3xl font-extrabold">${totalLocked.toLocaleString()}</p>
+          <p className="text-3xl font-extrabold">₹{totalLocked.toLocaleString()}</p>
           <p className="text-violet-300 text-xs mt-1">{escrowItems.filter(e => statuses[e.id] === 'held').length} active escrows</p>
         </div>
         <div className="bg-white rounded-2xl border-2 border-red-200 p-5">
           <p className="text-red-700 text-xs font-semibold uppercase tracking-wide mb-2">Disputed</p>
-          <p className="text-3xl font-extrabold text-red-700">${totalDisputed.toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-red-700">₹{totalDisputed.toLocaleString()}</p>
           <p className="text-red-500 text-xs mt-1">{escrowItems.filter(e => statuses[e.id] === 'disputed').length} disputes active</p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
@@ -70,7 +70,7 @@ export default function EscrowContent() {
                     <td className="px-5 py-3.5"><p className="text-sm font-medium text-slate-800 max-w-[180px] truncate">{item.campaign}</p></td>
                     <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm text-slate-600">{item.brand}</p></td>
                     <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm text-slate-600">{item.creator}</p></td>
-                    <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-bold text-slate-800">${item.amount.toLocaleString()}</p></td>
+                    <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-bold text-slate-800">₹{item.amount.toLocaleString()}</p></td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status === 'held' ? 'bg-amber-50 text-amber-700 border border-amber-200' : status === 'disputed' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
                         {status.charAt(0).toUpperCase() + status.slice(1)}

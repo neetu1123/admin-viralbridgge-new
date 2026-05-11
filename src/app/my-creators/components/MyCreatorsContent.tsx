@@ -78,7 +78,7 @@ export default function MyCreatorsContent() {
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Paid Out</p>
-          <p className="text-2xl font-bold text-slate-800 tabular-nums">${totalPaid.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-slate-800 tabular-nums">₹{totalPaid.toLocaleString()}</p>
           <p className="text-xs text-slate-400 mt-1">across all campaigns</p>
         </div>
         <div className="bg-white rounded-xl border border-emerald-200 p-4 shadow-sm">
@@ -195,7 +195,7 @@ export default function MyCreatorsContent() {
                   <div className="flex items-center gap-1.5">
                     <DollarSign size={13} className="text-violet-500" />
                     <div>
-                      <p className="text-xs font-semibold text-slate-700 tabular-nums">${creator.totalPaid.toLocaleString()}</p>
+                      <p className="text-xs font-semibold text-slate-700 tabular-nums">₹{creator.totalPaid.toLocaleString()}</p>
                       <p className="text-xs text-slate-400">total paid</p>
                     </div>
                   </div>

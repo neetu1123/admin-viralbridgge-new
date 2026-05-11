@@ -62,10 +62,10 @@ const engagementRanges = [
 
 const priceRanges = [
   { label: 'Any Price', min: 0, max: Infinity },
-  { label: 'Under $500', min: 0, max: 500 },
-  { label: '$500–$1,500', min: 500, max: 1500 },
-  { label: '$1,500–$3,000', min: 1500, max: 3000 },
-  { label: '$3,000+', min: 3000, max: Infinity },
+  { label: 'Under ₹500', min: 0, max: 500 },
+  { label: '₹500–₹1,500', min: 500, max: 1500 },
+  { label: '₹1,500–₹3,000', min: 1500, max: 3000 },
+  { label: '₹3,000+', min: 3000, max: Infinity },
 ];
 
 export default function CreatorDiscoveryContent() {
@@ -333,7 +333,7 @@ export default function CreatorDiscoveryContent() {
                           <p className="text-xs text-slate-400">engagement</p>
                         </div>
                         <div className="bg-violet-50 rounded-lg p-2 text-center">
-                          <p className="text-xs font-bold text-violet-700 tabular-nums">${creator.pricePerPost.toLocaleString()}</p>
+                          <p className="text-xs font-bold text-violet-700 tabular-nums">₹{creator.pricePerPost.toLocaleString()}</p>
                           <p className="text-xs text-slate-400">per post</p>
                         </div>
                       </div>

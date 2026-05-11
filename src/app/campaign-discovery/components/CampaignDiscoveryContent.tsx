@@ -10,10 +10,10 @@ const platforms = ['All Platforms', 'Instagram', 'YouTube', 'TikTok', 'Twitter',
 const niches = ['All Niches', 'Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing'];
 const budgetRanges = [
   { label: 'Any Budget', min: 0, max: Infinity },
-  { label: 'Under $500', min: 0, max: 500 },
-  { label: '$500 – $1,500', min: 500, max: 1500 },
-  { label: '$1,500 – $5,000', min: 1500, max: 5000 },
-  { label: '$5,000+', min: 5000, max: Infinity },
+  { label: 'Under ₹500', min: 0, max: 500 },
+  { label: '₹500 – ₹1,500', min: 500, max: 1500 },
+  { label: '₹1,500 – ₹5,000', min: 1500, max: 5000 },
+  { label: '₹5,000+', min: 5000, max: Infinity },
 ];
 
 interface Campaign {

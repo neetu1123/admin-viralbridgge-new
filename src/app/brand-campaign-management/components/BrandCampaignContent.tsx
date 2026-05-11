@@ -49,7 +49,7 @@ function formatDeadline(dateStr: string): string {
 export default function BrandCampaignContent() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(true);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [now, setNow] = useState<number | null>(null);
@@ -105,7 +105,7 @@ export default function BrandCampaignContent() {
             </div>
           </div>
           <p className="text-xl font-bold text-slate-800 tabular-nums mb-1">
-            ${totalSpent.toLocaleString()} <span className="text-sm font-normal text-slate-400">/ ${totalBudget.toLocaleString()}</span>
+            ₹{totalSpent.toLocaleString()} <span className="text-sm font-normal text-slate-400">/ ${totalBudget.toLocaleString()}</span>
           </p>
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-1.5">
             <div
@@ -285,7 +285,7 @@ export default function BrandCampaignContent() {
             <span className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />Accepted</span>
           </div>
         </div>
-        <CampaignStatsChart onClose={() => console.log('empty')} />
+        <CampaignStatsChart open={showCreate} onClose={() => console.log('empty')} />
       </div>
 
       {/* Table */}
@@ -352,7 +352,7 @@ export default function BrandCampaignContent() {
                       <StatusBadge status={campaign.status} />
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-sm font-semibold text-slate-800 tabular-nums">${campaign.budget.toLocaleString()}</p>
+                      <p className="text-sm font-semibold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
@@ -451,7 +451,7 @@ export default function BrandCampaignContent() {
         )}
       </div>
 
-      {showCreate && <CreateCampaignModal onClose={() => setShowCreate(false)} />}
+      {showCreate && <CreateCampaignModal open={showCreate} onClose={() => setShowCreate(false)} />}
       {selectedCampaign && <ApplicantDrawer campaign={selectedCampaign} onClose={() => setSelectedCampaign(null)} />}
     </div>
   );

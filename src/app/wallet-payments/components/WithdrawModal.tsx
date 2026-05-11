@@ -44,7 +44,7 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
         {/* Balance info */}
         <div className="bg-violet-50 rounded-lg p-3 flex items-center justify-between">
           <span className="text-sm text-violet-700 font-medium">Available balance</span>
-          <span className="text-sm font-bold text-violet-800 tabular-nums">${availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+          <span className="text-sm font-bold text-violet-800 tabular-nums">₹{availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
         </div>
 
         <div>
@@ -62,7 +62,7 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
               {...register('amount', {
                 required: 'Enter an amount',
                 min: { value: 10, message: 'Minimum withdrawal is $10' },
-                max: { value: availableBalance, message: `Cannot exceed available balance of $${availableBalance.toLocaleString()}` },
+                max: { value: availableBalance, message: `Cannot exceed available balance of ₹${availableBalance.toLocaleString()}` },
                 validate: v => parseFloat(v) > 0 || 'Enter a valid amount',
               })}
             />
@@ -76,7 +76,7 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
                 onClick={() => setValue('amount', Math.min(v, availableBalance).toString())}
                 className="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
               >
-                ${v}
+              ₹{v}
               </button>
             ))}
             <button
@@ -124,15 +124,15 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
           <div className="bg-slate-50 rounded-lg p-3 space-y-1.5 text-sm border border-slate-200">
             <div className="flex justify-between text-slate-600">
               <span>Withdrawal amount</span>
-              <span className="tabular-nums">${amount.toFixed(2)}</span>
+              <span className="tabular-nums">₹{amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-slate-500 text-xs">
-              <span>Platform fee (1.5%, max $15)</span>
-              <span className="tabular-nums text-red-600">-${fee.toFixed(2)}</span>
+              <span>Platform fee (1.5%, max ₹15)</span>
+              <span className="tabular-nums text-red-600">-₹{fee.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-semibold text-slate-800 border-t border-slate-200 pt-1.5 mt-1.5">
               <span>You receive</span>
-              <span className="tabular-nums text-emerald-700">${net.toFixed(2)}</span>
+              <span className="tabular-nums text-emerald-700">₹{net.toFixed(2)}</span>
             </div>
           </div>
         )}

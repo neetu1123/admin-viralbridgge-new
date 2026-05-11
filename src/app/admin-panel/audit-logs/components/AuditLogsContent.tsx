@@ -4,12 +4,12 @@ import { Search, Download, Filter } from 'lucide-react';
 
 const auditLogs = [
   { id: 'log-001', admin: 'Admin User', action: 'Banned account', target: 'SpamBrand LLC (usr-007)', module: 'Users', timestamp: '2026-04-14 14:32:11', severity: 'high' },
-  { id: 'log-002', admin: 'Raj Patel', action: 'Released escrow payment', target: 'Sofia Martinez — $1,200', module: 'Finance', timestamp: '2026-04-13 11:18:44', severity: 'medium' },
+  { id: 'log-002', admin: 'Raj Patel', action: 'Released escrow payment', target: 'Sofia Martinez — ₹1,200', module: 'Finance', timestamp: '2026-04-13 11:18:44', severity: 'medium' },
   { id: 'log-003', admin: 'Zara Ahmed', action: 'Rejected campaign', target: 'Suspicious Crypto Giveaway (camp-003)', module: 'Moderation', timestamp: '2026-04-13 09:45:22', severity: 'high' },
-  { id: 'log-004', admin: 'Admin User', action: 'Approved withdrawal', target: 'Daniela Rossi — $2,200', module: 'Finance', timestamp: '2026-04-12 16:20:05', severity: 'low' },
+  { id: 'log-004', admin: 'Admin User', action: 'Approved withdrawal', target: 'Daniela Rossi — ₹2,200', module: 'Finance', timestamp: '2026-04-12 16:20:05', severity: 'low' },
   { id: 'log-005', admin: 'Tom Chen', action: 'Viewed activity log', target: 'TechDrop (usr-004)', module: 'Users', timestamp: '2026-04-12 14:10:33', severity: 'low' },
   { id: 'log-006', admin: 'Zara Ahmed', action: 'Escalated dispute', target: 'GameVault Pro Controller (dsp-003)', module: 'Moderation', timestamp: '2026-04-11 10:55:18', severity: 'high' },
-  { id: 'log-007', admin: 'Raj Patel', action: 'Held escrow funds', target: 'EcoBottle Zero-Waste Push — $3,200', module: 'Finance', timestamp: '2026-04-10 15:30:47', severity: 'medium' },
+  { id: 'log-007', admin: 'Raj Patel', action: 'Held escrow funds', target: 'EcoBottle Zero-Waste Push — ₹3,200', module: 'Finance', timestamp: '2026-04-10 15:30:47', severity: 'medium' },
   { id: 'log-008', admin: 'Admin User', action: 'Suspended account', target: 'TechDrop (usr-004)', module: 'Users', timestamp: '2026-04-10 09:12:55', severity: 'high' },
   { id: 'log-009', admin: 'Zara Ahmed', action: 'Resolved dispute', target: 'NomadPay Travel Creator Push (dsp-004)', module: 'Moderation', timestamp: '2026-04-09 13:44:22', severity: 'medium' },
   { id: 'log-010', admin: 'Admin User', action: 'Force matched creator', target: 'Jordan Osei → FitPro Challenge', module: 'AI Matching', timestamp: '2026-04-08 11:20:10', severity: 'low' },

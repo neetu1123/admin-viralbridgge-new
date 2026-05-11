@@ -41,7 +41,7 @@ export default function DisputesContent() {
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Total at Stake</p>
-          <p className="text-3xl font-extrabold text-slate-800">${disputes.filter(d => statuses[d.id] === 'open' || statuses[d.id] === 'escalated').reduce((s, d) => s + d.amount, 0).toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-slate-800">₹{disputes.filter(d => statuses[d.id] === 'open' || statuses[d.id] === 'escalated').reduce((s, d) => s + d.amount, 0).toLocaleString()}</p>
           <p className="text-slate-400 text-xs mt-1">In open disputes</p>
         </div>
         <div className="bg-white rounded-2xl border border-emerald-200 p-5">
@@ -82,7 +82,7 @@ export default function DisputesContent() {
                     <span className="text-slate-300">vs</span>
                     <span className="font-medium text-blue-700">{dispute.brand}</span>
                     <span className="text-slate-300">·</span>
-                    <span className="font-semibold text-slate-700">${dispute.amount.toLocaleString()} at stake</span>
+                    <span className="font-semibold text-slate-700">₹{dispute.amount.toLocaleString()} at stake</span>
                     <span className="text-slate-300">·</span>
                     <span>Opened {dispute.openedAt}</span>
                   </div>

@@ -91,7 +91,7 @@ export default function WalletContent() {
             <p className="text-violet-200 text-xs font-medium uppercase tracking-wide">Available Balance</p>
             <Wallet size={18} className="text-violet-300" />
           </div>
-          <p className="text-3xl font-bold tabular-nums">${availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+          <p className="text-3xl font-bold tabular-nums">₹{availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
           <p className="text-violet-300 text-xs mt-1">Ready to withdraw</p>
         </div>
 
@@ -100,7 +100,7 @@ export default function WalletContent() {
             <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">In Escrow</p>
             <Lock size={16} className="text-blue-500" />
           </div>
-          <p className="text-2xl font-bold text-slate-800 tabular-nums">${escrowBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+          <p className="text-2xl font-bold text-slate-800 tabular-nums">₹{escrowBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
           <p className="text-blue-600 text-xs mt-1">{escrowItems.length} active campaigns</p>
         </div>
 
@@ -109,7 +109,7 @@ export default function WalletContent() {
             <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Total Earned</p>
             <TrendingUp size={16} className="text-emerald-500" />
           </div>
-          <p className="text-2xl font-bold text-slate-800 tabular-nums">${totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+          <p className="text-2xl font-bold text-slate-800 tabular-nums">₹{totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
           <p className="text-emerald-600 text-xs mt-1">All time</p>
         </div>
 
@@ -118,7 +118,7 @@ export default function WalletContent() {
             <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Pending Withdrawal</p>
             <Clock size={16} className="text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-slate-800 tabular-nums">${pendingWithdrawal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+          <p className="text-2xl font-bold text-slate-800 tabular-nums">₹{pendingWithdrawal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
           <p className="text-slate-400 text-xs mt-1">Processing 1–3 business days</p>
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function WalletContent() {
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 ml-4">
-                  <p className="text-sm font-bold text-blue-700 tabular-nums">${item.amount.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-blue-700 tabular-nums">₹{item.amount.toLocaleString()}</p>
                   <p className={`text-xs mt-0.5 ${daysUntilRelease <= 7 ? 'text-emerald-600' : 'text-slate-400'}`}>
                     Release in {daysUntilRelease}d
                   </p>
@@ -239,7 +239,7 @@ export default function WalletContent() {
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <span className={`text-sm font-bold tabular-nums ${isPositive ? 'text-emerald-700' : 'text-slate-700'}`}>
-                        {isPositive ? '+' : ''}${Math.abs(txn.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        {isPositive ? '+' : ''}₹{Math.abs(txn.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">

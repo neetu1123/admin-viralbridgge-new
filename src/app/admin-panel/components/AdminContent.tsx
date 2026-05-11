@@ -58,12 +58,12 @@ interface AdminWithdrawal {
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 const adminUsers: AdminUser[] = [
-  { id: 'usr-001', name: 'Sofia Martinez', email: 'sofia@viralbridge.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-11-12', totalEarnings: 8650, collabs: 14, followers: 48200, lastActive: '2026-04-14', activityLog: [{ date: '2026-04-14', action: 'Completed campaign: Summer Glow' }, { date: '2026-04-10', action: 'Withdrew $500 via PayPal' }, { date: '2026-04-01', action: 'Applied to 3 campaigns' }] },
+  { id: 'usr-001', name: 'Sofia Martinez', email: 'sofia@viralbridge.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-11-12', totalEarnings: 8650, collabs: 14, followers: 48200, lastActive: '2026-04-14', activityLog: [{ date: '2026-04-14', action: 'Completed campaign: Summer Glow' }, { date: '2026-04-10', action: 'Withdrew ₹500 via PayPal' }, { date: '2026-04-01', action: 'Applied to 3 campaigns' }] },
   { id: 'usr-002', name: 'NovaSpark Co.', email: 'brand@novaspark.co', role: 'brand', status: 'active', kycStatus: 'verified', joinedAt: '2025-10-08', totalSpend: 42000, campaigns: 8, lastActive: '2026-04-13', activityLog: [{ date: '2026-04-13', action: 'Created campaign: Fall Collection' }, { date: '2026-04-08', action: 'Released payment to Jordan Osei' }] },
-  { id: 'usr-003', name: 'Priya Nair', email: 'priya@creators.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-12-01', totalEarnings: 5200, collabs: 9, followers: 92100, lastActive: '2026-04-12', activityLog: [{ date: '2026-04-12', action: 'Submitted deliverable for FitPro campaign' }, { date: '2026-04-07', action: 'Requested withdrawal of $2,000' }] },
+  { id: 'usr-003', name: 'Priya Nair', email: 'priya@creators.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-12-01', totalEarnings: 5200, collabs: 9, followers: 92100, lastActive: '2026-04-12', activityLog: [{ date: '2026-04-12', action: 'Submitted deliverable for FitPro campaign' }, { date: '2026-04-07', action: 'Requested withdrawal of ₹2,000' }] },
   { id: 'usr-004', name: 'TechDrop', email: 'marketing@techdrop.com', role: 'brand', status: 'suspended', kycStatus: 'pending', joinedAt: '2026-01-15', totalSpend: 12000, campaigns: 3, lastActive: '2026-04-11', activityLog: [{ date: '2026-04-11', action: 'Account suspended: payment dispute' }, { date: '2026-04-05', action: 'Flagged by creator: late payment' }] },
   { id: 'usr-005', name: 'Marcus Webb', email: 'marcus@ugcpro.io', role: 'creator', status: 'pending_kyc', kycStatus: 'not_submitted', joinedAt: '2026-04-10', totalEarnings: 0, collabs: 0, followers: 18500, lastActive: '2026-04-10', activityLog: [{ date: '2026-04-10', action: 'Account created — KYC pending' }] },
-  { id: 'usr-006', name: 'Aisha Okonkwo', email: 'aisha@beautycreators.co', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2026-01-22', totalEarnings: 3100, collabs: 5, followers: 31500, lastActive: '2026-04-09', activityLog: [{ date: '2026-04-09', action: 'Received payment: $950' }] },
+  { id: 'usr-006', name: 'Aisha Okonkwo', email: 'aisha@beautycreators.co', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2026-01-22', totalEarnings: 3100, collabs: 5, followers: 31500, lastActive: '2026-04-09', activityLog: [{ date: '2026-04-09', action: 'Received payment: ₹950' }] },
   { id: 'usr-007', name: 'SpamBrand LLC', email: 'fake@spambrand.xyz', role: 'brand', status: 'banned', kycStatus: 'rejected', joinedAt: '2026-03-01', totalSpend: 0, campaigns: 2, lastActive: '2026-03-05', activityLog: [{ date: '2026-03-05', action: 'Account banned: fraudulent activity' }, { date: '2026-03-03', action: 'Campaign flagged: 8 reports' }] },
   { id: 'usr-008', name: 'Kavya Reddy', email: 'kavya@luminaryskn.com', role: 'brand', status: 'active', kycStatus: 'verified', joinedAt: '2025-09-14', totalSpend: 68000, campaigns: 14, lastActive: '2026-04-14', activityLog: [{ date: '2026-04-14', action: 'Approved 3 creator deliverables' }] },
   { id: 'usr-009', name: 'Jordan Osei', email: 'jordan@fitcreators.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2026-02-08', totalEarnings: 4800, collabs: 8, followers: 74200, lastActive: '2026-04-13', activityLog: [{ date: '2026-04-13', action: 'Completed FitPro 30-Day Challenge' }] },
@@ -186,12 +186,12 @@ const monthlyRevenue = [
 const liveActivityFeed = [
   { id: 'act-001', type: 'user', color: 'bg-emerald-500', icon: '🟢', text: 'New creator signed up — Marcus Webb', time: '2 min ago', href: '/admin-panel/users' },
   { id: 'act-002', type: 'campaign', color: 'bg-blue-500', icon: '🔵', text: 'Campaign created by StyleForward', time: '8 min ago', href: '/admin-panel/campaigns' },
-  { id: 'act-003', type: 'payment', color: 'bg-amber-500', icon: '🟡', text: '$10,500 added to escrow by FitPro Health', time: '15 min ago', href: '/admin-panel/escrow' },
+  { id: 'act-003', type: 'payment', color: 'bg-amber-500', icon: '🟡', text: '₹10,500 added to escrow by FitPro Health', time: '15 min ago', href: '/admin-panel/escrow' },
   { id: 'act-004', type: 'flag', color: 'bg-red-500', icon: '🔴', text: 'Campaign flagged — policy violation (SpamBrand)', time: '22 min ago', href: '/admin-panel/flagged' },
-  { id: 'act-005', type: 'payment', color: 'bg-violet-500', icon: '🟣', text: 'Payout released to Jordan Osei — $3,500', time: '34 min ago', href: '/admin-panel/payouts' },
+  { id: 'act-005', type: 'payment', color: 'bg-violet-500', icon: '🟣', text: 'Payout released to Jordan Osei —₹3,500', time: '34 min ago', href: '/admin-panel/payouts' },
   { id: 'act-006', type: 'user', color: 'bg-emerald-500', icon: '🟢', text: 'KYC verified for Aisha Okonkwo', time: '1 hr ago', href: '/admin-panel/users' },
   { id: 'act-007', type: 'campaign', color: 'bg-blue-500', icon: '🔵', text: 'Campaign approved — NomadPay Travel Push', time: '2 hr ago', href: '/admin-panel/campaigns' },
-  { id: 'act-008', type: 'payment', color: 'bg-amber-500', icon: '🟡', text: 'Withdrawal request — Priya Nair $2,000', time: '3 hr ago', href: '/admin-panel/payouts' },
+  { id: 'act-008', type: 'payment', color: 'bg-amber-500', icon: '🟡', text: 'Withdrawal request — Priya Nair ₹2,000', time: '3 hr ago', href: '/admin-panel/payouts' },
 ];
 
 const PLATFORM_COLORS = ['#EC4899', '#EF4444', '#1e293b', '#0EA5E9', '#3B82F6'];
@@ -323,7 +323,7 @@ function CampaignDetailModal({ campaign, onClose }: { campaign: AdminCampaign; o
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-slate-50 rounded-xl p-3">
               <p className="text-xs text-slate-500 mb-1">Budget</p>
-              <p className="text-lg font-bold text-slate-800">${campaign.budget.toLocaleString()}</p>
+              <p className="text-lg font-bold text-slate-800">₹{campaign.budget.toLocaleString()}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-3">
               <p className="text-xs text-slate-500 mb-1">Status</p>
@@ -368,8 +368,8 @@ function GMVTrendChart() {
   const data = dataMap[range];
   const insights: Record<string, string> = {
     '7D': 'GMV peaked Thursday — 3 high-budget campaigns launched mid-week',
-    '30D': 'Week 3 saw highest GMV — StyleForward Fall Collection drove $18K',
-    '90D': 'February was strongest month — FitPro 30-Day Challenge contributed $10.5K',
+    '30D': 'Week 3 saw highest GMV — StyleForward Fall Collection drove ₹18K',
+    '90D': 'February was strongest month — FitPro 30-Day Challenge contributed ₹10.5K',
   };
 
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
@@ -377,7 +377,7 @@ function GMVTrendChart() {
     return (
       <div className="bg-white border border-slate-200 rounded-lg shadow-lg px-3 py-2.5">
         <p className="text-xs font-semibold text-slate-600 mb-1">{label}</p>
-        <p className="text-sm font-bold text-violet-700">${payload[0].value.toLocaleString()}</p>
+        <p className="text-sm font-bold text-violet-700">₹{payload[0].value.toLocaleString()}</p>
         <p className="text-xs text-slate-400 mt-0.5">+{Math.round(Math.random() * 15 + 5)}% vs prev period</p>
       </div>
     );
@@ -406,7 +406,7 @@ function GMVTrendChart() {
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-          <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
+          <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
           <Tooltip content={<CustomTooltip />} />
           <Area type="monotone" dataKey="gmv" stroke="#7C3AED" strokeWidth={2.5} fill="url(#gradGMV2)" />
         </AreaChart>
@@ -564,10 +564,10 @@ export default function AdminContent() {
             <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide">Platform GMV</p>
             <TrendingUp size={16} className="text-violet-300" />
           </div>
-          <p className="text-3xl font-extrabold tabular-nums">${gmv.toLocaleString()}</p>
+          <p className="text-3xl font-extrabold tabular-nums">₹{gmv.toLocaleString()}</p>
           <p className="text-violet-300 text-xs mt-1 flex items-center gap-1"><ArrowUpRight size={12} /> +18.4% this month</p>
           <div className="mt-3 flex items-end justify-between">
-            <p className="text-violet-300 text-xs">Highest: $32K (Feb)</p>
+            <p className="text-violet-300 text-xs">Highest: ₹32K (Feb)</p>
             <Sparkline data={sparklineData} color="rgba(255,255,255,0.7)" />
           </div>
         </a>
@@ -596,7 +596,7 @@ export default function AdminContent() {
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Platform Fees</p>
             <DollarSign size={15} className="text-emerald-500" />
           </div>
-          <p className="text-3xl font-extrabold text-slate-800 tabular-nums">${platformFee.toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-slate-800 tabular-nums">₹{platformFee.toLocaleString()}</p>
           <p className="text-slate-400 text-xs mt-1">This month</p>
           <div className="mt-3 flex items-end justify-between">
             <p className="text-emerald-600 text-xs font-medium flex items-center gap-1"><ArrowUpRight size={11} /> +12.1%</p>
@@ -610,7 +610,7 @@ export default function AdminContent() {
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Escrow Volume</p>
             <Lock size={15} className="text-slate-500" />
           </div>
-          <p className="text-3xl font-extrabold text-slate-800 tabular-nums">${escrowVolume.toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-slate-800 tabular-nums">₹{escrowVolume.toLocaleString()}</p>
           <p className="text-blue-600 text-xs mt-1 font-medium">Currently locked</p>
           <div className="mt-3 flex items-end justify-between">
             <p className="text-slate-400 text-xs">8 active campaigns</p>
@@ -769,9 +769,9 @@ export default function AdminContent() {
                         <td className="px-5 py-3.5 whitespace-nowrap"><KYCBadge status={user.kycStatus} /></td>
                         <td className="px-5 py-3.5 whitespace-nowrap">
                           {user.role === 'creator' ? (
-                            <p className="text-sm font-semibold text-emerald-700 tabular-nums">${(user.totalEarnings ?? 0).toLocaleString()}</p>
+                            <p className="text-sm font-semibold text-emerald-700 tabular-nums">₹{(user.totalEarnings ?? 0).toLocaleString()}</p>
                           ) : (
-                            <p className="text-sm font-semibold text-blue-700 tabular-nums">${(user.totalSpend ?? 0).toLocaleString()}</p>
+                            <p className="text-sm font-semibold text-blue-700 tabular-nums">₹{(user.totalSpend ?? 0).toLocaleString()}</p>
                           )}
                         </td>
                         <td className="px-5 py-3.5 whitespace-nowrap">
@@ -833,7 +833,7 @@ export default function AdminContent() {
                           </td>
                           <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm text-slate-600">{campaign.brand}</p></td>
                           <td className="px-5 py-3.5 whitespace-nowrap"><PlatformBadge platform={campaign.platform} /></td>
-                          <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-semibold text-slate-800 tabular-nums">${campaign.budget.toLocaleString()}</p></td>
+                          <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-semibold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p></td>
                           <td className="px-5 py-3.5 whitespace-nowrap"><CampaignModerationBadge status={currentStatus} /></td>
                           <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm text-slate-700 tabular-nums">{campaign.applicants}</p></td>
                           <td className="px-5 py-3.5 whitespace-nowrap">
@@ -919,7 +919,7 @@ export default function AdminContent() {
                             <p className="text-sm text-slate-700">{txn.from}</p>
                             <p className="text-xs text-slate-400 flex items-center gap-1"><ArrowRight size={10} /> {txn.to}</p>
                           </td>
-                          <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-bold text-slate-800 tabular-nums">${txn.amount.toLocaleString()}</p></td>
+                          <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-bold text-slate-800 tabular-nums">₹{txn.amount.toLocaleString()}</p></td>
                           <td className="px-5 py-3.5 whitespace-nowrap"><PaymentStatusBadge status={currentStatus} /></td>
                           <td className="px-5 py-3.5 whitespace-nowrap">
                             {txn.campaignTitle ? <p className="text-xs text-violet-600 max-w-[120px] truncate">{txn.campaignTitle}</p> : <span className="text-xs text-slate-300">—</span>}
@@ -975,7 +975,7 @@ export default function AdminContent() {
                             <span className="text-slate-300">vs</span>
                             <span className="font-medium text-blue-700">{dispute.brand}</span>
                             <span className="text-slate-300">·</span>
-                            <span className="font-semibold text-slate-700">${dispute.amount.toLocaleString()} at stake</span>
+                            <span className="font-semibold text-slate-700">₹{dispute.amount.toLocaleString()} at stake</span>
                             <span className="text-slate-300">·</span>
                             <span>Opened {dispute.openedAt}</span>
                           </div>
@@ -1069,7 +1069,7 @@ export default function AdminContent() {
             <div className="p-5 space-y-6">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Total Revenue', value: '$148,200', sub: '+18.4% MoM', color: 'text-violet-700', bg: 'bg-violet-50', icon: <TrendingUp size={15} className="text-violet-500" /> },
+                  { label: 'Total Revenue', value: '₹148,200', sub: '+18.4% MoM', color: 'text-violet-700', bg: 'bg-violet-50', icon: <TrendingUp size={15} className="text-violet-500" /> },
                   { label: 'Avg Campaign ROI', value: '3.1x', sub: 'Across all brands', color: 'text-emerald-700', bg: 'bg-emerald-50', icon: <ArrowUpRight size={15} className="text-emerald-500" /> },
                   { label: 'Completion Rate', value: '79.7%', sub: '94 of 118 submitted', color: 'text-blue-700', bg: 'bg-blue-50', icon: <CheckCircle size={15} className="text-blue-500" /> },
                   { label: 'Avg Time to Complete', value: '18 days', sub: 'Campaign lifecycle', color: 'text-amber-700', bg: 'bg-amber-50', icon: <Clock size={15} className="text-amber-500" /> },
@@ -1089,8 +1089,8 @@ export default function AdminContent() {
                     <BarChart data={revenueByCategory} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="category" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip formatter={(v: number) => [`₹${v.toLocaleString()}`, 'Revenue']} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
                       <Bar dataKey="revenue" radius={[4, 4, 0, 0]} fill="#7C3AED" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -1105,7 +1105,7 @@ export default function AdminContent() {
                           <Cell key={`cell-rev-${index}`} fill={PLATFORM_COLORS[index % PLATFORM_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                      <Tooltip formatter={(v: number) => [`₹${v.toLocaleString()}`, 'Revenue']} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -1141,8 +1141,8 @@ export default function AdminContent() {
                   <LineChart data={monthlyRevenue} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip formatter={(v: number, name: string) => [`$${v.toLocaleString()}`, name === 'gmv' ? 'GMV' : 'Platform Fees']} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip formatter={(v: number, name: string) => [`₹${v.toLocaleString()}`, name === 'gmv' ? 'GMV' : 'Platform Fees']} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
                     <Line type="monotone" dataKey="gmv" stroke="#7C3AED" strokeWidth={2.5} dot={{ fill: '#7C3AED', r: 3 }} />
                     <Line type="monotone" dataKey="fees" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981', r: 3 }} strokeDasharray="4 2" />
                   </LineChart>
@@ -1163,7 +1163,7 @@ export default function AdminContent() {
                           <p className="text-xs text-slate-400">{creator.niche} · {creator.collabs} collabs</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-emerald-700 tabular-nums">${creator.earnings.toLocaleString()}</p>
+                          <p className="text-sm font-bold text-emerald-700 tabular-nums">₹{creator.earnings.toLocaleString()}</p>
                           <p className="text-xs text-amber-600">★ {creator.rating}</p>
                         </div>
                       </div>
@@ -1184,7 +1184,7 @@ export default function AdminContent() {
                           <p className="text-xs text-slate-400">{brand.campaigns} campaigns</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-blue-700 tabular-nums">${brand.spend.toLocaleString()}</p>
+                          <p className="text-sm font-bold text-blue-700 tabular-nums">₹{brand.spend.toLocaleString()}</p>
                           <p className="text-xs text-emerald-600">{brand.avgROI}x ROI</p>
                         </div>
                       </div>
@@ -1222,10 +1222,10 @@ export default function AdminContent() {
                             <p className="text-sm font-medium text-slate-800">{wd.creator}</p>
                             <p className="text-xs text-slate-400 font-mono">{wd.email}</p>
                           </td>
-                          <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-bold text-slate-800 tabular-nums">${wd.amount.toLocaleString()}</p></td>
+                          <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-bold text-slate-800 tabular-nums">₹{wd.amount.toLocaleString()}</p></td>
                           <td className="px-5 py-3.5 whitespace-nowrap">
-                            <p className="text-sm font-semibold text-emerald-700 tabular-nums">${(wd.amount - wd.fee).toFixed(2)}</p>
-                            <p className="text-xs text-slate-400">fee: ${wd.fee.toFixed(2)}</p>
+                            <p className="text-sm font-semibold text-emerald-700 tabular-nums">₹{(wd.amount - wd.fee).toFixed(2)}</p>
+                            <p className="text-xs text-slate-400">fee: ₹{wd.fee.toFixed(2)}</p>
                           </td>
                           <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm text-slate-600">{wd.method}</p></td>
                           <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-xs font-mono text-slate-500">{wd.account}</p></td>

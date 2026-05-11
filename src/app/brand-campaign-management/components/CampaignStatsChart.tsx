@@ -17,13 +17,14 @@ interface CampaignForm {
 }
 
 interface CampaignStatsChartProps {
+   open: boolean;
   onClose: () => void;
 }
 
 const platforms = ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn', 'Pinterest', 'Twitch'];
 const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing'];
 
-export default function CampaignStatsChart({ onClose }: CampaignStatsChartProps) {
+export default function CampaignStatsChart({open ,  onClose }: CampaignStatsChartProps) {
   const [deliverables, setDeliverables] = useState<string[]>(['1 Feed Post', '2 Stories']);
   const [newDeliverable, setNewDeliverable] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,7 +48,7 @@ export default function CampaignStatsChart({ onClose }: CampaignStatsChartProps)
   };
 
   return (
-    <Modal open onClose={onClose} title="Create New Campaign" size="lg">
+    <Modal open={open} onClose={onClose} title="Create New Campaign" size="lg">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin pr-1">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
@@ -89,13 +90,13 @@ export default function CampaignStatsChart({ onClose }: CampaignStatsChartProps)
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="camp-budget">Total Budget ($)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="camp-budget">Total Budget (₹)</label>
             <input
               id="camp-budget"
               type="number"
               placeholder="5000"
               className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 ${errors.budget ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
-              {...register('budget', { required: 'Budget is required', min: { value: 100, message: 'Minimum budget is $100' } })}
+              {...register('budget', { required: 'Budget is required', min: { value: 100, message: 'Minimum budget is ₹100' } })}
             />
             {errors.budget && <p className="text-red-500 text-xs mt-1">{errors.budget.message}</p>}
           </div>

@@ -328,7 +328,7 @@ export default function MessagingContent() {
               </div>
               <div className="flex items-center justify-between py-2 border-b border-slate-50">
                 <span className="text-xs text-slate-500">Your Rate</span>
-                <span className="text-xs font-semibold text-emerald-700">$1,200</span>
+                <span className="text-xs font-semibold text-emerald-700">₹1,200</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-slate-50">
                 <span className="text-xs text-slate-500">Deadline</span>
@@ -350,7 +350,7 @@ export default function MessagingContent() {
 
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
               <p className="text-xs font-medium text-amber-700 mb-1">Escrow Status</p>
-              <p className="text-xs text-amber-600">$1,200 locked — releases upon brand approval</p>
+              <p className="text-xs text-amber-600">₹1,200 locked — releases upon brand approval</p>
             </div>
           </div>
         </div>

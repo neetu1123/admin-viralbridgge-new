@@ -16,7 +16,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-card-md px-3 py-2.5">
       <p className="text-xs font-semibold text-slate-600 mb-1">{label}</p>
-      <p className="text-sm font-bold text-violet-700">${payload[0].value.toLocaleString()}</p>
+      <p className="text-sm font-bold text-violet-700">₹{payload[0].value.toLocaleString()}</p>
     </div>
   );
 };
@@ -33,7 +33,7 @@ export default function AdminGMVChart() {
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
         <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
+        <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
         <Tooltip content={<CustomTooltip />} />
         <Area type="monotone" dataKey="gmv" stroke="#7C3AED" strokeWidth={2.5} fill="url(#gradGMV)" />
       </AreaChart>

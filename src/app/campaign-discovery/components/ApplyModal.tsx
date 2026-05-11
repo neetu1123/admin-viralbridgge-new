@@ -51,7 +51,7 @@ export default function ApplyModal({ campaign, onClose, onSuccess }: ApplyModalP
           <p className="text-xs text-slate-500">{campaign.brand}</p>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="text-sm font-bold text-emerald-700">${campaign.budget.toLocaleString()}</p>
+          <p className="text-sm font-bold text-emerald-700">₹{campaign.budget.toLocaleString()}</p>
           <p className="text-xs text-slate-400">{campaign.budgetPer}</p>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function ApplyModal({ campaign, onClose, onSuccess }: ApplyModalP
           <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="apply-price">
             Proposed Price (Optional)
           </label>
-          <p className="text-xs text-slate-400 mb-1.5">Leave blank to accept the listed rate of ${campaign.budget.toLocaleString()}</p>
+          <p className="text-xs text-slate-400 mb-1.5">Leave blank to accept the listed rate of ₹{campaign.budget.toLocaleString()}</p>
           <div className="relative">
             <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -85,8 +85,8 @@ export default function ApplyModal({ campaign, onClose, onSuccess }: ApplyModalP
               placeholder={campaign.budget.toString()}
               className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
               {...register('proposedPrice', {
-                min: { value: 50, message: 'Minimum proposed price is $50' },
-                max: { value: 50000, message: 'Maximum proposed price is $50,000' },
+                min: { value: 50, message: 'Minimum proposed price is ₹50' },
+                max: { value: 50000, message: 'Maximum proposed price is ₹50,000' },
               })}
             />
           </div>

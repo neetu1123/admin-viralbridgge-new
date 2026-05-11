@@ -153,11 +153,11 @@ export default function CampaignDetailContent() {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Budget Used</p>
                 <DollarSign size={15} className="text-violet-600" />
               </div>
-              <p className="text-xl font-bold text-slate-800 tabular-nums">${campaign.spent.toLocaleString()}</p>
+              <p className="text-xl font-bold text-slate-800 tabular-nums">₹{campaign.spent.toLocaleString()}</p>
               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2 mb-1">
                 <div className={`h-full rounded-full ${spendPct >= 85 ? 'bg-red-500' : spendPct >= 60 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${spendPct}%` }} />
               </div>
-              <p className="text-xs text-slate-400">{spendPct}% of ${campaign.budget.toLocaleString()}</p>
+              <p className="text-xs text-slate-400">{spendPct}% of ₹{campaign.budget.toLocaleString()}</p>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-2">
@@ -280,7 +280,7 @@ export default function CampaignDetailContent() {
                       <p className="text-xs text-violet-600 font-medium">{creator.handle}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-slate-800 tabular-nums">${creator.agreedPrice.toLocaleString()}</p>
+                      <p className="text-sm font-bold text-slate-800 tabular-nums">₹{creator.agreedPrice.toLocaleString()}</p>
                       <p className="text-xs text-slate-400">agreed price</p>
                     </div>
                   </div>
@@ -344,15 +344,15 @@ export default function CampaignDetailContent() {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Budget</p>
-              <p className="text-xl font-bold text-slate-800 tabular-nums">${campaign.budget.toLocaleString()}</p>
+              <p className="text-xl font-bold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
             </div>
             <div className="bg-white rounded-xl border border-emerald-200 p-4 shadow-sm">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Released</p>
-              <p className="text-xl font-bold text-emerald-700 tabular-nums">${payments.filter(p => p.status === 'released').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
+              <p className="text-xl font-bold text-emerald-700 tabular-nums">₹{payments.filter(p => p.status === 'released').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
             </div>
             <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">In Escrow</p>
-              <p className="text-xl font-bold text-amber-700 tabular-nums">${payments.filter(p => p.status === 'in_escrow').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
+              <p className="text-xl font-bold text-amber-700 tabular-nums">₹{payments.filter(p => p.status === 'in_escrow').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
             </div>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -370,7 +370,7 @@ export default function CampaignDetailContent() {
                     <p className="text-xs text-slate-500 mt-0.5">{payment.creator}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-slate-800 tabular-nums">${payment.amount.toLocaleString()}</p>
+                    <p className="text-sm font-bold text-slate-800 tabular-nums">₹{payment.amount.toLocaleString()}</p>
                     <p className="text-xs text-slate-400">{new Date(payment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                   </div>
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${paymentStatusColors[payment.status]}`}>

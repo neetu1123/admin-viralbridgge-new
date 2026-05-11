@@ -35,7 +35,7 @@ const topCreators = [
 ];
 
 const kpis = [
-  { label: 'Total Spend', value: '$36,700', change: '+18%', up: true, icon: DollarSign, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { label: 'Total Spend', value: '₹36,700', change: '+18%', up: true, icon: DollarSign, color: 'text-violet-600', bg: 'bg-violet-50' },
   { label: 'Avg. ROI', value: '2.8x', change: '+0.4x', up: true, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   { label: 'Total Reach', value: '1.35M', change: '+32%', up: true, icon: Eye, color: 'text-blue-600', bg: 'bg-blue-50' },
   { label: 'Creators Hired', value: '23', change: '-2', up: false, icon: Users, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -106,10 +106,10 @@ export default function AnalyticsContent() {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
+            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
             <Tooltip
               contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '12px' }}
-              formatter={(value: number, name: string) => name === 'spend' ? [`$${value.toLocaleString()}`, 'Spend'] : [`${value}x`, 'ROI']}
+              formatter={(value: number, name: string) => name === 'spend' ? [`₹${value.toLocaleString()}`, 'Spend'] : [`${value}x`, 'ROI']}
             />
             <Area type="monotone" dataKey="spend" stroke="#8b5cf6" strokeWidth={2} fill="url(#spendGrad)" />
           </AreaChart>

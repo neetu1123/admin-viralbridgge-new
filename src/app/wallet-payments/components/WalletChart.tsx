@@ -19,7 +19,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
       {payload.map(p => (
         <p key={`wtt-${p.name}`} className="text-xs text-slate-700 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: p.color }} />
-          {p.name === 'earned' ? 'Earned' : 'Withdrawn'}: <strong>${p.value.toLocaleString()}</strong>
+          {p.name === 'earned' ? 'Earned' : 'Withdrawn'}: <strong>₹{p.value.toLocaleString()}</strong>
         </p>
       ))}
     </div>
@@ -32,7 +32,7 @@ export default function WalletChart() {
       <BarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }} barGap={4}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
         <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+        <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `₹${v}`} />
         <Tooltip content={<CustomTooltip />} />
         <Bar dataKey="earned" fill="#7C3AED" radius={[4, 4, 0, 0]} />
         <Bar dataKey="withdrawn" fill="#e2d9fb" radius={[4, 4, 0, 0]} />

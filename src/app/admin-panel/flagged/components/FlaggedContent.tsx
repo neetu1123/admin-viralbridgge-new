@@ -62,7 +62,7 @@ export default function FlaggedContent() {
                     <PlatformBadge platform={item.platform} />
                   </div>
                   <h3 className="text-base font-bold text-slate-800 mb-1">{item.title}</h3>
-                  <p className="text-sm text-slate-500 mb-3">{item.brand} · Budget: ${item.budget.toLocaleString()} · {item.reportCount} report{item.reportCount !== 1 ? 's' : ''} · Flagged {item.flaggedAt}</p>
+                  <p className="text-sm text-slate-500 mb-3">{item.brand} · Budget: ₹{item.budget.toLocaleString()} · {item.reportCount} report{item.reportCount !== 1 ? 's' : ''} · Flagged {item.flaggedAt}</p>
                   <div className="bg-red-50 border border-red-200 rounded-xl p-3">
                     <p className="text-xs font-semibold text-red-700 mb-1 flex items-center gap-1"><AlertTriangle size={12} /> Flag Reason</p>
                     <p className="text-sm text-red-700">{item.flagReason}</p>

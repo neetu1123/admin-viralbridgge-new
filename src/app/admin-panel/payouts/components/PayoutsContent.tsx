@@ -37,17 +37,17 @@ export default function PayoutsContent() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-5 text-white">
           <p className="text-amber-100 text-xs font-semibold uppercase tracking-wide mb-2">Pending Amount</p>
-          <p className="text-3xl font-extrabold">${totalPending.toLocaleString()}</p>
+          <p className="text-3xl font-extrabold">₹{totalPending.toLocaleString()}</p>
           <p className="text-amber-100 text-xs mt-1">{pending.length} requests awaiting</p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Approved Today</p>
-          <p className="text-3xl font-extrabold text-emerald-700">${payouts.filter(p => statuses[p.id] === 'approved').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-emerald-700">₹{payouts.filter(p => statuses[p.id] === 'approved').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
           <p className="text-slate-400 text-xs mt-1">{payouts.filter(p => statuses[p.id] === 'approved').length} payouts processed</p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">Total Fees Collected</p>
-          <p className="text-3xl font-extrabold text-violet-700">${payouts.reduce((s, p) => s + p.fee, 0).toFixed(2)}</p>
+          <p className="text-3xl font-extrabold text-violet-700">₹{payouts.reduce((s, p) => s + p.fee, 0).toFixed(2)}</p>
           <p className="text-slate-400 text-xs mt-1">Across all requests</p>
         </div>
       </div>
@@ -80,8 +80,8 @@ export default function PayoutsContent() {
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm font-bold text-slate-800">${p.amount.toLocaleString()}</p></td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
-                      <p className="text-sm font-semibold text-emerald-700">${(p.amount - p.fee).toFixed(2)}</p>
-                      <p className="text-xs text-slate-400">fee: ${p.fee.toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-emerald-700">₹{(p.amount - p.fee).toFixed(2)}</p>
+                      <p className="text-xs text-slate-400">fee: ₹{p.fee.toFixed(2)}</p>
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-sm text-slate-600">{p.method}</p></td>
                     <td className="px-5 py-3.5 whitespace-nowrap"><p className="text-xs font-mono text-slate-500">{p.account}</p></td>
