@@ -104,7 +104,6 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
           <AppLogo size={32} />
           {!collapsed && (
             <div>
-              <span className="font-bold text-slate-800 text-lg tracking-tight">ViralBridge</span>
               <span className="ml-2 text-xs font-medium bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md">Admin</span>
             </div>
           )}
@@ -210,8 +209,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
       style={{ minHeight: '100vh' }}
     >
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
-        <AppLogo size={32} />
-        {!collapsed && <span className="font-bold text-slate-800 text-lg tracking-tight">ViralBridge</span>}
+        <AppLogo size={90} />
       </div>
       {!collapsed && (
         <div className="px-4 pt-3 pb-1">
