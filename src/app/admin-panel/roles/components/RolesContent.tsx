@@ -11,10 +11,10 @@ const adminRoles = [
 ];
 
 const adminMembers = [
-  { id: 'adm-001', name: 'Admin User', email: 'admin@viralbridge.io', role: 'Super Admin', lastActive: '2026-04-14', status: 'active' },
-  { id: 'adm-002', name: 'Raj Patel', email: 'raj@viralbridge.io', role: 'Finance Admin', lastActive: '2026-04-13', status: 'active' },
-  { id: 'adm-003', name: 'Zara Ahmed', email: 'zara@viralbridge.io', role: 'Moderation Admin', lastActive: '2026-04-12', status: 'active' },
-  { id: 'adm-004', name: 'Tom Chen', email: 'tom@viralbridge.io', role: 'Support Admin', lastActive: '2026-04-10', status: 'active' },
+  { id: 'adm-001', name: 'Admin User', email: 'admin@Viralbridgge.io', role: 'Super Admin', lastActive: '2026-04-14', status: 'active' },
+  { id: 'adm-002', name: 'Raj Patel', email: 'raj@Viralbridgge.io', role: 'Finance Admin', lastActive: '2026-04-13', status: 'active' },
+  { id: 'adm-003', name: 'Zara Ahmed', email: 'zara@Viralbridgge.io', role: 'Moderation Admin', lastActive: '2026-04-12', status: 'active' },
+  { id: 'adm-004', name: 'Tom Chen', email: 'tom@Viralbridgge.io', role: 'Support Admin', lastActive: '2026-04-10', status: 'active' },
 ];
 
 export default function RolesContent() {

@@ -101,7 +101,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
       >
         {/* Logo */}
         <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
-          <AppLogo size={32} />
+          <AppLogo size={150} />
           {!collapsed && (
             <div>
               <span className="ml-2 text-xs font-medium bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md">Admin</span>
@@ -175,7 +175,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-slate-800 truncate">Admin User</p>
-                <p className="text-xs text-slate-400 truncate">admin@viralbridge.io</p>
+                <p className="text-xs text-slate-400 truncate">admin@Viralbridgge.io</p>
               </div>
               <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
                 <LogOut size={15} className="text-slate-400" />
@@ -209,7 +209,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
       style={{ minHeight: '100vh' }}
     >
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
-        <AppLogo size={90} />
+        <AppLogo size={150} />
       </div>
       {!collapsed && (
         <div className="px-4 pt-3 pb-1">

@@ -23,7 +23,7 @@ interface Transaction {
 const transactions: Transaction[] = [
   { id: 'txn-001', type: 'escrow_release', amount: 1200, description: 'Payment released — Summer Glow Campaign', campaign: 'Summer Glow Skincare Launch', brand: 'Luminary Skincare', status: 'released', date: '2026-04-13', balance: 3420.50 },
   { id: 'txn-002', type: 'escrow_lock', amount: 800, description: 'Funds locked in escrow — TechDrop Review', campaign: 'TechDrop Wireless Earbuds Review', brand: 'TechDrop', status: 'escrow', date: '2026-04-11', balance: 2220.50 },
-  { id: 'txn-003', type: 'withdrawal', amount: -500, description: 'Withdrawal to PayPal — sofia@viralbridge.io', campaign: undefined, brand: undefined, status: 'completed', date: '2026-04-10', balance: 1420.50 },
+  { id: 'txn-003', type: 'withdrawal', amount: -500, description: 'Withdrawal to PayPal — sofia@Viralbridgge.io', campaign: undefined, brand: undefined, status: 'completed', date: '2026-04-10', balance: 1420.50 },
   { id: 'txn-004', type: 'escrow_release', amount: 950, description: 'Payment released — FitPro 30-Day Challenge', campaign: 'FitPro App — 30-Day Challenge', brand: 'FitPro Health', status: 'released', date: '2026-04-08', balance: 1920.50 },
   { id: 'txn-005', type: 'credit', amount: 600, description: 'Bonus tip from brand — Harvest Kitchen', campaign: 'Harvest Kitchen Series', brand: 'Harvest Kitchen', status: 'released', date: '2026-04-06', balance: 970.50 },
   { id: 'txn-006', type: 'escrow_lock', amount: 1800, description: 'Funds locked in escrow — StyleForward Fall', campaign: 'StyleForward Fall Collection', brand: 'StyleForward', status: 'escrow', date: '2026-04-04', balance: 370.50 },

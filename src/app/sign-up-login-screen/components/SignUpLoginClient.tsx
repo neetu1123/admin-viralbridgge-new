@@ -83,7 +83,7 @@ export default function SignUpLoginClient() {
     // BACKEND: POST /api/auth/signup { ...data, role } → JWT token
     await new Promise(r => setTimeout(r, 1400));
     setIsLoading(false);
-    toast.success('Account created! Welcome to ViralBridge.');
+    toast.success('Account created! Welcome to Viralbridgge.');
     window.location.href = role === 'brand' ? '/brand-campaign-management' : '/campaign-discovery';
   };
 
@@ -139,7 +139,7 @@ export default function SignUpLoginClient() {
           {/* Testimonial */}
           <div className="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
             <p className="text-white/90 text-sm italic leading-relaxed mb-3">
-              &ldquo;ViralBridge helped us run 14 campaigns in Q1 with verified creators. Our ROAS went up 3.2x.&rdquo;
+              &ldquo;ViralBridggehelped us run 14 campaigns in Q1 with verified creators. Our ROAS went up 3.2x.&rdquo;
             </p>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center">
@@ -209,7 +209,7 @@ export default function SignUpLoginClient() {
           {mode === 'login' && (
             <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-800 mb-1">Welcome back</h2>
-              <p className="text-slate-500 text-sm mb-5">Sign in to your ViralBridge account</p>
+              <p className="text-slate-500 text-sm mb-5">Sign in to your ViralBridggeaccount</p>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="login-email">
