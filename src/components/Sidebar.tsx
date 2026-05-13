@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import AppLogo from './ui/AppLogo';
+import AppLogo from '../components/ui/AppLogo';
 import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
-import AppIcon from './ui/AppIcon';
+import Icon from '../components/ui/AppIcon';
 
 
 interface SidebarProps {
@@ -13,19 +13,19 @@ interface SidebarProps {
 
 const creatorNav = [
   { label: 'Discover Campaigns', icon: Search, href: '/campaign-discovery', badge: null },
-  { label: 'My Applications', icon: FileText, href: '/campaign-discovery', badge: '3' },
+  { label: 'My Applications', icon: FileText, href: '/my-applications', badge: '3' },
   { label: 'Messages', icon: MessageSquare, href: '/messaging-inbox', badge: '5' },
   { label: 'Wallet', icon: Wallet, href: '/wallet-payments', badge: null },
-  { label: 'My Profile', icon: User, href: '/sign-up-login-screen', badge: null },
+  { label: 'My Profile', icon: User, href: '/creator-profile', badge: null },
 ];
 
 const brandNav = [
   { label: 'Campaigns', icon: Briefcase, href: '/brand-campaign-management', badge: null },
-  { label: 'Applicants', icon: Users, href: '/brand-campaign-management', badge: '12' },
+  { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: '12' },
   { label: 'Creator Discovery', icon: Compass, href: '/creator-discovery', badge: null },
   { label: 'My Creators', icon: BookOpen, href: '/my-creators', badge: null },
-  { label: 'Messages', icon: MessageSquare, href: '/messaging-inbox', badge: '2' },
-  { label: 'Wallet & Spend', icon: CreditCard, href: '/wallet-payments', badge: null },
+  { label: 'Messages', icon: MessageSquare, href: '/brand-messages', badge: '2' },
+  { label: 'Wallet & Spend', icon: CreditCard, href: '/brand-wallet', badge: null },
   { label: 'Analytics', icon: BarChart3, href: '/analytics', badge: null },
 ];
 
@@ -101,7 +101,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
       >
         {/* Logo */}
         <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
-          <AppLogo size={150} />
+          <AppLogo size={130} />
           {!collapsed && (
             <div>
               <span className="ml-2 text-xs font-medium bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md">Admin</span>
@@ -175,7 +175,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-slate-800 truncate">Admin User</p>
-                <p className="text-xs text-slate-400 truncate">admin@Viralbridgge.io</p>
+                <p className="text-xs text-slate-400 truncate">admin@viralbridgge.io</p>
               </div>
               <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
                 <LogOut size={15} className="text-slate-400" />
@@ -243,11 +243,11 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
         })}
         <div className="pt-4">
           <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${collapsed ? 'hidden' : ''}`}>Other</p>
-          <Link href="/sign-up-login-screen" className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Notifications' : undefined}>
+          <Link href={role === 'brand' ? '/brand-notifications' : '/creator-notifications'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Notifications' : undefined}>
             <Bell size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
             {!collapsed && <span className="text-sm">Notifications</span>}
           </Link>
-          <Link href="/sign-up-login-screen" className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Settings' : undefined}>
+          <Link href={role === 'brand' ? '/brand-settings' : '/creator-settings'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Settings' : undefined}>
             <Settings size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
             {!collapsed && <span className="text-sm">Settings</span>}
           </Link>

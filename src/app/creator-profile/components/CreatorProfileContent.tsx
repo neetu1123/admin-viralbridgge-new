@@ -1,0 +1,251 @@
+'use client';
+import React, { useState } from 'react';
+import { toast, Toaster } from 'sonner';
+import { Camera, Save, Plus, X, Star, TrendingUp, Users, Briefcase } from 'lucide-react';
+import Icon from '@/src/components/ui/AppIcon';
+
+
+
+const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing', 'Lifestyle', 'Parenting', 'Education', 'Music & Entertainment'];
+
+export default function CreatorProfileContent() {
+  const [name, setName] = useState('Sofia Martinez');
+  const [handle, setHandle] = useState('@sofiaglows');
+  const [bio, setBio] = useState('Skincare enthusiast & content creator based in Miami. I help brands connect with beauty-conscious audiences through authentic, story-driven content. 5+ years creating beauty content that converts.');
+  const [location, setLocation] = useState('Miami, FL, USA');
+  const [email, setEmail] = useState('sofia@Viralbridgge.io');
+  const [phone, setPhone] = useState('+1 (305) 555-0192');
+  const [website, setWebsite] = useState('https://sofiaglows.com');
+  const [instagram, setInstagram] = useState('https://instagram.com/sofiaglows');
+  const [youtube, setYoutube] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [tiktok, setTiktok] = useState('');
+  const [selectedNiches, setSelectedNiches] = useState<string[]>(['Beauty & Skincare', 'Lifestyle']);
+  const [mediaKitUrl, setMediaKitUrl] = useState('');
+  const [portfolioItems, setPortfolioItems] = useState([
+    { id: 'p1', title: 'Summer Glow Campaign — Luminary Skincare', platform: 'Instagram', views: '142K', engagement: '5.8%', url: '' },
+    { id: 'p2', title: 'FitPro 30-Day Challenge', platform: 'YouTube', views: '88K', engagement: '6.2%', url: '' },
+    { id: 'p3', title: 'StyleForward Fall Collection', platform: 'Instagram', views: '67K', engagement: '4.9%', url: '' },
+  ]);
+
+  const toggleNiche = (niche: string) => {
+    setSelectedNiches(prev =>
+      prev.includes(niche) ? prev.filter(n => n !== niche) : prev.length < 5 ? [...prev, niche] : prev
+    );
+  };
+
+  const removePortfolioItem = (id: string) => setPortfolioItems(prev => prev.filter(p => p.id !== id));
+
+  const socialLinks = [
+    { label: 'Instagram', value: instagram, setter: setInstagram, placeholder: 'https://instagram.com/yourhandle', color: 'text-pink-500', initials: 'IG' },
+    { label: 'YouTube', value: youtube, setter: setYoutube, placeholder: 'https://youtube.com/@yourchannel', color: 'text-red-500', initials: 'YT' },
+    { label: 'Twitter / X', value: twitter, setter: setTwitter, placeholder: 'https://twitter.com/yourhandle', color: 'text-blue-400', initials: 'TW' },
+    { label: 'TikTok', value: tiktok, setter: setTiktok, placeholder: 'https://tiktok.com/@yourhandle', color: 'text-slate-700', initials: 'TK' },
+    { label: 'Website', value: website, setter: setWebsite, placeholder: 'https://yourwebsite.com', color: 'text-slate-500', initials: 'WB' },
+  ];
+
+  return (
+    <div className="pb-8">
+      <Toaster position="bottom-right" richColors />
+
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">My Profile</h1>
+          <p className="text-slate-500 text-sm mt-1">Update your creator profile, social links, and media kit</p>
+        </div>
+        <button
+          onClick={() => toast.success('Profile saved successfully!')}
+          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all"
+        >
+          <Save size={15} /> Save Profile
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column — photo + stats */}
+        <div className="space-y-5">
+          {/* Profile photo */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <h2 className="text-sm font-semibold text-slate-700 mb-4">Profile Photo</h2>
+            <div className="flex flex-col items-center">
+              <div className="relative mb-4">
+                <div className="w-24 h-24 rounded-full bg-violet-100 flex items-center justify-center">
+                  <span className="text-violet-700 text-2xl font-bold">SM</span>
+                </div>
+                <button
+                  onClick={() => toast.success('Upload triggered')}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center shadow-md hover:bg-violet-700 transition-colors"
+                >
+                  <Camera size={14} className="text-white" />
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 text-center">JPG, PNG or GIF. Max 5MB.</p>
+              <button onClick={() => toast.success('Upload triggered')} className="mt-3 text-xs text-violet-600 hover:text-violet-700 font-medium border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors">
+                Upload Photo
+              </button>
+            </div>
+          </div>
+
+          {/* Stats overview */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <h2 className="text-sm font-semibold text-slate-700 mb-4">Profile Stats</h2>
+            <div className="space-y-3">
+              {[
+                { label: 'Total Followers', value: '48.2K', icon: Users, color: 'text-violet-600' },
+                { label: 'Avg. Engagement', value: '5.2%', icon: TrendingUp, color: 'text-emerald-600' },
+                { label: 'Campaigns Done', value: '14', icon: Briefcase, color: 'text-blue-600' },
+                { label: 'Avg. ROI', value: '3.1x', icon: Star, color: 'text-amber-600' },
+              ].map(stat => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.label} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                    <div className="flex items-center gap-2">
+                      <Icon size={14} className={stat.color} />
+                      <p className="text-xs text-slate-500">{stat.label}</p>
+                    </div>
+                    <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right column — main form */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Basic info */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <h2 className="text-sm font-semibold text-slate-700 mb-4">Basic Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Full Name</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Handle / Username</label>
+                <input type="text" value={handle} onChange={e => setHandle(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Location</label>
+                <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" placeholder="City, Country" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Contact Email</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Phone Number</label>
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Website</label>
+                <input type="url" value={website} onChange={e => setWebsite(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" placeholder="https://" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Bio</label>
+              <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 resize-none" placeholder="Tell brands about yourself, your content style, and your audience..." />
+              <p className="text-xs text-slate-400 mt-1">{bio.length}/500 characters</p>
+            </div>
+          </div>
+
+          {/* Social Links */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <h2 className="text-sm font-semibold text-slate-700 mb-4">Social Links</h2>
+            <div className="space-y-3">
+              {socialLinks.map(social => (
+                <div key={social.label} className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 ${social.color}`}>
+                    <span className="text-xs font-bold">{social.initials}</span>
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="url"
+                      value={social.value}
+                      onChange={e => social.setter(e.target.value)}
+                      placeholder={social.placeholder}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Niche / Categories */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-slate-700">Niche / Categories</h2>
+              <p className="text-xs text-slate-400">Select up to 5</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {niches.map(niche => (
+                <button
+                  key={niche}
+                  onClick={() => toggleNiche(niche)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all ${selectedNiches.includes(niche) ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600'}`}
+                >
+                  {niche}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Portfolio / Media Kit */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-slate-700">Portfolio & Media Kit</h2>
+              <button
+                onClick={() => toast.success('Add portfolio item')}
+                className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-700 font-medium border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors"
+              >
+                <Plus size={12} /> Add Work
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Media Kit URL</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={mediaKitUrl}
+                  onChange={e => setMediaKitUrl(e.target.value)}
+                  placeholder="Link to your media kit (PDF, Notion, etc.)"
+                  className="flex-1 px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                />
+                <button onClick={() => toast.success('Media kit uploaded')} className="flex items-center gap-1.5 text-xs text-slate-600 border border-slate-200 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
+                  Upload PDF
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {portfolioItems.map(item => (
+                <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 group">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-700 truncate">{item.title}</p>
+                    <div className="flex items-center gap-3 mt-0.5">
+                      <span className="text-xs text-slate-400">{item.platform}</span>
+                      <span className="text-xs text-slate-500">{item.views} views</span>
+                      <span className="text-xs text-emerald-600">{item.engagement} eng.</span>
+                    </div>
+                  </div>
+                  <button onClick={() => removePortfolioItem(item.id)} className="p-1 rounded hover:bg-red-50 hover:text-red-500 text-slate-400 transition-colors ml-3 opacity-0 group-hover:opacity-100">
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => toast.success('Profile saved successfully!')}
+            className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-3 rounded-xl text-sm transition-all"
+          >
+            <Save size={15} /> Save All Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
