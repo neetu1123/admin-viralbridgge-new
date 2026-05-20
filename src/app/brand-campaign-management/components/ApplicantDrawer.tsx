@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { X, CheckCircle, XCircle, MessageSquare, TrendingUp, Users, Star, ExternalLink } from 'lucide-react';
+import { X, CheckCircle, XCircle, MessageSquare, TrendingUp, Users, Star, ExternalLink, Instagram } from 'lucide-react';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import Link from 'next/link';
 

@@ -1,11 +1,11 @@
 import AppLayout from '@/src/components/AppLayout';
 import AdminTopNavbar from '../components/AdminTopNavbar';
-import AdminContent from '../components/AdminContent';
+import AdminTransactionsContent from './components/AdminTransactionsContent';
 
 export default function AdminTransactionsPage() {
   return (
     <AppLayout role="admin" topNavbar={<AdminTopNavbar />}>
-      <AdminContent />
+      <AdminTransactionsContent />
     </AppLayout>
   );
 }
