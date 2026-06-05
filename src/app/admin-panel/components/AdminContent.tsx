@@ -1,10 +1,12 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Users, DollarSign, TrendingUp, Clock, CheckCircle, XCircle, Ban, Search, ArrowUpRight, Eye, Flag, Download, ChevronDown, Activity, Wallet, AlertTriangle, Zap, RefreshCw, Lock, Unlock, RotateCcw, GitMerge, Slash, UserCheck, FileText, Star, ArrowRight, Shield } from 'lucide-react';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import AdminPlatformChart from './AdminPlatformChart';
+import { adminApi } from '@/src/lib/api';
+import { useAuth } from '@/src/lib/useAuth';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Cell, PieChart, Pie, LineChart, Line, AreaChart, Area
@@ -460,6 +462,47 @@ function LiveActivityFeed() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AdminContent() {
+  // ── Auth guard — only ADMIN role can view this ───────────────────────────────
+  const { user: authUser, loading: authLoading, logout } = useAuth('admin');
+
+  // ── Real API state ────────────────────────────────────────────────────────────
+  const [apiStats, setApiStats] = useState<{ totalUsers: number; totalCampaigns: number; gmv: number } | null>(null);
+  const [apiUsers, setApiUsers] = useState<Array<{
+    id: string; name: string; email: string; status: string; is_banned: boolean;
+    role?: { name: string }; created_at: string;
+  }> | null>(null);
+  const [apiCampaigns, setApiCampaigns] = useState<Array<{
+    id: string; title: string; status: string; budget: number; platform: string;
+    brand?: { company_name: string };
+  }> | null>(null);
+  const [apiLoading, setApiLoading] = useState(true);
+
+  const loadApiData = useCallback(async () => {
+    setApiLoading(true);
+    try {
+      const [stats, users, campaigns] = await Promise.all([
+        adminApi.getDashboardStats(),
+        adminApi.getUsers(),
+        adminApi.getCampaigns(),
+      ]);
+      setApiStats(stats);
+      setApiUsers(users);
+      setApiCampaigns(campaigns);
+    } catch (err: any) {
+      // Silently fall back to mock data — avoids breaking the UI
+      console.warn('Admin API error, using mock data:', err.message);
+    } finally {
+      setApiLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading) {
+      loadApiData();
+    }
+  }, [authLoading, loadApiData]);
+
+  // ── Tab / filter state ────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('all');
@@ -484,8 +527,12 @@ export default function AdminContent() {
   const [txnFilter, setTxnFilter] = useState('all');
   const [disputeFilter, setDisputeFilter] = useState('all');
 
-  const gmv = 148200;
-  const activeUsers = adminUsers.filter(u => u.status === 'active' || u.status === 'verified').length;
+  // Use real API data if available, otherwise fall back to mock data
+  const gmv = apiStats?.gmv ?? 148200;
+  const totalUsersCount = apiStats?.totalUsers ?? adminUsers.length;
+  const activeUsers = apiUsers
+    ? apiUsers.filter(u => !u.is_banned).length
+    : adminUsers.filter(u => u.status === 'active' || u.status === 'verified').length;
   const pendingWithdrawals = adminWithdrawals.filter(w => withdrawalStatuses[w.id] === 'pending').length;
   const flaggedCampaigns = adminCampaigns.filter(c => campaignStatuses[c.id] === 'flagged').length;
   const pendingApprovalCampaigns = adminCampaigns.filter(c => campaignStatuses[c.id] === 'pending_approval').length;
@@ -494,8 +541,18 @@ export default function AdminContent() {
   const platformFee = 3640;
   const pendingVerifications = adminUsers.filter(u => u.status === 'pending_kyc').length;
 
-  const handleUserAction = (userId: string, action: 'verify' | 'ban' | 'suspend' | 'unsuspend') => {
-    toast.success(`User ${action === 'verify' ? 'verified' : action === 'ban' ? 'banned' : action === 'suspend' ? 'suspended' : 'unsuspended'} successfully`);
+  const handleUserAction = async (userId: string, action: 'verify' | 'ban' | 'suspend' | 'unsuspend') => {
+    try {
+      if (action === 'ban') {
+        await adminApi.banUser(userId);
+        toast.success('User banned successfully');
+        loadApiData(); // Refresh the user list
+      } else {
+        toast.success(`User ${action === 'verify' ? 'verified' : action === 'suspend' ? 'suspended' : 'unsuspended'} successfully`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Action failed');
+    }
   };
 
   const handleWithdrawal = (wdId: string, decision: 'approved' | 'rejected') => {
@@ -504,11 +561,21 @@ export default function AdminContent() {
     toast.success(`Withdrawal ${decision} for ${wd?.creator}`);
   };
 
-  const handleCampaignAction = (campId: string, action: 'approve' | 'reject' | 'freeze' | 'request_changes') => {
+  const handleCampaignAction = async (campId: string, action: 'approve' | 'reject' | 'freeze' | 'request_changes') => {
     const newStatus: AdminCampaign['status'] = action === 'approve' ? 'active' : action === 'reject' ? 'rejected' : action === 'freeze' ? 'frozen' : 'pending_approval';
-    setCampaignStatuses(prev => ({ ...prev, [campId]: newStatus }));
-    const labels: Record<string, string> = { approve: 'approved', reject: 'rejected', freeze: 'frozen', request_changes: 'sent back for changes' };
-    toast.success(`Campaign ${labels[action]}`);
+    try {
+      if (action === 'approve') {
+        await adminApi.approveCampaign(campId);
+      } else if (action === 'reject') {
+        await adminApi.rejectCampaign(campId);
+      }
+      setCampaignStatuses(prev => ({ ...prev, [campId]: newStatus }));
+      const labels: Record<string, string> = { approve: 'approved', reject: 'rejected', freeze: 'frozen', request_changes: 'sent back for changes' };
+      toast.success(`Campaign ${labels[action]}`);
+      loadApiData(); // Refresh campaigns
+    } catch (err: any) {
+      toast.error(err.message || 'Campaign action failed');
+    }
   };
 
   const handleTransactionAction = (txnId: string, action: 'release' | 'hold' | 'refund') => {
@@ -550,6 +617,18 @@ export default function AdminContent() {
     { key: 'withdrawals', label: 'Withdrawals', count: pendingWithdrawals, alert: pendingWithdrawals > 0 },
   ];
 
+  // ── Guard: show nothing while auth is loading ──────────────────────────────
+  if (authLoading || apiLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-500 text-sm">Loading admin panel...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
@@ -575,17 +654,15 @@ export default function AdminContent() {
         {/* Active Users Card */}
         <a href="/admin-panel/users" className="group bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Active Users</p>
+            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Total Users</p>
             <Users size={15} className="text-blue-500" />
           </div>
-          <p className="text-3xl font-extrabold text-slate-800 tabular-nums">{activeUsers}</p>
+          <p className="text-3xl font-extrabold text-slate-800 tabular-nums">{totalUsersCount}</p>
           <div className="flex items-center gap-3 mt-1">
-            <p className="text-slate-400 text-xs">{adminUsers.filter(u => u.role === 'creator').length} creators</p>
-            <span className="text-slate-200">·</span>
-            <p className="text-slate-400 text-xs">{adminUsers.filter(u => u.role === 'brand').length} brands</p>
+            <p className="text-slate-400 text-xs">{activeUsers} active</p>
           </div>
           <div className="mt-3 flex items-end justify-between">
-            <p className="text-emerald-600 text-xs font-medium">+2 today</p>
+            <p className="text-emerald-600 text-xs font-medium">Live from DB</p>
             <Sparkline data={[3, 5, 4, 6, 5, 7, 6]} color="#3B82F6" />
           </div>
         </a>

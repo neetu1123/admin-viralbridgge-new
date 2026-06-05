@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DollarSign, Send } from 'lucide-react';
+import { toast } from 'sonner';
 import Modal from '@/src/components/ui/Modal';
+import { creatorApi } from '@/src/lib/api';
 
 
 interface ApplyForm {
@@ -33,10 +35,18 @@ export default function ApplyModal({ campaign, onClose, onSuccess }: ApplyModalP
 
   const onSubmit = async (data: ApplyForm) => {
     setIsSubmitting(true);
-    // BACKEND: POST /api/applications { campaignId: campaign.id, message: data.message, proposedPrice: data.proposedPrice }
-    await new Promise(r => setTimeout(r, 1000));
-    setIsSubmitting(false);
-    onSuccess();
+    try {
+      await creatorApi.apply(campaign.id, {
+        message: data.message,
+        proposedPrice: data.proposedPrice ? Number(data.proposedPrice) : undefined,
+      });
+      toast.success('Application submitted!');
+      onSuccess();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to submit application');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

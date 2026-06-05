@@ -1,10 +1,10 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast, Toaster } from 'sonner';
 import AppLogo from '@/src/components/ui/AppLogo';
 import { Eye, EyeOff, Copy, Check, ArrowRight, Sparkles, Building2, User, Mail, Lock, Globe, ChevronRight } from 'lucide-react';
-// import Icon from '@/components/ui/AppIcon';
+import { authApi } from '@/src/lib/api';
 
 
 type AuthMode = 'login' | 'signup';
@@ -36,8 +36,14 @@ const demoCredentials = [
 
 const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing', 'Parenting', 'Sustainability'];
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';
+
 export default function SignUpLoginClient() {
   const [mode, setMode] = useState<AuthMode>('login');
+
+  useEffect(() => {
+    fetch(`${API_BASE}/health`).catch(() => undefined);
+  }, []);
   const [role, setRole] = useState<UserRole>('creator');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -60,18 +66,25 @@ export default function SignUpLoginClient() {
   };
 
   const onLogin = async (data: LoginForm) => {
-    const validCred = demoCredentials.find(c => c.email === data.email && c.password === data.password);
-    if (!validCred) {
-      loginForm.setError('email', { message: 'Invalid credentials — use the demo accounts below to sign in' });
-      return;
-    }
     setIsLoading(true);
-    // BACKEND: POST /api/auth/login { email, password } → JWT token
-    await new Promise(r => setTimeout(r, 1200));
-    setIsLoading(false);
-    toast.success(`Welcome back! Signed in as ${validCred.role}`);
-    const routes: Record<string, string> = { Creator: '/campaign-discovery', Brand: '/brand-campaign-management', Admin: '/admin-panel' };
-    window.location.href = routes[validCred.role] ?? '/campaign-discovery';
+    try {
+      const result = await authApi.login(data.email, data.password);
+      localStorage.setItem('token', result.access_token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      toast.success(`Welcome back, ${result.user.name}!`);
+      // Navigate based on role returned from backend
+      const routes: Record<string, string> = {
+        admin: '/admin-panel',
+        brand: '/brand-campaign-management',
+        creator: '/campaign-discovery',
+      };
+      window.location.href = routes[result.user.role?.toLowerCase() || 'creator'] ?? '/campaign-discovery';
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid email or password');
+      loginForm.setError('email', { message: error.message || 'Invalid email or password' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const onSignup = async (data: SignupForm) => {
@@ -80,11 +93,18 @@ export default function SignUpLoginClient() {
       return;
     }
     setIsLoading(true);
-    // BACKEND: POST /api/auth/signup { ...data, role } → JWT token
-    await new Promise(r => setTimeout(r, 1400));
-    setIsLoading(false);
-    toast.success('Account created! Welcome to Viralbridgge.');
-    window.location.href = role === 'brand' ? '/brand-campaign-management' : '/campaign-discovery';
+    try {
+      const result = await authApi.register(data.name, data.email, data.password, role);
+      localStorage.setItem('token', result.access_token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      toast.success('Account created! Welcome to Viralbridgge.');
+      window.location.href = role === 'brand' ? '/brand-campaign-management' : '/campaign-discovery';
+    } catch (error: any) {
+      toast.error(error.message || 'Signup failed');
+      signupForm.setError('email', { message: error.message || 'Signup failed' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

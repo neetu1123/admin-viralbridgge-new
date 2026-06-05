@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import Modal from '@/src/components/ui/Modal';
 import { Plus, X } from 'lucide-react';
+import { brandApi } from '@/src/lib/api';
 
 interface CampaignForm {
   title: string;
@@ -18,12 +19,13 @@ interface CampaignForm {
 
 interface CreateCampaignModalProps {
   onClose: () => void;
+  onCreated?: () => void;
 }
 
 const platforms = ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn', 'Pinterest', 'Twitch'];
 const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing'];
 
-export default function CreateCampaignModal({ onClose }: CreateCampaignModalProps) {
+export default function CreateCampaignModal({ onClose, onCreated }: CreateCampaignModalProps) {
   const [deliverables, setDeliverables] = useState<string[]>(['1 Feed Post', '2 Stories']);
   const [newDeliverable, setNewDeliverable] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,11 +41,26 @@ export default function CreateCampaignModal({ onClose }: CreateCampaignModalProp
 
   const onSubmit = async (data: CampaignForm) => {
     setIsSubmitting(true);
-    // BACKEND: POST /api/campaigns { ...data, deliverables }
-    await new Promise(r => setTimeout(r, 1200));
-    setIsSubmitting(false);
-    toast.success('Campaign created successfully!');
-    onClose();
+    try {
+      await brandApi.createCampaign({
+        title: data.title,
+        description: data.description,
+        platform: data.platform,
+        budget: Number(data.budget),
+        deadline: data.deadline,
+        deliverables,
+        locality: data.niche,
+        languages: ['English'],
+        status: 'PENDING_APPROVAL',
+      });
+      toast.success('Campaign created successfully!');
+      onCreated?.();
+      onClose();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to create campaign');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
