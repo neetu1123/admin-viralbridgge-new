@@ -36,7 +36,7 @@ async function apiFetch<T = unknown>(
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('Request timed out. The API may still be starting — try again in a few seconds.');
     }
-    throw new Error('Cannot reach API. Check CORS_ORIGINS on the backend includes your frontend URL.');
+    throw new Error('Cannot reach API. Redeploy the backend and confirm NEXT_PUBLIC_API_URL is correct.');
   } finally {
     clearTimeout(timeout);
   }
