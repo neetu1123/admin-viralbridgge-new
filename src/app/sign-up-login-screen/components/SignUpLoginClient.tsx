@@ -42,7 +42,7 @@ export default function SignUpLoginClient() {
   const [mode, setMode] = useState<AuthMode>('login');
 
   useEffect(() => {
-    fetch(`${API_BASE}/health`).catch(() => undefined);
+    fetch(`${API_BASE}/health`, { method: 'GET', mode: 'cors' }).catch(() => undefined);
   }, []);
   const [role, setRole] = useState<UserRole>('creator');
   const [showPassword, setShowPassword] = useState(false);

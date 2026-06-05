@@ -11,7 +11,8 @@ function getToken(): string | null {
 
 async function apiFetch<T = unknown>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  attempt = 1
 ): Promise<T> {
   const token = getToken();
   const headers: HeadersInit = {
@@ -20,11 +21,29 @@ async function apiFetch<T = unknown>(
     ...(options.headers || {}),
   };
 
-  let res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
 
-  if (res.status === 503) {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    clearTimeout(timeout);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timed out. The API may still be starting — try again in a few seconds.');
+    }
+    throw new Error('Cannot reach API. Check CORS_ORIGINS on the backend includes your frontend URL.');
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (res.status === 503 && attempt < 3) {
     await new Promise((r) => setTimeout(r, 3000));
-    res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+    return apiFetch<T>(path, options, attempt + 1);
   }
 
   if (res.status === 401) {
