@@ -227,7 +227,7 @@ export default function SignUpLoginClient() {
 
           {/* LOGIN FORM */}
           {mode === 'login' && (
-            <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); loginForm.handleSubmit(onLogin)(e); }} className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-800 mb-1">Welcome back</h2>
               <p className="text-slate-500 text-sm mb-5">Sign in to your ViralBridggeaccount</p>
 
@@ -337,7 +337,7 @@ export default function SignUpLoginClient() {
 
           {/* SIGNUP FORM */}
           {mode === 'signup' && (
-            <form onSubmit={signupForm.handleSubmit(onSignup)} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); signupForm.handleSubmit(onSignup)(e); }} className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-800 mb-1">
                 {role === 'creator' ? 'Join as a Creator' : 'Register Your Brand'}
               </h2>
