@@ -30,6 +30,16 @@ const ACTION_META: Record<string, { label: string; color: string; entity: string
   REJECT_CAMPAIGN:  { label: 'Reject Campaign',    color: 'bg-red-100 text-red-700 border border-red-200',     entity: 'Campaign' },
   FLAG_CAMPAIGN:    { label: 'Flag Campaign',      color: 'bg-orange-100 text-orange-700 border border-orange-200', entity: 'Campaign' },
   RELEASE_PAYMENT:  { label: 'Release Payment',    color: 'bg-violet-100 text-violet-700 border border-violet-200', entity: 'Transaction' },
+  CREATE_CAMPAIGN:  { label: 'Create Campaign',    color: 'bg-violet-100 text-violet-700 border border-violet-200', entity: 'Campaign' },
+  UPDATE_CAMPAIGN:  { label: 'Update Campaign',    color: 'bg-blue-100 text-blue-700 border border-blue-200', entity: 'Campaign' },
+  DELETE_CAMPAIGN:  { label: 'Delete Campaign',    color: 'bg-red-100 text-red-700 border border-red-200', entity: 'Campaign' },
+  APPROVE_APPLICATION: { label: 'Approve Application', color: 'bg-emerald-100 text-emerald-700 border border-emerald-200', entity: 'Application' },
+  REJECT_APPLICATION:  { label: 'Reject Application',  color: 'bg-red-100 text-red-700 border border-red-200', entity: 'Application' },
+  SHORTLIST_APPLICATION: { label: 'Shortlist Application', color: 'bg-amber-100 text-amber-700 border border-amber-200', entity: 'Application' },
+  APPLY_CAMPAIGN:   { label: 'Apply to Campaign',  color: 'bg-indigo-100 text-indigo-700 border border-indigo-200', entity: 'Application' },
+  UPDATE_BRAND_PROFILE: { label: 'Update Brand Profile', color: 'bg-slate-100 text-slate-700 border border-slate-200', entity: 'Brand' },
+  UPDATE_CREATOR_PROFILE: { label: 'Update Creator Profile', color: 'bg-slate-100 text-slate-700 border border-slate-200', entity: 'Creator' },
+  SUBMIT_DELIVERABLE: { label: 'Submit Deliverable', color: 'bg-teal-100 text-teal-700 border border-teal-200', entity: 'Deliverable' },
 };
 
 const ENTITY_COLORS: Record<string, string> = {
@@ -75,9 +85,9 @@ function DetailModal({ log, onClose }: { log: AuditLogEntry; onClose: () => void
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${actionColor(log.action)}`}>{actionLabel(log.action)}</span>
           </div>
 
-          {/* Admin */}
+          {/* Actor */}
           <div className="flex items-center justify-between py-3 border-b border-slate-100">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Admin</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actor</span>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center">
                 <span className="text-white text-xs font-bold">{avatarInitial(log.admin?.name)}</span>
