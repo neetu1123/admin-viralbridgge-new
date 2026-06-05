@@ -1,6 +1,7 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
+import { creatorApi } from '@/src/lib/api';
 import { Camera, Save, Plus, X, Star, TrendingUp, Users, Briefcase } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 
@@ -9,24 +10,89 @@ import Icon from '@/src/components/ui/AppIcon';
 const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing', 'Lifestyle', 'Parenting', 'Education', 'Music & Entertainment'];
 
 export default function CreatorProfileContent() {
-  const [name, setName] = useState('Sofia Martinez');
-  const [handle, setHandle] = useState('@sofiaglows');
-  const [bio, setBio] = useState('Skincare enthusiast & content creator based in Miami. I help brands connect with beauty-conscious audiences through authentic, story-driven content. 5+ years creating beauty content that converts.');
-  const [location, setLocation] = useState('Miami, FL, USA');
-  const [email, setEmail] = useState('sofia@Viralbridgge.io');
-  const [phone, setPhone] = useState('+1 (305) 555-0192');
-  const [website, setWebsite] = useState('https://sofiaglows.com');
-  const [instagram, setInstagram] = useState('https://instagram.com/sofiaglows');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState('');
+  const [handle, setHandle] = useState('');
+  const [bio, setBio] = useState('');
+  const [location, setLocation] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [website, setWebsite] = useState('');
+  const [instagram, setInstagram] = useState('');
   const [youtube, setYoutube] = useState('');
   const [twitter, setTwitter] = useState('');
   const [tiktok, setTiktok] = useState('');
-  const [selectedNiches, setSelectedNiches] = useState<string[]>(['Beauty & Skincare', 'Lifestyle']);
+  const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [mediaKitUrl, setMediaKitUrl] = useState('');
-  const [portfolioItems, setPortfolioItems] = useState([
-    { id: 'p1', title: 'Summer Glow Campaign — Luminary Skincare', platform: 'Instagram', views: '142K', engagement: '5.8%', url: '' },
-    { id: 'p2', title: 'FitPro 30-Day Challenge', platform: 'YouTube', views: '88K', engagement: '6.2%', url: '' },
-    { id: 'p3', title: 'StyleForward Fall Collection', platform: 'Instagram', views: '67K', engagement: '4.9%', url: '' },
-  ]);
+  const [portfolioItems, setPortfolioItems] = useState<
+    Array<{ id: string; title: string; platform: string; views: string; engagement: string; url: string }>
+  >([]);
+
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    try {
+      const profile = (await creatorApi.getProfile()) as Record<string, unknown>;
+      const user = (profile.user as Record<string, unknown>) ?? {};
+      const social = (profile.social_links as Record<string, string>) ?? {};
+      setName(String(profile.full_name || user.name || ''));
+      setHandle(social.instagram ? `@${social.instagram.split('/').pop()}` : '');
+      setBio(String(profile.bio ?? ''));
+      setLocation(String(profile.locality ?? ''));
+      setEmail(String(profile.contact_email || user.email || ''));
+      setPhone(String(profile.phone ?? ''));
+      setInstagram(String(social.instagram ?? ''));
+      setYoutube(String(social.youtube ?? ''));
+      setTiktok(String(social.tiktok ?? ''));
+      setWebsite('');
+      setSelectedNiches(profile.niche ? [String(profile.niche)] : []);
+      setMediaKitUrl(String(profile.media_kit ?? ''));
+      const portfolio = Array.isArray(profile.portfolio) ? profile.portfolio : [];
+      setPortfolioItems(
+        portfolio.map((item: Record<string, unknown>, i: number) => ({
+          id: String(item.id ?? `p${i}`),
+          title: String(item.title ?? 'Portfolio item'),
+          platform: String(item.platform ?? 'Instagram'),
+          views: String(item.views ?? '—'),
+          engagement: String(item.engagement ?? '—'),
+          url: String(item.url ?? ''),
+        })),
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    try {
+      await creatorApi.updateProfile({
+        fullName: name,
+        bio,
+        niche: selectedNiches[0] || 'General',
+        locality: location,
+        contactEmail: email,
+        phone,
+        instagram,
+        youtube,
+        tiktok,
+        mediaKit: mediaKitUrl,
+        portfolio: portfolioItems,
+        languages: ['English'],
+      });
+      toast.success('Profile saved successfully!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save profile');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const toggleNiche = (niche: string) => {
     setSelectedNiches(prev =>
@@ -54,10 +120,11 @@ export default function CreatorProfileContent() {
           <p className="text-slate-500 text-sm mt-1">Update your creator profile, social links, and media kit</p>
         </div>
         <button
-          onClick={() => toast.success('Profile saved successfully!')}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all"
+          onClick={saveProfile}
+          disabled={saving || loading}
+          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all disabled:opacity-70"
         >
-          <Save size={15} /> Save Profile
+          <Save size={15} /> {saving ? 'Saving...' : 'Save Profile'}
         </button>
       </div>
 

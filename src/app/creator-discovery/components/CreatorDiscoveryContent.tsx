@@ -1,43 +1,12 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
+import { brandApi } from '@/src/lib/api';
+import { extractList, mapCreatorCard, type CreatorCardRow } from '@/src/lib/mappers';
 import { Search, SlidersHorizontal, Users, TrendingUp, Star, MessageSquare, UserPlus, ChevronDown, X, MapPin, Globe, DollarSign, Filter } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 
-interface Creator {
-  id: string;
-  name: string;
-  handle: string;
-  avatar: string;
-  niche: string;
-  platform: string;
-  followers: number;
-  engagementRate: number;
-  avgViews: number;
-  location: string;
-  language: string;
-  pricePerPost: number;
-  rating: number;
-  pastCollabs: number;
-  bio: string;
-  tags: string[];
-  verified: boolean;
-}
-
-const creators: Creator[] = [
-  { id: 'cr-001', name: 'Sofia Martinez', handle: '@sofiaglows', avatar: 'SM', niche: 'Beauty & Skincare', platform: 'Instagram', followers: 48200, engagementRate: 5.2, avgViews: 32000, location: 'New York, USA', language: 'English', pricePerPost: 1100, rating: 4.8, pastCollabs: 8, bio: 'Skincare enthusiast sharing honest reviews and routines for 5+ years.', tags: ['skincare', 'beauty', 'wellness'], verified: true },
-  { id: 'cr-002', name: 'Priya Nair', handle: '@priyabeauty', avatar: 'PN', niche: 'Beauty & Skincare', platform: 'Instagram', followers: 92100, engagementRate: 4.1, avgViews: 58000, location: 'Mumbai, India', language: 'Hindi, English', pricePerPost: 1500, rating: 4.5, pastCollabs: 12, bio: 'Beauty creator with 78% female audience aged 22-35. High conversion rates.', tags: ['beauty', 'makeup', 'lifestyle'], verified: true },
-  { id: 'cr-003', name: 'Aisha Okonkwo', handle: '@aishaskin', avatar: 'AO', niche: 'Beauty & Skincare', platform: 'Instagram', followers: 31500, engagementRate: 6.8, avgViews: 24000, location: 'Lagos, Nigeria', language: 'English', pricePerPost: 900, rating: 4.9, pastCollabs: 5, bio: 'Melanin-rich skincare specialist with a highly engaged community.', tags: ['skincare', 'melanin', 'afrobeauty'], verified: false },
-  { id: 'cr-004', name: 'Mei-Lin Chen', handle: '@meilinskin', avatar: 'MC', niche: 'Beauty & Skincare', platform: 'Instagram', followers: 22800, engagementRate: 7.3, avgViews: 18000, location: 'Singapore', language: 'English, Mandarin', pricePerPost: 800, rating: 4.7, pastCollabs: 3, bio: 'Micro-influencer with exceptional ROI. 200%+ sell-through on past brand deals.', tags: ['skincare', 'kbeauty', 'routine'], verified: false },
-  { id: 'cr-005', name: 'Jake Thompson', handle: '@jakefitness', avatar: 'JT', niche: 'Fitness & Wellness', platform: 'YouTube', followers: 156000, engagementRate: 3.8, avgViews: 95000, location: 'Los Angeles, USA', language: 'English', pricePerPost: 3200, rating: 4.6, pastCollabs: 18, bio: 'Certified personal trainer creating science-backed fitness content.', tags: ['fitness', 'gym', 'nutrition'], verified: true },
-  { id: 'cr-006', name: 'Yuki Tanaka', handle: '@yukibeauty', avatar: 'YT', niche: 'Beauty & Skincare', platform: 'Instagram', followers: 67400, engagementRate: 4.6, avgViews: 44000, location: 'Tokyo, Japan', language: 'Japanese, English', pricePerPost: 1300, rating: 4.6, pastCollabs: 7, bio: 'J-beauty expert blending Japanese skincare with Western trends.', tags: ['jbeauty', 'skincare', 'japan'], verified: true },
-  { id: 'cr-007', name: 'Carlos Rivera', handle: '@carlostravel', avatar: 'CR', niche: 'Travel & Adventure', platform: 'Instagram', followers: 84300, engagementRate: 4.9, avgViews: 61000, location: 'Barcelona, Spain', language: 'Spanish, English', pricePerPost: 1800, rating: 4.7, pastCollabs: 14, bio: 'Full-time travel creator documenting hidden gems across 60+ countries.', tags: ['travel', 'adventure', 'photography'], verified: true },
-  { id: 'cr-008', name: 'Amara Johnson', handle: '@amaracooks', avatar: 'AJ', niche: 'Food & Cooking', platform: 'TikTok', followers: 213000, engagementRate: 8.1, avgViews: 180000, location: 'Atlanta, USA', language: 'English', pricePerPost: 2400, rating: 4.9, pastCollabs: 9, bio: 'Viral recipe creator with 8.1% engagement. Every sponsored post sells out.', tags: ['food', 'recipes', 'cooking'], verified: true },
-  { id: 'cr-009', name: 'Lena Müller', handle: '@lenatech', avatar: 'LM', niche: 'Tech & Gadgets', platform: 'YouTube', followers: 128000, engagementRate: 3.5, avgViews: 82000, location: 'Berlin, Germany', language: 'German, English', pricePerPost: 2800, rating: 4.4, pastCollabs: 11, bio: 'Tech reviewer known for brutally honest, in-depth product analysis.', tags: ['tech', 'gadgets', 'reviews'], verified: true },
-  { id: 'cr-010', name: 'Raj Patel', handle: '@rajfinance', avatar: 'RP', niche: 'Finance & Investing', platform: 'YouTube', followers: 74500, engagementRate: 4.2, avgViews: 52000, location: 'London, UK', language: 'English', pricePerPost: 2100, rating: 4.5, pastCollabs: 6, bio: 'Chartered accountant making personal finance accessible to millennials.', tags: ['finance', 'investing', 'money'], verified: false },
-  { id: 'cr-011', name: 'Zara Ahmed', handle: '@zarafashion', avatar: 'ZA', niche: 'Fashion & Style', platform: 'Instagram', followers: 195000, engagementRate: 3.2, avgViews: 130000, location: 'Dubai, UAE', language: 'Arabic, English', pricePerPost: 3500, rating: 4.3, pastCollabs: 25, bio: 'Fashion-forward creator with a luxury aesthetic and global audience.', tags: ['fashion', 'luxury', 'style'], verified: true },
-  { id: 'cr-012', name: 'Marcus Lee', handle: '@marcusgames', avatar: 'ML', niche: 'Gaming', platform: 'TikTok', followers: 342000, engagementRate: 6.4, avgViews: 280000, location: 'Seoul, South Korea', language: 'Korean, English', pricePerPost: 4200, rating: 4.8, pastCollabs: 16, bio: 'Top gaming creator with massive reach in the 18-28 male demographic.', tags: ['gaming', 'esports', 'tech'], verified: true },
-];
+type Creator = CreatorCardRow;
 
 const niches = ['All Niches', 'Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing'];
 const platforms = ['All Platforms', 'Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn', 'Pinterest'];
@@ -69,6 +38,8 @@ const priceRanges = [
 ];
 
 export default function CreatorDiscoveryContent() {
+  const [creators, setCreators] = useState<Creator[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedNiche, setSelectedNiche] = useState('All Niches');
   const [selectedPlatform, setSelectedPlatform] = useState('All Platforms');
@@ -80,6 +51,33 @@ export default function CreatorDiscoveryContent() {
   const [sortBy, setSortBy] = useState<'match' | 'followers' | 'engagement' | 'price_low' | 'price_high'>('match');
   const [showFilters, setShowFilters] = useState(true);
   const [invitedCreators, setInvitedCreators] = useState<Set<string>>(new Set());
+
+  const loadCreators = useCallback(async () => {
+    setLoading(true);
+    try {
+      const followerRange = followerRanges[selectedFollowers];
+      const res = await brandApi.getCreators({
+        search: search || undefined,
+        niche: selectedNiche !== 'All Niches' ? selectedNiche : undefined,
+        platform: selectedPlatform !== 'All Platforms' ? selectedPlatform : undefined,
+        locality: selectedLocation !== 'All Locations' ? selectedLocation : undefined,
+        language: selectedLanguage !== 'All Languages' ? selectedLanguage : undefined,
+        followersMin: followerRange.min || undefined,
+        followersMax: followerRange.max === Infinity ? undefined : followerRange.max,
+        limit: 50,
+      });
+      setCreators(extractList<Record<string, unknown>>(res).map(mapCreatorCard));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load creators');
+    } finally {
+      setLoading(false);
+    }
+  }, [search, selectedNiche, selectedPlatform, selectedLocation, selectedLanguage, selectedFollowers]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => loadCreators(), 300);
+    return () => clearTimeout(timer);
+  }, [loadCreators]);
 
   const filtered = useMemo(() => {
     return creators.filter(c => {

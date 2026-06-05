@@ -8,38 +8,41 @@ import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import CreateCampaignModal from './CreateCampaignModal';
 import ApplicantDrawer from './ApplicantDrawer';
 import CampaignStatsChart from './CampaignStatsChart';
+import { brandApi } from '@/src/lib/api';
+import {
+  extractList,
+  mapBrandApplicant,
+  mapBrandCampaign,
+  mapCreatorCard,
+  type BrandApplicantRow,
+  type BrandCampaignRow,
+} from '@/src/lib/mappers';
 
-interface Campaign {
-  id: string; title: string; platform: string; niche: string; budget: number; spent: number;
-  deadline: string; status: 'active' | 'draft' | 'completed' | 'in_progress';
-  applicants: number; accepted: number; pending: number; deliverables: string[]; createdAt: string;
+type Applicant = BrandApplicantRow;
+type Campaign = BrandCampaignRow;
+
+function toAiRecommended(c: ReturnType<typeof mapCreatorCard>) {
+  return {
+    id: c.id,
+    name: c.name,
+    handle: c.handle,
+    avatar: c.avatar,
+    niche: c.niche,
+    followers: c.followers,
+    engagementRate: c.engagementRate,
+    matchScore: Math.min(97, 75 + Math.floor(c.engagementRate * 3)),
+    platform: c.platform,
+    fakeFollowerPct: 2.5,
+    audienceQuality: 90,
+    brandSafetyScore: 95,
+    avgViews: c.avgViews,
+    roiHistory: '3.0x',
+    conversionPotential: c.engagementRate > 5 ? 'Very High' as const : 'High' as const,
+    matchReason: c.bio || `Strong ${c.niche} creator with ${(c.followers / 1000).toFixed(1)}K followers`,
+    verified: c.verified,
+    previousCampaigns: c.pastCollabs,
+  };
 }
-
-interface Applicant {
-  id: string; name: string; handle: string; avatar: string; platform: string; niche: string;
-  followers: number; engagementRate: number; campaign: string; campaignId: string;
-  appliedAt: string; status: 'pending' | 'approved' | 'rejected' | 'shortlisted';
-  bio: string; pastCollabs: number; avgROI: string;
-}
-
-const campaigns: Campaign[] = [
-  { id: 'camp-b001', title: 'Summer Glow Skincare Launch', platform: 'Instagram', niche: 'Beauty & Skincare', budget: 6000, spent: 2400, deadline: '2026-05-01', status: 'active', applicants: 34, accepted: 2, pending: 8, deliverables: ['2 Feed Posts', '4 Stories', '1 Reel'], createdAt: '2026-04-01' },
-  { id: 'camp-b002', title: 'FitPro App — 30-Day Challenge', platform: 'YouTube', niche: 'Fitness & Wellness', budget: 10500, spent: 7000, deadline: '2026-05-15', status: 'in_progress', applicants: 18, accepted: 2, pending: 1, deliverables: ['1 Long-form Video', '2 Shorts'], createdAt: '2026-03-20' },
-  { id: 'camp-b003', title: 'Fall Collection Drop — StyleForward', platform: 'Instagram', niche: 'Fashion & Style', budget: 10800, spent: 0, deadline: '2026-05-10', status: 'draft', applicants: 0, accepted: 0, pending: 0, deliverables: ['2 Posts', '5 Stories', '1 Reel'], createdAt: '2026-04-10' },
-  { id: 'camp-b004', title: 'TechDrop Q1 Earbuds Campaign', platform: 'YouTube', niche: 'Tech & Gadgets', budget: 6400, spent: 6400, deadline: '2026-03-31', status: 'completed', applicants: 52, accepted: 8, pending: 0, deliverables: ['1 Unboxing', '1 Review'], createdAt: '2026-02-15' },
-  { id: 'camp-b005', title: 'NomadPay Travel Creator Push', platform: 'Instagram', niche: 'Travel & Adventure', budget: 8000, spent: 4000, deadline: '2026-05-20', status: 'active', applicants: 27, accepted: 2, pending: 6, deliverables: ['3 Posts', '6 Stories', 'Bio Link'], createdAt: '2026-04-05' },
-];
-
-const applicants: Applicant[] = [
-  { id: 'app-001', name: 'Sofia Martinez', handle: '@sofiaglows', avatar: 'SM', platform: 'Instagram', niche: 'Beauty & Skincare', followers: 48200, engagementRate: 5.2, campaign: 'Summer Glow Skincare Launch', campaignId: 'camp-b001', appliedAt: '2026-04-14', status: 'pending', bio: 'Skincare enthusiast & content creator. 5+ years creating beauty content.', pastCollabs: 14, avgROI: '3.1x' },
-  { id: 'app-002', name: 'Priya Nair', handle: '@priyabeauty', avatar: 'PN', platform: 'Instagram', niche: 'Beauty & Skincare', followers: 92100, engagementRate: 4.1, campaign: 'Summer Glow Skincare Launch', campaignId: 'camp-b001', appliedAt: '2026-04-13', status: 'shortlisted', bio: 'Dermatologist-approved skincare creator. Trusted by 90K+ followers.', pastCollabs: 9, avgROI: '2.8x' },
-  { id: 'app-003', name: 'Jordan Osei', handle: '@jordanfitness', avatar: 'JO', platform: 'YouTube', niche: 'Fitness & Wellness', followers: 74200, engagementRate: 6.3, campaign: 'FitPro App — 30-Day Challenge', campaignId: 'camp-b002', appliedAt: '2026-04-12', status: 'approved', bio: 'Certified personal trainer. Creating fitness content since 2021.', pastCollabs: 8, avgROI: '4.2x' },
-  { id: 'app-004', name: 'Mei-Lin Chen', handle: '@meilinskin', avatar: 'MC', platform: 'Instagram', niche: 'Beauty & Skincare', followers: 22800, engagementRate: 7.3, campaign: 'Summer Glow Skincare Launch', campaignId: 'camp-b001', appliedAt: '2026-04-11', status: 'pending', bio: 'Micro-influencer with exceptional engagement. Clean beauty advocate.', pastCollabs: 5, avgROI: '3.8x' },
-  { id: 'app-005', name: 'Aisha Okonkwo', handle: '@aishaskin', avatar: 'AO', platform: 'Instagram', niche: 'Lifestyle', followers: 31500, engagementRate: 6.8, campaign: 'Summer Glow Skincare Launch', campaignId: 'camp-b001', appliedAt: '2026-04-10', status: 'pending', bio: 'Lifestyle & beauty creator. Highly engaged niche community.', pastCollabs: 5, avgROI: '2.9x' },
-  { id: 'app-006', name: 'Marcus Webb', handle: '@marcusfitpro', avatar: 'MW', platform: 'YouTube', niche: 'Fitness & Wellness', followers: 18500, engagementRate: 5.9, campaign: 'FitPro App — 30-Day Challenge', campaignId: 'camp-b002', appliedAt: '2026-04-09', status: 'rejected', bio: 'Fitness coach & content creator. Specializes in beginner-friendly workouts.', pastCollabs: 3, avgROI: '2.1x' },
-  { id: 'app-007', name: 'Kavya Reddy', handle: '@kavyatravel', avatar: 'KR', platform: 'Instagram', niche: 'Travel & Adventure', followers: 55000, engagementRate: 4.8, campaign: 'NomadPay Travel Creator Push', campaignId: 'camp-b005', appliedAt: '2026-04-08', status: 'pending', bio: 'Full-time travel creator. Visited 40+ countries. Authentic storytelling.', pastCollabs: 11, avgROI: '3.5x' },
-  { id: 'app-008', name: 'Lena Fischer', handle: '@lenastyle', avatar: 'LF', platform: 'Instagram', niche: 'Fashion & Style', followers: 38700, engagementRate: 5.5, campaign: 'NomadPay Travel Creator Push', campaignId: 'camp-b005', appliedAt: '2026-04-07', status: 'shortlisted', bio: 'Fashion & travel creator. European audience. Brand-safe content.', pastCollabs: 7, avgROI: '3.0x' },
-];
 
 const aiRecommendedCreators = [
   {
@@ -122,6 +125,15 @@ function Sparkline({ data, color = '#7c3aed' }: { data: number[]; color?: string
 }
 
 export default function BrandCampaignContent() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [recommendedCreators, setRecommendedCreators] = useState<ReturnType<typeof toAiRecommended>[]>([]);
+  const [dashboard, setDashboard] = useState<{
+    pendingApprovals?: number;
+    budgetUsed?: number;
+    topCampaign?: { title?: string; _count?: { applications?: number } };
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<BrandTab>('campaigns');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -134,7 +146,34 @@ export default function BrandCampaignContent() {
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [expandedCreator, setExpandedCreator] = useState<string | null>(null);
 
+  const loadData = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const [campaignsRes, dashboardRes, creatorsRes] = await Promise.all([
+        brandApi.getCampaigns({ limit: 50 }),
+        brandApi.getDashboard(),
+        brandApi.getCreators({ limit: 4 }),
+      ]);
+      const rawCampaigns = extractList<Record<string, unknown>>(campaignsRes);
+      setCampaigns(rawCampaigns.map(mapBrandCampaign));
+      setApplicants(
+        rawCampaigns.flatMap((c) =>
+          ((c.applications as Record<string, unknown>[]) ?? []).map((a) => mapBrandApplicant(a, c)),
+        ),
+      );
+      setDashboard(dashboardRes as typeof dashboard);
+      setRecommendedCreators(
+        extractList<Record<string, unknown>>(creatorsRes).map((r) => toAiRecommended(mapCreatorCard(r))),
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load brand data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => { setNow(Date.now()); }, []);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const filtered = campaigns.filter(c => {
     const matchSearch = c.title.toLowerCase().includes(search.toLowerCase());
@@ -150,8 +189,41 @@ export default function BrandCampaignContent() {
 
   const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0);
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
-  const totalPending = campaigns.reduce((s, c) => s + c.pending, 0);
+  const totalPending = dashboard?.pendingApprovals ?? campaigns.reduce((s, c) => s + c.pending, 0);
   const pendingApplicants = applicants.filter(a => a.status === 'pending').length;
+
+  const handleApplicantAction = async (
+    appId: string,
+    action: 'shortlist' | 'approve' | 'reject',
+    name?: string,
+  ) => {
+    try {
+      if (action === 'shortlist') await brandApi.shortlistApplication(appId);
+      else if (action === 'approve') await brandApi.approveApplication(appId);
+      else await brandApi.rejectApplication(appId);
+      toast.success(
+        action === 'approve'
+          ? `${name ?? 'Creator'} approved`
+          : action === 'shortlist'
+            ? `${name ?? 'Creator'} shortlisted`
+            : `${name ?? 'Creator'} rejected`,
+      );
+      await loadData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Action failed');
+    }
+  };
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    try {
+      await brandApi.deleteCampaign(campaignId);
+      toast.success('Campaign deleted');
+      setOpenMenuId(null);
+      await loadData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Delete failed');
+    }
+  };
 
   const handleStatusChange = (campaignId: string, newStatus: string) => {
     toast.success(`Campaign status updated to ${newStatus}`);
@@ -284,7 +356,7 @@ export default function BrandCampaignContent() {
                 </div>
                 <div>
                   <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">🏆 Your Winning Campaign</p>
-                  <p className="text-white text-lg font-black">TechDrop Q1 Earbuds</p>
+                  <p className="text-white text-lg font-black">{dashboard?.topCampaign?.title ?? 'Your top campaign'}</p>
                 </div>
               </div>
               <div className="ml-auto">
@@ -425,7 +497,7 @@ export default function BrandCampaignContent() {
               <Link href="/creator-discovery" className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700 transition-colors">View all <ArrowRight size={13} /></Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {aiRecommendedCreators.map(creator => (
+              {(recommendedCreators.length ? recommendedCreators : aiRecommendedCreators).map(creator => (
                 <div key={creator.id} className={`border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1 group ${creator.matchScore >= 95 ? 'border-violet-300 ring-1 ring-violet-200 shadow-md' : 'border-slate-200'}`}>
                   {/* Match score header */}
                   <div className={`px-3 py-2 flex items-center justify-between ${creator.matchScore >= 95 ? 'bg-gradient-to-r from-violet-600 to-purple-600' : 'bg-slate-50 border-b border-slate-100'}`}>
@@ -605,7 +677,7 @@ export default function BrandCampaignContent() {
                                   <button onClick={() => handleStatusChange(campaign.id, 'active')} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"><CheckCircle size={14} className="text-emerald-500" /> Mark Active</button>
                                   <button onClick={() => handleStatusChange(campaign.id, 'completed')} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"><PauseCircle size={14} className="text-blue-500" /> Mark Completed</button>
                                   <hr className="my-1 border-slate-100" />
-                                  <button onClick={() => { toast.error('Campaign deleted'); setOpenMenuId(null); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={14} /> Delete Campaign</button>
+                                  <button onClick={() => handleDeleteCampaign(campaign.id)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={14} /> Delete Campaign</button>
                                 </div>
                               )}
                             </div>
@@ -685,13 +757,13 @@ export default function BrandCampaignContent() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {applicant.status === 'pending' && (
                       <>
-                        <button onClick={() => toast.success(`${applicant.name} shortlisted`)} className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors">Shortlist</button>
-                        <button onClick={() => toast.success(`${applicant.name} approved`)} className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">Approve</button>
-                        <button onClick={() => toast.error(`${applicant.name} rejected`)} className="text-xs font-semibold bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 px-3 py-1.5 rounded-lg transition-colors">Reject</button>
+                        <button onClick={() => handleApplicantAction(applicant.id, 'shortlist', applicant.name)} className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors">Shortlist</button>
+                        <button onClick={() => handleApplicantAction(applicant.id, 'approve', applicant.name)} className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">Approve</button>
+                        <button onClick={() => handleApplicantAction(applicant.id, 'reject', applicant.name)} className="text-xs font-semibold bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 px-3 py-1.5 rounded-lg transition-colors">Reject</button>
                       </>
                     )}
                     {applicant.status === 'shortlisted' && (
-                      <button onClick={() => toast.success(`${applicant.name} approved`)} className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"><UserCheck size={12} />Approve</button>
+                      <button onClick={() => handleApplicantAction(applicant.id, 'approve', applicant.name)} className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"><UserCheck size={12} />Approve</button>
                     )}
                     {applicant.status === 'approved' && (
                       <Link href="/brand-messages" className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"><MessageSquare size={12} />Message</Link>
@@ -711,7 +783,10 @@ export default function BrandCampaignContent() {
         </div>
       )}
 
-      {showCreate && <CreateCampaignModal onClose={() => setShowCreate(false)} />}
+      {loading && campaigns.length === 0 && (
+        <div className="text-center py-8 text-slate-500 text-sm">Loading campaigns...</div>
+      )}
+      {showCreate && <CreateCampaignModal onClose={() => setShowCreate(false)} onCreated={loadData} />}
       {selectedCampaign && <ApplicantDrawer campaign={selectedCampaign} onClose={() => setSelectedCampaign(null)} />}
     </div>
   );

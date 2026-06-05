@@ -73,12 +73,16 @@ export default function SignUpLoginClient() {
       localStorage.setItem('user', JSON.stringify(result.user));
       toast.success(`Welcome back, ${result.user.name}!`);
       // Navigate based on role returned from backend
-      const routes: Record<string, string> = {
-        admin: '/admin-panel',
-        brand: '/brand-campaign-management',
-        creator: '/campaign-discovery',
-      };
-      window.location.href = routes[result.user.role?.toLowerCase() || 'creator'] ?? '/campaign-discovery';
+      const role = (result.user.role || '').toLowerCase();
+      const home =
+        role === 'brand'
+          ? '/brand-campaign-management'
+          : role === 'creator'
+            ? '/campaign-discovery'
+            : role === 'admin' || role === 'super_admin'
+              ? '/admin-panel'
+              : '/campaign-discovery';
+      window.location.href = home;
     } catch (error: any) {
       toast.error(error.message || 'Invalid email or password');
       loginForm.setError('email', { message: error.message || 'Invalid email or password' });

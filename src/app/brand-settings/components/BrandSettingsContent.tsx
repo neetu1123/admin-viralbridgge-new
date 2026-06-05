@@ -1,6 +1,7 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
+import { brandApi } from '@/src/lib/api';
 import { Building2, Bell, CreditCard, Shield, Users, ChevronRight, Save } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 
@@ -9,10 +10,48 @@ type SettingsTab = 'profile' | 'notifications' | 'billing' | 'team' | 'security'
 
 export default function BrandSettingsContent() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-  const [brandName, setBrandName] = useState('NovaSpark Co.');
-  const [website, setWebsite] = useState('https://novaspark.co');
-  const [industry, setIndustry] = useState('Technology');
-  const [bio, setBio] = useState('NovaSpark Co. is a technology brand focused on innovative consumer products.');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [brandName, setBrandName] = useState('');
+  const [website, setWebsite] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [bio, setBio] = useState('');
+
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    try {
+      const profile = (await brandApi.getProfile()) as Record<string, unknown>;
+      setBrandName(String(profile.company_name ?? ''));
+      setWebsite(String(profile.website ?? ''));
+      setIndustry(String(profile.industry ?? ''));
+      setBio(String(profile.description ?? ''));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load brand profile');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    try {
+      await brandApi.updateProfile({
+        companyName: brandName,
+        website,
+        industry,
+        description: bio,
+      });
+      toast.success('Brand profile saved!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save profile');
+    } finally {
+      setSaving(false);
+    }
+  };
   const [notifApplicants, setNotifApplicants] = useState(true);
   const [notifPayments, setNotifPayments] = useState(true);
   const [notifMessages, setNotifMessages] = useState(true);
@@ -105,8 +144,8 @@ export default function BrandSettingsContent() {
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Brand Bio</label>
                   <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 resize-none" />
                 </div>
-                <button onClick={() => toast.success('Profile saved successfully')} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-all">
-                  <Save size={14} /> Save Changes
+                <button onClick={saveProfile} disabled={saving || loading} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-all disabled:opacity-70">
+                  <Save size={14} /> {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>

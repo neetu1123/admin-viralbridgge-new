@@ -32,15 +32,26 @@ export function useAuth(requiredRole?: 'admin' | 'brand' | 'creator') {
 
       // Role check
       if (requiredRole) {
-        const userRole = parsedUser.role?.toLowerCase();
-        if (userRole !== requiredRole) {
-          // Redirect to their correct dashboard
-          const roleRoutes: Record<string, string> = {
-            admin: '/admin-panel',
-            brand: '/brand-campaign-management',
-            creator: '/campaign-discovery',
-          };
-          window.location.href = roleRoutes[userRole || 'creator'] || '/sign-up-login-screen';
+        const userRole = (parsedUser.role || '').toLowerCase().replace('super_', '');
+        const normalizedRequired = requiredRole === 'admin'
+          ? ['admin']
+          : [requiredRole];
+        const isAdmin = ['admin', 'super_admin'].includes((parsedUser.role || '').toLowerCase());
+        const roleOk =
+          requiredRole === 'admin'
+            ? isAdmin
+            : normalizedRequired.includes(userRole);
+        if (!roleOk) {
+          const raw = (parsedUser.role || '').toLowerCase();
+          const home =
+            raw === 'brand'
+              ? '/brand-campaign-management'
+              : raw === 'creator'
+                ? '/campaign-discovery'
+                : raw === 'admin' || raw === 'super_admin'
+                  ? '/admin-panel'
+                  : '/sign-up-login-screen';
+          window.location.href = home;
           return;
         }
       }

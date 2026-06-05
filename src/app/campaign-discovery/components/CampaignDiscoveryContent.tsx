@@ -1,6 +1,8 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
+import { creatorApi } from '@/src/lib/api';
+import { extractList, mapDiscoveryCampaign, type DiscoveryCampaignRow } from '@/src/lib/mappers';
 import { Search, SlidersHorizontal, Bookmark, BookmarkCheck, Users, ChevronDown, X, Star, CheckCircle, MapPin, Globe, Brain, ShieldCheck, BadgeCheck, Zap, ArrowUpRight, Sparkles } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import ApplyModal from './ApplyModal';
@@ -29,59 +31,7 @@ const followerRequirements = [
   { label: '50K+', min: 50000 },
 ];
 
-interface Campaign {
-  id: string;
-  title: string;
-  brand: string;
-  brandLogo: string;
-  platform: string;
-  niche: string;
-  budget: number;
-  budgetPer: string;
-  deadline: string;
-  applicants: number;
-  slots: number;
-  description: string;
-  deliverables: string[];
-  engagementMin: number;
-  followersMin: number;
-  status: 'active' | 'in_progress';
-  featured: boolean;
-  applied?: boolean;
-  locality: string;
-  language: string;
-  // Enhanced fields
-  aiMatchScore: number;
-  approvalChance: 'High' | 'Medium' | 'Low';
-  matchReason: string;
-  earnAmount: number;
-  verifiedBrand: boolean;
-  escrowProtected: boolean;
-  avgPaymentDays: number;
-  creatorRating: number;
-  totalCreatorsEarned: string;
-  previouslySelected: number;
-  creatorSatisfaction: number;
-  viewingNow: number;
-  category: 'recommended' | 'trending' | 'high_budget' | 'easy_approval' | 'new_brand' | 'fast_paying';
-  brandSize: string;
-  paymentType: string;
-}
-
-const campaigns: Campaign[] = [
-  { id: 'camp-001', title: 'Summer Glow Skincare Launch', brand: 'Luminary Skincare', brandLogo: 'LS', platform: 'Instagram', niche: 'Beauty & Skincare', budget: 1200, budgetPer: 'per post', deadline: '2026-05-01', applicants: 34, slots: 5, description: 'We are launching our new Summer Glow serum and need authentic creators to showcase their skincare routine using our products.', deliverables: ['2 Feed Posts', '4 Stories', '1 Reel'], engagementMin: 3.5, followersMin: 15000, status: 'active', featured: true, locality: 'USA', language: 'English', aiMatchScore: 94, approvalChance: 'High', matchReason: 'Your audience aligns with skincare females 18–30 and your engagement is above campaign average', earnAmount: 3500, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 3, creatorRating: 4.8, totalCreatorsEarned: '₹2.3L', previouslySelected: 18, creatorSatisfaction: 4.8, viewingNow: 5, category: 'recommended', brandSize: 'D2C', paymentType: 'Fixed' },
-  { id: 'camp-002', title: 'FitPro App — 30-Day Challenge', brand: 'FitPro Health', brandLogo: 'FP', platform: 'YouTube', niche: 'Fitness & Wellness', budget: 3500, budgetPer: 'per video', deadline: '2026-05-15', applicants: 18, slots: 3, description: 'Document your 30-day fitness transformation using the FitPro app.', deliverables: ['1 Long-form Video', '2 Shorts', 'App Review'], engagementMin: 4.2, followersMin: 50000, status: 'active', featured: true, locality: 'Global', language: 'English', aiMatchScore: 88, approvalChance: 'High', matchReason: 'Your reels perform well in fitness niche and brand prefers mid-tier creators', earnAmount: 3500, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 5, creatorRating: 4.6, totalCreatorsEarned: '₹1.8L', previouslySelected: 12, creatorSatisfaction: 4.6, viewingNow: 3, category: 'high_budget', brandSize: 'Enterprise', paymentType: 'Fixed' },
-  { id: 'camp-003', title: 'TechDrop Wireless Earbuds Review', brand: 'TechDrop', brandLogo: 'TD', platform: 'YouTube', niche: 'Tech & Gadgets', budget: 800, budgetPer: 'per video', deadline: '2026-04-28', applicants: 52, slots: 8, description: 'Honest, in-depth review of our new ANC wireless earbuds.', deliverables: ['1 Unboxing Video', '1 Review Video', 'Community Post'], engagementMin: 2.8, followersMin: 10000, status: 'active', featured: false, locality: 'Germany', language: 'German', aiMatchScore: 72, approvalChance: 'Medium', matchReason: 'Tech content aligns but audience location may not fully match', earnAmount: 800, verifiedBrand: false, escrowProtected: true, avgPaymentDays: 7, creatorRating: 4.2, totalCreatorsEarned: '₹85K', previouslySelected: 8, creatorSatisfaction: 4.2, viewingNow: 8, category: 'trending', brandSize: 'Startup', paymentType: 'Fixed' },
-  { id: 'camp-004', title: 'Wanderlust Travel Card Launch', brand: 'NomadPay', brandLogo: 'NP', platform: 'Instagram', niche: 'Travel & Adventure', budget: 2000, budgetPer: 'per creator', deadline: '2026-05-20', applicants: 27, slots: 4, description: 'Show how NomadPay makes international travel seamless.', deliverables: ['3 Feed Posts', '6 Stories', 'Link in Bio (30 days)'], engagementMin: 3.0, followersMin: 25000, status: 'active', featured: false, locality: 'Spain', language: 'Spanish', aiMatchScore: 81, approvalChance: 'High', matchReason: 'Travel content matches perfectly, brand prefers authentic storytellers', earnAmount: 2000, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 4, creatorRating: 4.7, totalCreatorsEarned: '₹1.2L', previouslySelected: 14, creatorSatisfaction: 4.7, viewingNow: 2, category: 'recommended', brandSize: 'D2C', paymentType: 'Hybrid' },
-  { id: 'camp-005', title: 'Harvest Kitchen — Home Chef Series', brand: 'Harvest Kitchen', brandLogo: 'HK', platform: 'TikTok', niche: 'Food & Cooking', budget: 600, budgetPer: 'per video', deadline: '2026-04-30', applicants: 71, slots: 10, description: 'Create fun, quick recipe videos using our premium spice blends.', deliverables: ['3 TikTok Videos', '1 Duet/Collab'], engagementMin: 5.0, followersMin: 8000, status: 'active', featured: false, locality: 'India', language: 'Hindi', aiMatchScore: 91, approvalChance: 'High', matchReason: 'Your food content engagement is 2x above average, high approval likelihood', earnAmount: 1800, verifiedBrand: false, escrowProtected: false, avgPaymentDays: 10, creatorRating: 3.9, totalCreatorsEarned: '₹65K', previouslySelected: 10, creatorSatisfaction: 3.9, viewingNow: 12, category: 'easy_approval', brandSize: 'Startup', paymentType: 'Fixed' },
-  { id: 'camp-006', title: 'StyleForward — Fall Collection Drop', brand: 'StyleForward', brandLogo: 'SF', platform: 'Instagram', niche: 'Fashion & Style', budget: 1800, budgetPer: 'per creator', deadline: '2026-05-10', applicants: 45, slots: 6, description: 'Style our new fall collection in your own unique way.', deliverables: ['2 Feed Posts', '5 Stories', '1 Reel', 'Bio Link'], engagementMin: 4.0, followersMin: 20000, status: 'active', featured: true, locality: 'UAE', language: 'Arabic', aiMatchScore: 86, approvalChance: 'Medium', matchReason: 'Fashion niche match strong, brand prefers creators with aesthetic feeds', earnAmount: 1800, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 3, creatorRating: 4.9, totalCreatorsEarned: '₹3.1L', previouslySelected: 25, creatorSatisfaction: 4.9, viewingNow: 7, category: 'trending', brandSize: 'Enterprise', paymentType: 'Fixed' },
-  { id: 'camp-007', title: 'GreenPath Sustainable Living', brand: 'GreenPath Co.', brandLogo: 'GP', platform: 'LinkedIn', niche: 'Finance & Investing', budget: 950, budgetPer: 'per post', deadline: '2026-05-25', applicants: 9, slots: 2, description: 'Educate your professional audience about sustainable investing.', deliverables: ['2 LinkedIn Articles', '4 Posts', '1 Newsletter Feature'], engagementMin: 2.5, followersMin: 5000, status: 'active', featured: false, locality: 'UK', language: 'English', aiMatchScore: 65, approvalChance: 'Low', matchReason: 'Niche mismatch — your content is more lifestyle than finance', earnAmount: 950, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 6, creatorRating: 4.4, totalCreatorsEarned: '₹45K', previouslySelected: 2, creatorSatisfaction: 4.4, viewingNow: 1, category: 'new_brand', brandSize: 'Startup', paymentType: 'Affiliate' },
-  { id: 'camp-008', title: 'GameVault Pro Controller Review', brand: 'GameVault', brandLogo: 'GV', platform: 'TikTok', niche: 'Gaming', budget: 450, budgetPer: 'per video', deadline: '2026-04-22', applicants: 88, slots: 12, description: 'Show off our new pro gaming controller in action.', deliverables: ['2 TikTok Videos', '1 Stream Mention'], engagementMin: 4.5, followersMin: 5000, status: 'active', featured: false, locality: 'Japan', language: 'Japanese', aiMatchScore: 78, approvalChance: 'High', matchReason: 'Gaming content matches, many slots available — easy to get in', earnAmount: 900, verifiedBrand: false, escrowProtected: false, avgPaymentDays: 14, creatorRating: 3.7, totalCreatorsEarned: '₹38K', previouslySelected: 12, creatorSatisfaction: 3.7, viewingNow: 15, category: 'easy_approval', brandSize: 'Startup', paymentType: 'Fixed' },
-  { id: 'camp-009', title: 'MindClear Meditation App', brand: 'MindClear', brandLogo: 'MC', platform: 'Instagram', niche: 'Fitness & Wellness', budget: 750, budgetPer: 'per creator', deadline: '2026-05-08', applicants: 31, slots: 5, description: "Share your morning routine featuring MindClear's guided meditation sessions.", deliverables: ['1 Feed Post', '3 Stories', '1 Reel'], engagementMin: 3.8, followersMin: 12000, status: 'active', featured: false, locality: 'Singapore', language: 'English', aiMatchScore: 83, approvalChance: 'High', matchReason: 'Wellness niche aligns, your audience skews female 25–35 which matches brand target', earnAmount: 750, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 2, creatorRating: 4.8, totalCreatorsEarned: '₹72K', previouslySelected: 5, creatorSatisfaction: 4.8, viewingNow: 4, category: 'fast_paying', brandSize: 'D2C', paymentType: 'Fixed' },
-  { id: 'camp-010', title: 'SnapBook Photo Printing App', brand: 'SnapBook', brandLogo: 'SB', platform: 'Pinterest', niche: 'Travel & Adventure', budget: 400, budgetPer: 'per pin board', deadline: '2026-05-30', applicants: 14, slots: 6, description: 'Create beautiful Pinterest boards showcasing printed travel photos.', deliverables: ['5 Pins', '1 Board', 'App Feature Story'], engagementMin: 2.0, followersMin: 3000, status: 'active', featured: false, locality: 'Global', language: 'English', aiMatchScore: 70, approvalChance: 'High', matchReason: 'Low competition, many slots, easy approval for travel creators', earnAmount: 400, verifiedBrand: false, escrowProtected: false, avgPaymentDays: 12, creatorRating: 4.0, totalCreatorsEarned: '₹22K', previouslySelected: 6, creatorSatisfaction: 4.0, viewingNow: 2, category: 'new_brand', brandSize: 'Startup', paymentType: 'Fixed' },
-  { id: 'camp-011', title: 'PureBrew Cold Brew Launch', brand: 'PureBrew Coffee', brandLogo: 'PB', platform: 'Instagram', niche: 'Food & Cooking', budget: 550, budgetPer: 'per creator', deadline: '2026-04-25', applicants: 63, slots: 8, description: "Introduce PureBrew's new cold brew concentrate to your foodie audience.", deliverables: ['2 Posts', '4 Stories'], engagementMin: 3.2, followersMin: 8000, status: 'active', featured: false, locality: 'USA', language: 'English', aiMatchScore: 89, approvalChance: 'High', matchReason: 'Food content engagement is strong, brand loves authentic lifestyle creators', earnAmount: 1100, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 3, creatorRating: 4.6, totalCreatorsEarned: '₹1.1L', previouslySelected: 8, creatorSatisfaction: 4.6, viewingNow: 6, category: 'fast_paying', brandSize: 'D2C', paymentType: 'Fixed' },
-  { id: 'camp-012', title: 'VaultX Crypto Wallet Awareness', brand: 'VaultX Finance', brandLogo: 'VX', platform: 'YouTube', niche: 'Finance & Investing', budget: 4200, budgetPer: 'per video', deadline: '2026-05-18', applicants: 22, slots: 3, description: 'Educate your audience about self-custody crypto wallets.', deliverables: ['1 Explainer Video (15+ min)', '2 Community Posts', 'Description Link'], engagementMin: 3.5, followersMin: 30000, status: 'active', featured: false, locality: 'UK', language: 'English', aiMatchScore: 76, approvalChance: 'Medium', matchReason: 'Finance niche partial match, high budget opportunity worth applying', earnAmount: 4200, verifiedBrand: true, escrowProtected: true, avgPaymentDays: 5, creatorRating: 4.5, totalCreatorsEarned: '₹2.8L', previouslySelected: 3, creatorSatisfaction: 4.5, viewingNow: 3, category: 'high_budget', brandSize: 'Enterprise', paymentType: 'Fixed' },
-];
+type Campaign = DiscoveryCampaignRow;
 
 const recommendedTabs = [
   { id: 'recommended', label: 'Recommended', icon: '⭐' },
@@ -93,6 +43,8 @@ const recommendedTabs = [
 ];
 
 export default function CampaignDiscoveryContent() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('All Platforms');
   const [selectedNiche, setSelectedNiche] = useState('All Niches');
@@ -103,12 +55,53 @@ export default function CampaignDiscoveryContent() {
   const [selectedDeliverables, setSelectedDeliverables] = useState<string[]>([]);
   const [selectedPaymentTypes, setSelectedPaymentTypes] = useState<string[]>([]);
   const [selectedBrandSizes, setSelectedBrandSizes] = useState<string[]>([]);
-  const [savedCampaigns, setSavedCampaigns] = useState<Set<string>>(new Set(['camp-003', 'camp-006']));
-  const [appliedCampaigns, setAppliedCampaigns] = useState<Set<string>>(new Set(['camp-001']));
+  const [savedCampaigns, setSavedCampaigns] = useState<Set<string>>(new Set());
+  const [appliedCampaigns, setAppliedCampaigns] = useState<Set<string>>(new Set());
   const [applyTarget, setApplyTarget] = useState<Campaign | null>(null);
   const [showFilters, setShowFilters] = useState(true);
   const [sortBy, setSortBy] = useState<'newest' | 'budget_high' | 'budget_low' | 'applicants_low' | 'match'>('match');
   const [activeRecommendedTab, setActiveRecommendedTab] = useState('recommended');
+
+  const loadCampaigns = useCallback(async () => {
+    setLoading(true);
+    try {
+      const budgetRange = budgetRanges[selectedBudget];
+      const sortMap = {
+        match: undefined,
+        newest: undefined,
+        budget_high: 'budget_desc',
+        budget_low: 'budget_asc',
+        applicants_low: undefined,
+      } as const;
+      const [campaignsRes, appsRes] = await Promise.all([
+        creatorApi.getCampaigns({
+          search: search || undefined,
+          platform: selectedPlatform !== 'All Platforms' ? selectedPlatform : undefined,
+          locality: selectedLocality !== 'All Locations' ? selectedLocality : undefined,
+          language: selectedLanguage !== 'All Languages' ? selectedLanguage : undefined,
+          budgetMin: budgetRange.min || undefined,
+          budgetMax: budgetRange.max === Infinity ? undefined : budgetRange.max,
+          sort: sortMap[sortBy],
+          limit: 50,
+        }),
+        creatorApi.getApplications({ limit: 100 }),
+      ]);
+      setCampaigns(extractList<Record<string, unknown>>(campaignsRes).map(mapDiscoveryCampaign));
+      const appliedIds = new Set(
+        extractList<Record<string, unknown>>(appsRes).map((a) => String(a.campaign_id)),
+      );
+      setAppliedCampaigns(appliedIds);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load campaigns');
+    } finally {
+      setLoading(false);
+    }
+  }, [search, selectedPlatform, selectedLocality, selectedLanguage, selectedBudget, sortBy]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => loadCampaigns(), 300);
+    return () => clearTimeout(timer);
+  }, [loadCampaigns]);
 
   const toggleMultiFilter = (val: string, arr: string[], setArr: (v: string[]) => void) => {
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
@@ -331,7 +324,9 @@ export default function CampaignDiscoveryContent() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Campaign Discovery</h1>
-          <p className="text-slate-500 text-sm mt-1">Browse {campaigns.length} active campaigns — AI-matched to your profile</p>
+          <p className="text-slate-500 text-sm mt-1">
+            {loading ? 'Loading campaigns...' : `Browse ${campaigns.length} active campaigns — matched to your profile`}
+          </p>
         </div>
         {/* Monthly Earnings Snapshot */}
         <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-3 text-white shadow-lg">
