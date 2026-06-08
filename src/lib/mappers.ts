@@ -273,6 +273,73 @@ export interface CreatorCardRow {
   verified: boolean;
 }
 
+export interface AdminPanelUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'creator' | 'brand';
+  status: 'active' | 'suspended' | 'pending_kyc' | 'banned' | 'verified';
+  kycStatus: 'verified' | 'pending' | 'not_submitted' | 'rejected';
+  joinedAt: string;
+  totalEarnings?: number;
+  totalSpend?: number;
+  campaigns?: number;
+  collabs?: number;
+  followers?: number;
+  lastActive: string;
+  activityLog: { date: string; action: string }[];
+}
+
+export function mapAdminUser(raw: Record<string, unknown>): AdminPanelUser | null {
+  const roleName = String((raw.role as { name?: string })?.name ?? '').toUpperCase();
+  if (roleName !== 'CREATOR' && roleName !== 'BRAND') return null;
+
+  const role = roleName === 'BRAND' ? 'brand' : 'creator';
+  const isBanned = Boolean(raw.is_banned);
+  const isVerified = Boolean(raw.is_verified);
+  const statusRaw = String(raw.status ?? 'ACTIVE').toUpperCase();
+
+  let status: AdminPanelUser['status'] = 'active';
+  if (isBanned) status = 'banned';
+  else if (statusRaw === 'SUSPENDED') status = 'suspended';
+  else if (!isVerified) status = 'pending_kyc';
+
+  let kycStatus: AdminPanelUser['kycStatus'] = 'not_submitted';
+  if (isVerified) kycStatus = 'verified';
+  else if (statusRaw === 'PENDING' || statusRaw === 'PENDING_KYC') kycStatus = 'pending';
+
+  const creatorProfile = raw.creator_profile as Record<string, unknown> | null;
+  const brandProfile = raw.brand_profile as Record<string, unknown> | null;
+  const wallet = ((raw.wallets as Record<string, unknown>[]) ?? [])[0];
+  const balance = Number(wallet?.available_balance ?? 0) + Number(wallet?.pending_balance ?? 0);
+  const joinedAt = String(raw.created_at ?? '').slice(0, 10);
+
+  return {
+    id: String(raw.id),
+    name: role === 'brand' && brandProfile?.company_name
+      ? String(brandProfile.company_name)
+      : String(raw.name),
+    email: String(raw.email),
+    role,
+    status,
+    kycStatus,
+    joinedAt,
+    lastActive: String(raw.updated_at ?? raw.created_at ?? '').slice(0, 10),
+    totalEarnings: role === 'creator' ? balance : undefined,
+    totalSpend: role === 'brand' ? balance : undefined,
+    collabs: Number((creatorProfile?._count as { applications?: number })?.applications ?? 0),
+    followers: Number(creatorProfile?.followers ?? 0),
+    campaigns: Number((brandProfile?._count as { campaigns?: number })?.campaigns ?? 0),
+    activityLog: [{ date: joinedAt, action: 'Account created' }],
+  };
+}
+
+export function mapAdminUsers(raw: unknown): AdminPanelUser[] {
+  return extractList<Record<string, unknown>>(raw)
+    .map(mapAdminUser)
+    .filter((user): user is AdminPanelUser => user !== null);
+}
+
 export function mapCreatorCard(raw: Record<string, unknown>): CreatorCardRow {
   const user = (raw.user as Record<string, unknown>) ?? {};
   const social = (raw.social_links as Record<string, string>) ?? {};

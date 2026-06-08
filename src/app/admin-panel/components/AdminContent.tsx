@@ -6,6 +6,7 @@ import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import AdminPlatformChart from './AdminPlatformChart';
 import { adminApi } from '@/src/lib/api';
+import { mapAdminUsers, type AdminPanelUser } from '@/src/lib/mappers';
 import { useAuth } from '@/src/lib/useAuth';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -16,14 +17,7 @@ import {
 
 type AdminTab = 'users' | 'campaigns' | 'transactions' | 'disputes' | 'ai-matching' | 'analytics' | 'withdrawals';
 
-interface AdminUser {
-  id: string; name: string; email: string; role: 'creator' | 'brand';
-  status: 'active' | 'suspended' | 'pending_kyc' | 'banned' | 'verified';
-  kycStatus: 'verified' | 'pending' | 'not_submitted' | 'rejected';
-  joinedAt: string; totalEarnings?: number; totalSpend?: number;
-  campaigns?: number; collabs?: number; followers?: number; lastActive: string;
-  activityLog: { date: string; action: string }[];
-}
+interface AdminUser extends AdminPanelUser {}
 
 interface AdminCampaign {
   id: string; title: string; brand: string; platform: string; budget: number;
@@ -57,20 +51,7 @@ interface AdminWithdrawal {
   account: string; status: 'pending' | 'approved' | 'rejected'; requestedAt: string; fee: number;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const adminUsers: AdminUser[] = [
-  { id: 'usr-001', name: 'Sofia Martinez', email: 'sofia@Viralbridgge.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-11-12', totalEarnings: 8650, collabs: 14, followers: 48200, lastActive: '2026-04-14', activityLog: [{ date: '2026-04-14', action: 'Completed campaign: Summer Glow' }, { date: '2026-04-10', action: 'Withdrew ₹500 via PayPal' }, { date: '2026-04-01', action: 'Applied to 3 campaigns' }] },
-  { id: 'usr-002', name: 'NovaSpark Co.', email: 'brand@novaspark.co', role: 'brand', status: 'active', kycStatus: 'verified', joinedAt: '2025-10-08', totalSpend: 42000, campaigns: 8, lastActive: '2026-04-13', activityLog: [{ date: '2026-04-13', action: 'Created campaign: Fall Collection' }, { date: '2026-04-08', action: 'Released payment to Jordan Osei' }] },
-  { id: 'usr-003', name: 'Priya Nair', email: 'priya@creators.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-12-01', totalEarnings: 5200, collabs: 9, followers: 92100, lastActive: '2026-04-12', activityLog: [{ date: '2026-04-12', action: 'Submitted deliverable for FitPro campaign' }, { date: '2026-04-07', action: 'Requested withdrawal of ₹2,000' }] },
-  { id: 'usr-004', name: 'TechDrop', email: 'marketing@techdrop.com', role: 'brand', status: 'suspended', kycStatus: 'pending', joinedAt: '2026-01-15', totalSpend: 12000, campaigns: 3, lastActive: '2026-04-11', activityLog: [{ date: '2026-04-11', action: 'Account suspended: payment dispute' }, { date: '2026-04-05', action: 'Flagged by creator: late payment' }] },
-  { id: 'usr-005', name: 'Marcus Webb', email: 'marcus@ugcpro.io', role: 'creator', status: 'pending_kyc', kycStatus: 'not_submitted', joinedAt: '2026-04-10', totalEarnings: 0, collabs: 0, followers: 18500, lastActive: '2026-04-10', activityLog: [{ date: '2026-04-10', action: 'Account created — KYC pending' }] },
-  { id: 'usr-006', name: 'Aisha Okonkwo', email: 'aisha@beautycreators.co', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2026-01-22', totalEarnings: 3100, collabs: 5, followers: 31500, lastActive: '2026-04-09', activityLog: [{ date: '2026-04-09', action: 'Received payment: ₹950' }] },
-  { id: 'usr-007', name: 'SpamBrand LLC', email: 'fake@spambrand.xyz', role: 'brand', status: 'banned', kycStatus: 'rejected', joinedAt: '2026-03-01', totalSpend: 0, campaigns: 2, lastActive: '2026-03-05', activityLog: [{ date: '2026-03-05', action: 'Account banned: fraudulent activity' }, { date: '2026-03-03', action: 'Campaign flagged: 8 reports' }] },
-  { id: 'usr-008', name: 'Kavya Reddy', email: 'kavya@luminaryskn.com', role: 'brand', status: 'active', kycStatus: 'verified', joinedAt: '2025-09-14', totalSpend: 68000, campaigns: 14, lastActive: '2026-04-14', activityLog: [{ date: '2026-04-14', action: 'Approved 3 creator deliverables' }] },
-  { id: 'usr-009', name: 'Jordan Osei', email: 'jordan@fitcreators.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2026-02-08', totalEarnings: 4800, collabs: 8, followers: 74200, lastActive: '2026-04-13', activityLog: [{ date: '2026-04-13', action: 'Completed FitPro 30-Day Challenge' }] },
-  { id: 'usr-010', name: 'Mei-Lin Chen', email: 'meichen@skinfluencer.co', role: 'creator', status: 'suspended', kycStatus: 'pending', joinedAt: '2026-03-20', totalEarnings: 900, collabs: 2, followers: 22800, lastActive: '2026-04-08', activityLog: [{ date: '2026-04-08', action: 'Account suspended: withdrawal failed (3x)' }] },
-];
+// ─── Mock Data (non-user tabs) ────────────────────────────────────────────────
 
 const adminCampaigns: AdminCampaign[] = [
   { id: 'camp-001', title: 'Summer Glow Skincare Launch', brand: 'Luminary Skincare', platform: 'Instagram', budget: 6000, status: 'active', applicants: 34, createdAt: '2026-04-01', reportCount: 0, contentBrief: 'Create 3 Reels showcasing the new SPF 50 serum. Authentic skin-care routine content. No heavy filters.', creatorsInvolved: ['Sofia Martinez', 'Aisha Okonkwo'] },
@@ -467,10 +448,7 @@ export default function AdminContent() {
 
   // ── Real API state ────────────────────────────────────────────────────────────
   const [apiStats, setApiStats] = useState<{ totalUsers: number; totalCampaigns: number; gmv: number } | null>(null);
-  const [apiUsers, setApiUsers] = useState<Array<{
-    id: string; name: string; email: string; status: string; is_banned: boolean;
-    role?: { name: string }; created_at: string;
-  }> | null>(null);
+  const [apiUsers, setApiUsers] = useState<Array<Record<string, unknown>> | null>(null);
   const [apiCampaigns, setApiCampaigns] = useState<Array<{
     id: string; title: string; status: string; budget: number; platform: string;
     brand?: { company_name: string };
@@ -527,31 +505,35 @@ export default function AdminContent() {
   const [txnFilter, setTxnFilter] = useState('all');
   const [disputeFilter, setDisputeFilter] = useState('all');
 
+  const displayUsers = apiUsers ? mapAdminUsers(apiUsers) : [];
+
   // Use real API data if available, otherwise fall back to mock data
   const gmv = apiStats?.gmv ?? 148200;
-  const totalUsersCount = apiStats?.totalUsers ?? adminUsers.length;
-  const activeUsers = apiUsers
-    ? apiUsers.filter(u => !u.is_banned).length
-    : adminUsers.filter(u => u.status === 'active' || u.status === 'verified').length;
+  const totalUsersCount = apiStats?.totalUsers ?? displayUsers.length;
+  const activeUsers = displayUsers.filter(u => u.status === 'active' || u.status === 'verified').length;
   const pendingWithdrawals = adminWithdrawals.filter(w => withdrawalStatuses[w.id] === 'pending').length;
   const flaggedCampaigns = adminCampaigns.filter(c => campaignStatuses[c.id] === 'flagged').length;
   const pendingApprovalCampaigns = adminCampaigns.filter(c => campaignStatuses[c.id] === 'pending_approval').length;
   const openDisputes = adminDisputes.filter(d => disputeStatuses[d.id] === 'open' || disputeStatuses[d.id] === 'escalated').length;
   const escrowVolume = 42800;
   const platformFee = 3640;
-  const pendingVerifications = adminUsers.filter(u => u.status === 'pending_kyc').length;
+  const pendingVerifications = displayUsers.filter(u => u.status === 'pending_kyc').length;
 
   const handleUserAction = async (userId: string, action: 'verify' | 'ban' | 'suspend' | 'unsuspend') => {
     try {
       if (action === 'ban') {
         await adminApi.banUser(userId);
         toast.success('User banned successfully');
-        loadApiData(); // Refresh the user list
+        loadApiData();
+      } else if (action === 'unsuspend') {
+        await adminApi.unbanUser(userId);
+        toast.success('User unsuspended successfully');
+        loadApiData();
       } else {
-        toast.success(`User ${action === 'verify' ? 'verified' : action === 'suspend' ? 'suspended' : 'unsuspended'} successfully`);
+        toast.success(`User ${action === 'verify' ? 'verified' : 'suspended'} successfully`);
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Action failed');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Action failed');
     }
   };
 
@@ -597,7 +579,7 @@ export default function AdminContent() {
     toast.success(`Match ${action === 'force_match' ? 'force-applied' : 'removed'} successfully`);
   };
 
-  const filteredUsers = adminUsers.filter(u => {
+  const filteredUsers = displayUsers.filter(u => {
     const matchSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase());
     const matchRole = userRoleFilter === 'all' || u.role === userRoleFilter;
     const matchStatus = userStatusFilter === 'all' || u.status === userStatusFilter;
@@ -608,7 +590,7 @@ export default function AdminContent() {
   const filteredDisputes = adminDisputes.filter(d => disputeFilter === 'all' || disputeStatuses[d.id] === disputeFilter);
 
   const tabs: { key: AdminTab; label: string; count?: number; alert?: boolean }[] = [
-    { key: 'users', label: 'Users', count: adminUsers.length },
+    { key: 'users', label: 'Users', count: displayUsers.length },
     { key: 'campaigns', label: 'Campaigns', count: pendingApprovalCampaigns + flaggedCampaigns, alert: (pendingApprovalCampaigns + flaggedCampaigns) > 0 },
     { key: 'transactions', label: 'Transactions', count: adminTransactions.length },
     { key: 'disputes', label: 'Disputes', count: openDisputes, alert: openDisputes > 0 },
@@ -824,7 +806,13 @@ export default function AdminContent() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {filteredUsers.map(user => (
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-5 py-12 text-center text-slate-500 text-sm">
+                          No creator or brand users found.
+                        </td>
+                      </tr>
+                    ) : filteredUsers.map(user => (
                       <tr key={user.id} className="hover:bg-slate-50/60 transition-colors group">
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2.5">

@@ -1,30 +1,9 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, CheckCircle, Ban, Eye, UserX, UserCheck, X, Activity } from 'lucide-react';
-
-
-interface AdminUser {
-  id: string; name: string; email: string; role: 'creator' | 'brand';
-  status: 'active' | 'suspended' | 'pending_kyc' | 'banned';
-  kycStatus: 'verified' | 'pending' | 'not_submitted' | 'rejected';
-  joinedAt: string; totalEarnings?: number; totalSpend?: number;
-  campaigns?: number; collabs?: number; followers?: number; lastActive: string;
-  activityLog: { date: string; action: string }[];
-}
-
-const adminUsers: AdminUser[] = [
-  { id: 'usr-001', name: 'Sofia Martinez', email: 'sofia@viralbridge.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-11-12', totalEarnings: 8650, collabs: 14, followers: 48200, lastActive: '2026-04-14', activityLog: [{ date: '2026-04-14', action: 'Completed campaign: Summer Glow' }, { date: '2026-04-10', action: 'Withdrew $500 via PayPal' }, { date: '2026-04-01', action: 'Applied to 3 campaigns' }] },
-  { id: 'usr-002', name: 'NovaSpark Co.', email: 'brand@novaspark.co', role: 'brand', status: 'active', kycStatus: 'verified', joinedAt: '2025-10-08', totalSpend: 42000, campaigns: 8, lastActive: '2026-04-13', activityLog: [{ date: '2026-04-13', action: 'Created campaign: Fall Collection' }, { date: '2026-04-08', action: 'Released payment to Jordan Osei' }] },
-  { id: 'usr-003', name: 'Priya Nair', email: 'priya@creators.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2025-12-01', totalEarnings: 5200, collabs: 9, followers: 92100, lastActive: '2026-04-12', activityLog: [{ date: '2026-04-12', action: 'Submitted deliverable for FitPro campaign' }, { date: '2026-04-07', action: 'Requested withdrawal of $2,000' }] },
-  { id: 'usr-004', name: 'TechDrop', email: 'marketing@techdrop.com', role: 'brand', status: 'suspended', kycStatus: 'pending', joinedAt: '2026-01-15', totalSpend: 12000, campaigns: 3, lastActive: '2026-04-11', activityLog: [{ date: '2026-04-11', action: 'Account suspended: payment dispute' }, { date: '2026-04-05', action: 'Flagged by creator: late payment' }] },
-  { id: 'usr-005', name: 'Marcus Webb', email: 'marcus@ugcpro.io', role: 'creator', status: 'pending_kyc', kycStatus: 'not_submitted', joinedAt: '2026-04-10', totalEarnings: 0, collabs: 0, followers: 18500, lastActive: '2026-04-10', activityLog: [{ date: '2026-04-10', action: 'Account created — KYC pending' }] },
-  { id: 'usr-006', name: 'Aisha Okonkwo', email: 'aisha@beautycreators.co', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2026-01-22', totalEarnings: 3100, collabs: 5, followers: 31500, lastActive: '2026-04-09', activityLog: [{ date: '2026-04-09', action: 'Received payment: $950' }] },
-  { id: 'usr-007', name: 'SpamBrand LLC', email: 'fake@spambrand.xyz', role: 'brand', status: 'banned', kycStatus: 'rejected', joinedAt: '2026-03-01', totalSpend: 0, campaigns: 2, lastActive: '2026-03-05', activityLog: [{ date: '2026-03-05', action: 'Account banned: fraudulent activity' }, { date: '2026-03-03', action: 'Campaign flagged: 8 reports' }] },
-  { id: 'usr-008', name: 'Kavya Reddy', email: 'kavya@luminaryskn.com', role: 'brand', status: 'active', kycStatus: 'verified', joinedAt: '2025-09-14', totalSpend: 68000, campaigns: 14, lastActive: '2026-04-14', activityLog: [{ date: '2026-04-14', action: 'Approved 3 creator deliverables' }] },
-  { id: 'usr-009', name: 'Jordan Osei', email: 'jordan@fitcreators.io', role: 'creator', status: 'active', kycStatus: 'verified', joinedAt: '2026-02-08', totalEarnings: 4800, collabs: 8, followers: 74200, lastActive: '2026-04-13', activityLog: [{ date: '2026-04-13', action: 'Completed FitPro 30-Day Challenge' }] },
-  { id: 'usr-010', name: 'Mei-Lin Chen', email: 'meichen@skinfluencer.co', role: 'creator', status: 'suspended', kycStatus: 'pending', joinedAt: '2026-03-20', totalEarnings: 900, collabs: 2, followers: 22800, lastActive: '2026-04-08', activityLog: [{ date: '2026-04-08', action: 'Account suspended: withdrawal failed (3x)' }] },
-];
+import { Search, ChevronDown, CheckCircle, Ban, Eye, X, Activity, Loader2 } from 'lucide-react';
+import { adminApi } from '@/src/lib/api';
+import { mapAdminUsers, type AdminPanelUser } from '@/src/lib/mappers';
 
 const kycBadge: Record<string, { label: string; cls: string }> = {
   verified: { label: 'Verified', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -41,22 +20,68 @@ const statusBadge: Record<string, { label: string; cls: string }> = {
 };
 
 export default function AdminUsersContent() {
+  const [users, setUsers] = useState<AdminPanelUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [activityUser, setActivityUser] = useState<AdminUser | null>(null);
+  const [activityUser, setActivityUser] = useState<AdminPanelUser | null>(null);
 
-  const filtered = adminUsers.filter(u => {
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await adminApi.getUsers();
+      setUsers(mapAdminUsers(data));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load users';
+      toast.error(message);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const handleBan = async (user: AdminPanelUser) => {
+    try {
+      if (user.status === 'banned') {
+        await adminApi.unbanUser(user.id);
+        toast.success(`${user.name} unbanned`);
+      } else {
+        await adminApi.banUser(user.id);
+        toast.error(`${user.name} banned`);
+      }
+      loadUsers();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Action failed');
+    }
+  };
+
+  const filtered = users.filter(u => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === 'all' || u.role === roleFilter;
     const matchStatus = statusFilter === 'all' || u.status === statusFilter;
     return matchSearch && matchRole && matchStatus;
   });
 
-  const totalCreators = adminUsers.filter(u => u.role === 'creator').length;
-  const totalBrands = adminUsers.filter(u => u.role === 'brand').length;
-  const pendingKyc = adminUsers.filter(u => u.kycStatus === 'pending' || u.kycStatus === 'not_submitted').length;
-  const suspended = adminUsers.filter(u => u.status === 'suspended' || u.status === 'banned').length;
+  const totalCreators = users.filter(u => u.role === 'creator').length;
+  const totalBrands = users.filter(u => u.role === 'brand').length;
+  const pendingKyc = users.filter(u => u.kycStatus === 'pending' || u.kycStatus === 'not_submitted').length;
+  const suspended = users.filter(u => u.status === 'suspended' || u.status === 'banned').length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Loader2 size={32} className="animate-spin text-violet-600 mx-auto mb-3" />
+          <p className="text-slate-500 text-sm">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-8">
@@ -75,7 +100,6 @@ export default function AdminUsersContent() {
         </button>
       </div>
 
-      {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total Creators', value: totalCreators, sub: 'registered creators', color: 'text-violet-700', bg: 'bg-violet-50' },
@@ -91,7 +115,6 @@ export default function AdminUsersContent() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-4">
         <div className="flex items-center gap-3 px-5 py-3.5 border-b border-slate-100 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
@@ -126,122 +149,109 @@ export default function AdminUsersContent() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-100">
-                {['User', 'Role', 'Status', 'KYC', 'Earnings / Spend', 'Activity', 'Last Active', 'Actions'].map(col => (
-                  <th key={col} className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filtered.map(user => (
-                <tr key={user.id} className="hover:bg-slate-50/60 transition-colors group">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${user.role === 'brand' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}>
-                        {user.name.slice(0, 2).toUpperCase()}
+          {filtered.length === 0 ? (
+            <div className="px-5 py-12 text-center text-slate-500 text-sm">
+              No creator or brand users found.
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  {['User', 'Role', 'Status', 'KYC', 'Earnings / Spend', 'Activity', 'Last Active', 'Actions'].map(col => (
+                    <th key={col} className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {filtered.map(user => (
+                  <tr key={user.id} className="hover:bg-slate-50/60 transition-colors group">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${user.role === 'brand' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}>
+                          {user.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">{user.name}</p>
+                          <p className="text-xs text-slate-400">{user.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{user.name}</p>
-                        <p className="text-xs text-slate-400">{user.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${user.role === 'brand' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-violet-50 text-violet-700 border border-violet-200'}`}>
-                      {user.role === 'brand' ? 'Brand' : 'Creator'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusBadge[user.status]?.cls}`}>
-                      {statusBadge[user.status]?.label}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${kycBadge[user.kycStatus]?.cls}`}>
-                      {kycBadge[user.kycStatus]?.label}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    {user.role === 'creator' ? (
-                      <div>
-                        <p className="text-sm font-bold text-emerald-700 tabular-nums">${(user.totalEarnings ?? 0).toLocaleString()}</p>
-                        <p className="text-xs text-slate-400">{user.collabs} collabs · {((user.followers ?? 0) / 1000).toFixed(1)}K followers</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm font-bold text-blue-700 tabular-nums">${(user.totalSpend ?? 0).toLocaleString()}</p>
-                        <p className="text-xs text-slate-400">{user.campaigns} campaigns</p>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <button
-                      onClick={() => setActivityUser(user)}
-                      className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors"
-                    >
-                      <Activity size={13} /> View Log
-                    </button>
-                  </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <p className="text-xs text-slate-500">{user.lastActive}</p>
-                  </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {user.kycStatus === 'pending' && (
-                        <button
-                          onClick={() => toast.success(`KYC verified for ${user.name}`)}
-                          className="p-1.5 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-slate-500 transition-colors"
-                          title="Verify KYC"
-                        >
-                          <UserCheck size={14} />
-                        </button>
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${user.role === 'brand' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-violet-50 text-violet-700 border border-violet-200'}`}>
+                        {user.role === 'brand' ? 'Brand' : 'Creator'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusBadge[user.status]?.cls}`}>
+                        {statusBadge[user.status]?.label}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${kycBadge[user.kycStatus]?.cls}`}>
+                        {kycBadge[user.kycStatus]?.label}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      {user.role === 'creator' ? (
+                        <div>
+                          <p className="text-sm font-bold text-emerald-700 tabular-nums">${(user.totalEarnings ?? 0).toLocaleString()}</p>
+                          <p className="text-xs text-slate-400">{user.collabs} collabs · {((user.followers ?? 0) / 1000).toFixed(1)}K followers</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-bold text-blue-700 tabular-nums">${(user.totalSpend ?? 0).toLocaleString()}</p>
+                          <p className="text-xs text-slate-400">{user.campaigns} campaigns</p>
+                        </div>
                       )}
-                      {user.status === 'active' && (
-                        <button
-                          onClick={() => toast.warning(`${user.name} suspended`)}
-                          className="p-1.5 rounded-md hover:bg-amber-50 hover:text-amber-700 text-slate-500 transition-colors"
-                          title="Suspend"
-                        >
-                          <UserX size={14} />
-                        </button>
-                      )}
-                      {user.status === 'suspended' && (
-                        <button
-                          onClick={() => toast.success(`${user.name} unsuspended`)}
-                          className="p-1.5 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-slate-500 transition-colors"
-                          title="Unsuspend"
-                        >
-                          <CheckCircle size={14} />
-                        </button>
-                      )}
-                      {user.status !== 'banned' && (
-                        <button
-                          onClick={() => toast.error(`${user.name} banned`)}
-                          className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-700 text-slate-500 transition-colors"
-                          title="Ban"
-                        >
-                          <Ban size={14} />
-                        </button>
-                      )}
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
                       <button
                         onClick={() => setActivityUser(user)}
-                        className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
-                        title="View activity"
+                        className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors"
                       >
-                        <Eye size={14} />
+                        <Activity size={13} /> View Log
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <p className="text-xs text-slate-500">{user.lastActive}</p>
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {user.status !== 'banned' && (
+                          <button
+                            onClick={() => handleBan(user)}
+                            className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-700 text-slate-500 transition-colors"
+                            title="Ban account"
+                          >
+                            <Ban size={14} />
+                          </button>
+                        )}
+                        {user.status === 'banned' && (
+                          <button
+                            onClick={() => handleBan(user)}
+                            className="p-1.5 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-slate-500 transition-colors"
+                            title="Unban account"
+                          >
+                            <CheckCircle size={14} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setActivityUser(user)}
+                          className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
+                          title="View activity"
+                        >
+                          <Eye size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
-      {/* Activity Log Modal */}
       {activityUser && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">

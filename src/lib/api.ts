@@ -98,12 +98,18 @@ export const adminApi = {
   getUsers: () =>
     apiFetch<Array<{
       id: string; name: string; email: string; status: string; is_banned: boolean;
-      is_verified: boolean; created_at: string; role?: { name: string };
+      is_verified: boolean; created_at: string; updated_at: string;
+      role?: { name: string };
+      creator_profile?: { followers: number; _count?: { applications: number } } | null;
+      brand_profile?: { company_name: string; _count?: { campaigns: number } } | null;
+      wallets?: Array<{ available_balance: number; pending_balance: number }>;
     }>>('/admin/users'),
 
   getUser: (id: string) => apiFetch(`/admin/users/${id}`),
 
   banUser: (id: string) => apiFetch(`/admin/users/${id}/ban`, { method: 'PATCH' }),
+
+  unbanUser: (id: string) => apiFetch(`/admin/users/${id}/unban`, { method: 'PATCH' }),
 
   updateUserRole: (id: string, role_id: string) =>
     apiFetch(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role_id }) }),
