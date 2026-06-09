@@ -1,10 +1,10 @@
 import AppLayout from '@/src/components/AppLayout';
-import AdminUsersContent from './components/AdminUsersContent';
+import BrandApplicantsContent from './components/BrandApplicantsContent';
 
-export default function AdminUsersPage() {
+export default function BrandApplicantsPage() {
   return (
-    <AppLayout role="brand" >
-      <AdminUsersContent />
+    <AppLayout role="brand">
+      <BrandApplicantsContent />
     </AppLayout>
   );
 }

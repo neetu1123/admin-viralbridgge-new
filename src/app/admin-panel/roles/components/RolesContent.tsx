@@ -370,7 +370,7 @@ export default function RolesContent() {
                     </div>
                     <span className="text-sm font-bold text-slate-800">{role.name}</span>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1">
                     <button onClick={() => openEditRole(role)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-violet-600 transition-colors">
                       <Edit size={14} />
                     </button>
@@ -450,7 +450,7 @@ export default function RolesContent() {
                           )}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-right">
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-1">
                             <button onClick={() => handleRemoveAdmin(member.id, member.name)} className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors">
                               <Trash2 size={14} /> Revoke
                             </button>

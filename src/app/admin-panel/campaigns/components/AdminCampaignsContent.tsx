@@ -223,7 +223,7 @@ export default function AdminCampaignsContent() {
                     )}
                   </td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => setDetailCampaign(campaign)}
                         className="p-1.5 rounded-md hover:bg-violet-50 hover:text-violet-700 text-slate-500 transition-colors"

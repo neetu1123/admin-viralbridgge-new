@@ -340,7 +340,7 @@ export default function AuditLogsContent() {
                     <td className="px-5 py-3.5">
                       <button
                         onClick={() => setSelectedLog(log)}
-                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-violet-600 opacity-0 group-hover:opacity-100 transition-all font-medium"
+                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-violet-600 transition-all font-medium"
                       >
                         <Eye size={13} /> View
                       </button>

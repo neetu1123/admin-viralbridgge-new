@@ -82,7 +82,11 @@ export default function CreatorDiscoveryContent() {
   const filtered = useMemo(() => {
     return creators.filter(c => {
       const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.handle.toLowerCase().includes(search.toLowerCase()) || c.niche.toLowerCase().includes(search.toLowerCase());
-      const matchNiche = selectedNiche === 'All Niches' || c.niche === selectedNiche;
+      const matchNiche =
+        selectedNiche === 'All Niches' ||
+        c.niche === selectedNiche ||
+        c.niche.toLowerCase().includes(selectedNiche.split('&')[0].trim().toLowerCase()) ||
+        selectedNiche.toLowerCase().includes(c.niche.toLowerCase());
       const matchPlatform = selectedPlatform === 'All Platforms' || c.platform === selectedPlatform;
       const matchLocation = selectedLocation === 'All Locations' || c.location.includes(selectedLocation);
       const matchLanguage = selectedLanguage === 'All Languages' || c.language.includes(selectedLanguage);

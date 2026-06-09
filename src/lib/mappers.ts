@@ -3,7 +3,11 @@ export function extractList<T = unknown>(response: unknown): T[] {
   if (Array.isArray(response)) return response as T[];
   if (response && typeof response === 'object' && 'data' in response) {
     const data = (response as { data: unknown }).data;
-    return Array.isArray(data) ? (data as T[]) : [];
+    if (Array.isArray(data)) return data as T[];
+    if (data && typeof data === 'object' && 'data' in data) {
+      const nested = (data as { data: unknown }).data;
+      return Array.isArray(nested) ? (nested as T[]) : [];
+    }
   }
   return [];
 }
@@ -356,17 +360,31 @@ export function mapAdminUsers(raw: unknown): AdminPanelUser[] {
 export function mapCreatorCard(raw: Record<string, unknown>): CreatorCardRow {
   const user = (raw.user as Record<string, unknown>) ?? {};
   const social = (raw.social_links as Record<string, string>) ?? {};
-  const handleRaw = social.instagram || social.youtube || social.tiktok || String(user.email ?? 'creator');
+  const apps = Array.isArray(raw.applications) ? (raw.applications as Record<string, unknown>[]) : [];
+  const latestCampaign = (apps[0]?.campaign as Record<string, unknown>) ?? {};
+  const handleRaw =
+    social.instagram ||
+    social.youtube ||
+    social.tiktok ||
+    String(user.email ?? raw.contact_email ?? 'creator').split('@')[0];
   const name = String(raw.full_name || user.name || 'Creator');
   const langs = Array.isArray(raw.languages) ? (raw.languages as string[]) : ['English'];
+  const platformFromCampaign = String(latestCampaign.platform ?? '');
+  const platform = social.instagram
+    ? 'Instagram'
+    : social.youtube
+      ? 'YouTube'
+      : social.tiktok
+        ? 'TikTok'
+        : platformFromCampaign || 'Instagram';
 
   return {
-    id: String(raw.id),
+    id: String(raw.id ?? raw.user_id ?? user.id ?? ''),
     name,
     handle: handleRaw.startsWith('@') ? handleRaw : `@${String(handleRaw).replace('@', '')}`,
     avatar: initials(name),
     niche: String(raw.niche ?? 'General'),
-    platform: social.instagram ? 'Instagram' : social.youtube ? 'YouTube' : social.tiktok ? 'TikTok' : 'Instagram',
+    platform,
     followers: Number(raw.followers) || 0,
     engagementRate: Number(raw.engagement_rate) || 0,
     avgViews: Math.round((Number(raw.followers) || 0) * 0.6),
