@@ -149,7 +149,7 @@ export default function SignUpLoginClient() {
             <div className="grid grid-cols-3 gap-4">
               {[
                 { value: '48K+', label: 'Active Creators' },
-                { value: '$12M+', label: 'Paid to Creators' },
+                { value: '₹12M+', label: 'Paid to Creators' },
                 { value: '3,200+', label: 'Brands' },
               ].map((stat) => (
                 <div key={`stat-${stat.label}`} className="bg-white/10 rounded-xl p-4 text-center">
