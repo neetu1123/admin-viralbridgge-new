@@ -3,10 +3,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck } from 'lucide-react';
+import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Megaphone } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
-import { extractList, mapBrandApplicant, type BrandApplicantRow } from '@/src/lib/mappers';
+import {
+  extractList,
+  mapBrandApplicant,
+  mapBrandCampaign,
+  type BrandApplicantRow,
+  type BrandCampaignRow,
+} from '@/src/lib/mappers';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
+import StatusBadge from '@/src/components/ui/StatusBadge';
 
 const applicantStatusConfig: Record<string, { label: string; cls: string }> = {
   pending: { label: 'Pending', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
@@ -16,6 +23,7 @@ const applicantStatusConfig: Record<string, { label: string; cls: string }> = {
 };
 
 export default function BrandApplicantsContent() {
+  const [campaigns, setCampaigns] = useState<BrandCampaignRow[]>([]);
   const [applicants, setApplicants] = useState<BrandApplicantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -26,15 +34,36 @@ export default function BrandApplicantsContent() {
     try {
       const campaignsRes = await brandApi.getCampaigns({ limit: 50 });
       const rawCampaigns = extractList<Record<string, unknown>>(campaignsRes);
-      setApplicants(
-        rawCampaigns.flatMap((campaign) =>
-          ((campaign.applications as Record<string, unknown>[]) ?? []).map((application) =>
-            mapBrandApplicant(application, campaign),
-          ),
+      const mappedCampaigns = rawCampaigns.map(mapBrandCampaign);
+      setCampaigns(mappedCampaigns);
+
+      const embedded = rawCampaigns.flatMap((campaign) =>
+        ((campaign.applications as Record<string, unknown>[]) ?? []).map((application) =>
+          mapBrandApplicant(application, campaign),
         ),
       );
+
+      if (embedded.length > 0) {
+        setApplicants(embedded);
+        return;
+      }
+
+      const fetched = await Promise.all(
+        rawCampaigns.map(async (campaign) => {
+          try {
+            const appsRes = await brandApi.getApplicants(String(campaign.id));
+            return extractList<Record<string, unknown>>(appsRes).map((application) =>
+              mapBrandApplicant(application, campaign),
+            );
+          } catch {
+            return [];
+          }
+        }),
+      );
+      setApplicants(fetched.flat());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load applicants');
+      setCampaigns([]);
       setApplicants([]);
     } finally {
       setLoading(false);
@@ -92,6 +121,39 @@ export default function BrandApplicantsContent() {
         <p className="text-slate-500 text-sm mt-1">Review and manage creator applications across your campaigns</p>
       </div>
 
+      {/* Campaigns overview — mapped from /brand/campaigns */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-6">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Megaphone size={16} className="text-violet-600" />
+            <h2 className="text-sm font-semibold text-slate-800">Your Campaigns</h2>
+          </div>
+          <span className="text-xs text-slate-400">{campaigns.length} campaigns</span>
+        </div>
+        <div className="divide-y divide-slate-50">
+          {campaigns.map((campaign) => (
+            <div key={campaign.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-slate-800 truncate">{campaign.title}</p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <PlatformBadge platform={campaign.platform} />
+                  <StatusBadge status={campaign.status} />
+                  <span className="text-xs text-slate-500">{campaign.niche}</span>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className="text-sm font-bold text-slate-800 tabular-nums">${campaign.budget.toLocaleString()}</p>
+                <p className="text-xs text-slate-400">{campaign.applicants} applicants · {campaign.pending} pending</p>
+              </div>
+            </div>
+          ))}
+          {campaigns.length === 0 && (
+            <p className="px-5 py-8 text-sm text-slate-500 text-center">No campaigns yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Applicants list */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
         <div className="px-5 py-4 border-b border-slate-100">
           <div className="flex items-center justify-between mb-3">
@@ -141,7 +203,7 @@ export default function BrandApplicantsContent() {
                         {applicantStatusConfig[applicant.status]?.label}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mb-1.5 line-clamp-1">{applicant.bio}</p>
+                    <p className="text-xs text-slate-500 mb-1.5 line-clamp-1">{applicant.bio || 'No application message'}</p>
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="text-xs text-slate-500 flex items-center gap-1">
                         <Users size={10} className="text-slate-400" />
@@ -150,10 +212,6 @@ export default function BrandApplicantsContent() {
                       <span className="text-xs text-emerald-700 flex items-center gap-1">
                         <TrendingUp size={10} />
                         {applicant.engagementRate}% eng.
-                      </span>
-                      <span className="text-xs text-violet-600 flex items-center gap-1">
-                        <Star size={10} />
-                        {applicant.avgROI} avg ROI
                       </span>
                       <PlatformBadge platform={applicant.platform} />
                     </div>
@@ -210,8 +268,17 @@ export default function BrandApplicantsContent() {
           {filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16">
               <Users size={36} className="text-slate-300 mb-3" />
-              <h3 className="text-slate-700 font-semibold mb-1">No applicants found</h3>
-              <p className="text-slate-400 text-sm">Applications from creators will appear here once they apply to your campaigns.</p>
+              <h3 className="text-slate-700 font-semibold mb-1">No applicants yet</h3>
+              <p className="text-slate-400 text-sm text-center max-w-sm">
+                Your {campaigns.length} campaign{campaigns.length !== 1 ? 's are' : ' is'} live, but no creators have applied yet.
+                Share campaigns or invite creators from Creator Discovery.
+              </p>
+              <Link
+                href="/creator-discovery"
+                className="mt-4 text-sm font-semibold text-violet-600 hover:text-violet-700"
+              >
+                Browse creators →
+              </Link>
             </div>
           )}
         </div>

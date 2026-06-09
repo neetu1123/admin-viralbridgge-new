@@ -1,15 +1,32 @@
-/** Normalize paginated `{ data, meta }` or plain array API responses */
+/** Normalize paginated `{ data, meta }`, double-wrapped, or plain array API responses */
 export function extractList<T = unknown>(response: unknown): T[] {
-  if (Array.isArray(response)) return response as T[];
-  if (response && typeof response === 'object' && 'data' in response) {
-    const data = (response as { data: unknown }).data;
-    if (Array.isArray(data)) return data as T[];
-    if (data && typeof data === 'object' && 'data' in data) {
-      const nested = (data as { data: unknown }).data;
-      return Array.isArray(nested) ? (nested as T[]) : [];
+  let current: unknown = response;
+  for (let depth = 0; depth < 4; depth++) {
+    if (Array.isArray(current)) return current as T[];
+    if (!current || typeof current !== 'object') break;
+    if ('data' in current) {
+      current = (current as { data: unknown }).data;
+      continue;
     }
+    break;
   }
   return [];
+}
+
+export function extractMeta(response: unknown): { total?: number; page?: number; limit?: number } {
+  let current: unknown = response;
+  for (let depth = 0; depth < 4; depth++) {
+    if (!current || typeof current !== 'object') break;
+    if ('meta' in current && (current as { meta?: unknown }).meta) {
+      return (current as { meta: { total?: number; page?: number; limit?: number } }).meta;
+    }
+    if ('data' in current) {
+      current = (current as { data: unknown }).data;
+      continue;
+    }
+    break;
+  }
+  return {};
 }
 
 export function initials(name: string): string {
@@ -362,11 +379,12 @@ export function mapCreatorCard(raw: Record<string, unknown>): CreatorCardRow {
   const social = (raw.social_links as Record<string, string>) ?? {};
   const apps = Array.isArray(raw.applications) ? (raw.applications as Record<string, unknown>[]) : [];
   const latestCampaign = (apps[0]?.campaign as Record<string, unknown>) ?? {};
+  const emailLocal = String(user.email ?? raw.contact_email ?? 'creator').split('@')[0];
   const handleRaw =
     social.instagram ||
     social.youtube ||
     social.tiktok ||
-    String(user.email ?? raw.contact_email ?? 'creator').split('@')[0];
+    emailLocal;
   const name = String(raw.full_name || user.name || 'Creator');
   const langs = Array.isArray(raw.languages) ? (raw.languages as string[]) : ['English'];
   const platformFromCampaign = String(latestCampaign.platform ?? '');

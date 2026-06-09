@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
 import { brandApi } from '@/src/lib/api';
-import { extractList, mapCreatorCard, type CreatorCardRow } from '@/src/lib/mappers';
+import { extractList, extractMeta, mapCreatorCard, type CreatorCardRow } from '@/src/lib/mappers';
 import { Search, SlidersHorizontal, Users, TrendingUp, Star, MessageSquare, UserPlus, ChevronDown, X, MapPin, Globe, DollarSign, Filter } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 
@@ -51,6 +51,7 @@ export default function CreatorDiscoveryContent() {
   const [sortBy, setSortBy] = useState<'match' | 'followers' | 'engagement' | 'price_low' | 'price_high'>('match');
   const [showFilters, setShowFilters] = useState(true);
   const [invitedCreators, setInvitedCreators] = useState<Set<string>>(new Set());
+  const [totalCreators, setTotalCreators] = useState(0);
 
   const loadCreators = useCallback(async () => {
     setLoading(true);
@@ -66,7 +67,9 @@ export default function CreatorDiscoveryContent() {
         followersMax: followerRange.max === Infinity ? undefined : followerRange.max,
         limit: 50,
       });
-      setCreators(extractList<Record<string, unknown>>(res).map(mapCreatorCard));
+      const rawList = extractList<Record<string, unknown>>(res);
+      setCreators(rawList.map(mapCreatorCard));
+      setTotalCreators(extractMeta(res).total ?? rawList.length);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load creators');
     } finally {
@@ -104,7 +107,7 @@ export default function CreatorDiscoveryContent() {
       if (sortBy === 'price_high') return b.pricePerPost - a.pricePerPost;
       return b.rating - a.rating;
     });
-  }, [search, selectedNiche, selectedPlatform, selectedLocation, selectedLanguage, selectedFollowers, selectedEngagement, selectedPrice, sortBy]);
+  }, [creators, search, selectedNiche, selectedPlatform, selectedLocation, selectedLanguage, selectedFollowers, selectedEngagement, selectedPrice, sortBy]);
 
   const handleInvite = (creator: Creator) => {
     setInvitedCreators(prev => new Set(prev).add(creator.id));
@@ -142,7 +145,7 @@ export default function CreatorDiscoveryContent() {
           <p className="text-slate-500 text-sm mt-1">Find and invite the perfect creators for your campaigns</p>
         </div>
         <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg font-medium">
-          {filtered.length} creators found
+          {loading ? '...' : `${filtered.length} of ${totalCreators || creators.length} creators`}
         </span>
       </div>
 
