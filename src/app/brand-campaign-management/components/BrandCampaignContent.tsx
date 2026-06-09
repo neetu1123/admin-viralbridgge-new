@@ -8,12 +8,11 @@ import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import CreateCampaignModal from './CreateCampaignModal';
 import ApplicantDrawer from './ApplicantDrawer';
 import CampaignStatsChart from './CampaignStatsChart';
-import { brandApi } from '@/src/lib/api';
+import { brandApi, platformApi } from '@/src/lib/api';
 import {
   extractList,
   mapBrandApplicant,
   mapBrandCampaign,
-  mapCreatorCard,
   type BrandApplicantRow,
   type BrandCampaignRow,
 } from '@/src/lib/mappers';
@@ -21,63 +20,26 @@ import {
 type Applicant = BrandApplicantRow;
 type Campaign = BrandCampaignRow;
 
-function toAiRecommended(c: ReturnType<typeof mapCreatorCard>) {
-  return {
-    id: c.id,
-    name: c.name,
-    handle: c.handle,
-    avatar: c.avatar,
-    niche: c.niche,
-    followers: c.followers,
-    engagementRate: c.engagementRate,
-    matchScore: Math.min(97, 75 + Math.floor(c.engagementRate * 3)),
-    platform: c.platform,
-    fakeFollowerPct: 2.5,
-    audienceQuality: 90,
-    brandSafetyScore: 95,
-    avgViews: c.avgViews,
-    roiHistory: '3.0x',
-    conversionPotential: c.engagementRate > 5 ? 'Very High' as const : 'High' as const,
-    matchReason: c.bio || `Strong ${c.niche} creator with ${(c.followers / 1000).toFixed(1)}K followers`,
-    verified: c.verified,
-    previousCampaigns: c.pastCollabs,
-  };
+interface AiRecommendedCreator {
+  id: string;
+  name: string;
+  handle: string;
+  avatar: string;
+  niche: string;
+  followers: number;
+  engagementRate: number;
+  matchScore: number;
+  platform: string;
+  fakeFollowerPct: number;
+  audienceQuality: number;
+  brandSafetyScore: number;
+  avgViews: number;
+  roiHistory: string;
+  conversionPotential: 'Very High' | 'High';
+  matchReason: string;
+  verified: boolean;
+  previousCampaigns: number;
 }
-
-const aiRecommendedCreators = [
-  {
-    id: 'rec-001', name: 'Sofia Martinez', handle: '@sofiaglows', avatar: 'SM', niche: 'Beauty & Skincare',
-    followers: 48200, engagementRate: 5.2, matchScore: 97, platform: 'Instagram',
-    fakeFollowerPct: 2.1, audienceQuality: 94, brandSafetyScore: 98,
-    avgViews: 32000, roiHistory: '3.1x', conversionPotential: 'High',
-    matchReason: '92% match — audience aligns with skincare females 18–30, high engagement above campaign avg',
-    verified: true, previousCampaigns: 14,
-  },
-  {
-    id: 'rec-002', name: 'Priya Nair', handle: '@priyabeauty', avatar: 'PN', niche: 'Beauty & Skincare',
-    followers: 92100, engagementRate: 4.1, matchScore: 94, platform: 'Instagram',
-    fakeFollowerPct: 3.8, audienceQuality: 88, brandSafetyScore: 95,
-    avgViews: 58000, roiHistory: '2.8x', conversionPotential: 'High',
-    matchReason: 'Large audience in target demographic, 78% female 22–35, proven brand conversion',
-    verified: true, previousCampaigns: 9,
-  },
-  {
-    id: 'rec-003', name: 'Mei-Lin Chen', handle: '@meilinskin', avatar: 'MC', niche: 'Beauty & Skincare',
-    followers: 22800, engagementRate: 7.3, matchScore: 91, platform: 'Instagram',
-    fakeFollowerPct: 1.2, audienceQuality: 97, brandSafetyScore: 99,
-    avgViews: 18000, roiHistory: '3.8x', conversionPotential: 'Very High',
-    matchReason: 'Micro-influencer with exceptional ROI — 200%+ sell-through on past brand deals',
-    verified: false, previousCampaigns: 5,
-  },
-  {
-    id: 'rec-004', name: 'Aisha Okonkwo', handle: '@aishaskin', avatar: 'AO', niche: 'Lifestyle',
-    followers: 31500, engagementRate: 6.8, matchScore: 88, platform: 'Instagram',
-    fakeFollowerPct: 2.9, audienceQuality: 91, brandSafetyScore: 96,
-    avgViews: 24000, roiHistory: '2.9x', conversionPotential: 'High',
-    matchReason: 'Highly engaged niche community, melanin-focused audience aligns with inclusive skincare',
-    verified: false, previousCampaigns: 5,
-  },
-];
 
 const aiInsights = [
   { id: 'ins-1', icon: '📈', text: 'Skincare creators are performing 28% better this week', type: 'opportunity', action: 'Boost Budget' },
@@ -127,7 +89,7 @@ function Sparkline({ data, color = '#7c3aed' }: { data: number[]; color?: string
 export default function BrandCampaignContent() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
-  const [recommendedCreators, setRecommendedCreators] = useState<ReturnType<typeof toAiRecommended>[]>([]);
+  const [recommendedCreators, setRecommendedCreators] = useState<AiRecommendedCreator[]>([]);
   const [dashboard, setDashboard] = useState<{
     pendingApprovals?: number;
     budgetUsed?: number;
@@ -145,26 +107,60 @@ export default function BrandCampaignContent() {
   const [applicantStatusFilter, setApplicantStatusFilter] = useState('all');
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [expandedCreator, setExpandedCreator] = useState<string | null>(null);
+  const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
 
   const loadData = React.useCallback(async () => {
     setLoading(true);
     try {
-      const [campaignsRes, dashboardRes, creatorsRes] = await Promise.all([
+      const [campaignsRes, dashboardRes, publicSettings] = await Promise.all([
         brandApi.getCampaigns({ limit: 50 }),
         brandApi.getDashboard(),
-        brandApi.getCreators({ limit: 4 }),
+        platformApi.getPublicSettings(),
       ]);
       const rawCampaigns = extractList<Record<string, unknown>>(campaignsRes);
-      setCampaigns(rawCampaigns.map(mapBrandCampaign));
+      const mappedCampaigns = rawCampaigns.map(mapBrandCampaign);
+      setCampaigns(mappedCampaigns);
       setApplicants(
         rawCampaigns.flatMap((c) =>
           ((c.applications as Record<string, unknown>[]) ?? []).map((a) => mapBrandApplicant(a, c)),
         ),
       );
       setDashboard(dashboardRes as typeof dashboard);
-      setRecommendedCreators(
-        extractList<Record<string, unknown>>(creatorsRes).map((r) => toAiRecommended(mapCreatorCard(r))),
-      );
+      setAiMatchingEnabled(publicSettings.aiMatchingEnabled);
+
+      if (publicSettings.aiMatchingEnabled && mappedCampaigns.length > 0) {
+        const targetCampaign =
+          mappedCampaigns.find((c) => c.status === 'active') ?? mappedCampaigns[0];
+        const recsRes = await brandApi.getCampaignRecommendations(targetCampaign.id);
+        if (recsRes.enabled && recsRes.recommendations.length > 0) {
+          setRecommendedCreators(
+            recsRes.recommendations.map((r) => ({
+              id: r.id,
+              name: r.name,
+              handle: `@${r.name.toLowerCase().replace(/\s+/g, '')}`,
+              avatar: r.name.slice(0, 2).toUpperCase(),
+              niche: r.niche,
+              followers: r.followers,
+              engagementRate: r.engagementRate,
+              matchScore: r.matchScore,
+              platform: r.platform,
+              fakeFollowerPct: 2.5,
+              audienceQuality: 90,
+              brandSafetyScore: 95,
+              avgViews: Math.round(r.followers * 0.4),
+              roiHistory: '3.0x',
+              conversionPotential: r.engagementRate > 5 ? ('Very High' as const) : ('High' as const),
+              matchReason: r.matchReason,
+              verified: r.verified,
+              previousCampaigns: 0,
+            })),
+          );
+        } else {
+          setRecommendedCreators([]);
+        }
+      } else {
+        setRecommendedCreators([]);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load brand data');
     } finally {
@@ -484,7 +480,7 @@ export default function BrandCampaignContent() {
       {/* ROW 4 — Creators (Operational) */}
       {activeTab === 'campaigns' && (
         <>
-          {/* AI Recommended Creators — Tinder+LinkedIn+Bloomberg style */}
+          {aiMatchingEnabled && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -497,7 +493,7 @@ export default function BrandCampaignContent() {
               <Link href="/creator-discovery" className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700 transition-colors">View all <ArrowRight size={13} /></Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {(recommendedCreators.length ? recommendedCreators : aiRecommendedCreators).map(creator => (
+              {recommendedCreators.map(creator => (
                 <div key={creator.id} className={`border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1 group ${creator.matchScore >= 95 ? 'border-violet-300 ring-1 ring-violet-200 shadow-md' : 'border-slate-200'}`}>
                   {/* Match score header */}
                   <div className={`px-3 py-2 flex items-center justify-between ${creator.matchScore >= 95 ? 'bg-gradient-to-r from-violet-600 to-purple-600' : 'bg-slate-50 border-b border-slate-100'}`}>
@@ -583,8 +579,12 @@ export default function BrandCampaignContent() {
                   </div>
                 </div>
               ))}
+              {recommendedCreators.length === 0 && (
+                <p className="text-sm text-slate-500 col-span-full text-center py-6">No AI recommendations yet. Active campaigns will generate matched creators automatically.</p>
+              )}
             </div>
           </div>
+          )}
 
           {/* Chart */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">

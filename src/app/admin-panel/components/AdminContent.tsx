@@ -87,15 +87,6 @@ const adminDisputes: AdminDispute[] = [
   { id: 'dsp-005', campaignTitle: 'Summer Glow Skincare Launch', campaignId: 'camp-001', creator: 'Sofia Martinez', brand: 'Luminary Skincare', reason: 'Brand delayed payment release by 14 days beyond agreed timeline.', amount: 1200, status: 'refunded', openedAt: '2026-03-20', priority: 'medium' },
 ];
 
-const aiMatches: AIMatch[] = [
-  { id: 'match-001', campaignTitle: 'Summer Glow Skincare Launch', campaignId: 'camp-001', creatorName: 'Sofia Martinez', creatorNiche: 'Beauty & Skincare', matchScore: 94, reasons: ['High engagement rate (6.2%)', 'Skincare niche alignment', 'Female 18-34 audience (82%)', 'Past brand collab: GlowLab'], status: 'active', matchedAt: '2026-04-01', engagement: 6.2, followers: 48200 },
-  { id: 'match-002', campaignTitle: 'Summer Glow Skincare Launch', campaignId: 'camp-001', creatorName: 'Aisha Okonkwo', creatorNiche: 'Beauty & Lifestyle', matchScore: 88, reasons: ['Beauty content creator', 'Authentic skin-tone diversity', 'Strong story engagement (8.1%)', 'Location: Lagos — brand target market'], status: 'active', matchedAt: '2026-04-01', engagement: 8.1, followers: 31500 },
-  { id: 'match-003', campaignTitle: 'FitPro App — 30-Day Challenge', campaignId: 'camp-002', creatorName: 'Jordan Osei', creatorNiche: 'Fitness & Health', matchScore: 97, reasons: ['Fitness niche — exact match', 'Long-form YouTube content (avg 18 min)', 'High completion rate (72%)', 'Previous fitness app collab'], status: 'active', matchedAt: '2026-03-20', engagement: 5.8, followers: 74200 },
-  { id: 'match-004', campaignTitle: 'FitPro App — 30-Day Challenge', campaignId: 'camp-002', creatorName: 'Priya Nair', creatorNiche: 'Wellness & Yoga', matchScore: 79, reasons: ['Wellness audience overlap', 'Female fitness demographic', 'Strong India + US reach'], status: 'active', matchedAt: '2026-03-20', engagement: 7.3, followers: 92100 },
-  { id: 'match-005', campaignTitle: 'GameVault Pro Controller', campaignId: 'camp-007', creatorName: 'Marcus Webb', creatorNiche: 'Gaming & Tech', matchScore: 85, reasons: ['Gaming content creator', 'Tech review experience', 'Male 18-28 audience (91%)', 'High TikTok engagement (9.4%)'], status: 'active', matchedAt: '2026-03-28', engagement: 9.4, followers: 18500 },
-  { id: 'match-006', campaignTitle: 'GameVault Pro Controller', campaignId: 'camp-007', creatorName: 'Mei-Lin Chen', creatorNiche: 'Lifestyle & Tech', matchScore: 61, reasons: ['Partial tech audience overlap', 'Lower gaming content ratio (12%)'], status: 'removed', matchedAt: '2026-03-28', engagement: 4.1, followers: 22800 },
-];
-
 const adminWithdrawals: AdminWithdrawal[] = [
   { id: 'wd-001', creator: 'Priya Nair', email: 'priya@creators.io', amount: 2000, method: 'Bank Transfer (ACH)', account: '****8821', status: 'pending', requestedAt: '2026-04-07', fee: 15 },
   { id: 'wd-002', creator: 'Jordan Osei', email: 'jordan@fitcreators.io', amount: 1500, method: 'PayPal', account: 'jordan@fitcreators.io', status: 'pending', requestedAt: '2026-04-08', fee: 15 },
@@ -454,18 +445,23 @@ export default function AdminContent() {
     brand?: { company_name: string };
   }> | null>(null);
   const [apiLoading, setApiLoading] = useState(true);
+  const [aiMatches, setAiMatches] = useState<AIMatch[]>([]);
+  const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
 
   const loadApiData = useCallback(async () => {
     setApiLoading(true);
     try {
-      const [stats, users, campaigns] = await Promise.all([
+      const [stats, users, campaigns, matchesRes] = await Promise.all([
         adminApi.getDashboardStats(),
         adminApi.getUsers(),
         adminApi.getCampaigns(),
+        adminApi.getMatches(),
       ]);
       setApiStats(stats);
       setApiUsers(users);
       setApiCampaigns(campaigns);
+      setAiMatchingEnabled(matchesRes.enabled);
+      setAiMatches(matchesRes.matches);
     } catch (err: any) {
       // Silently fall back to mock data — avoids breaking the UI
       console.warn('Admin API error, using mock data:', err.message);
@@ -496,9 +492,6 @@ export default function AdminContent() {
   );
   const [disputeStatuses, setDisputeStatuses] = useState<Record<string, AdminDispute['status']>>(
     Object.fromEntries(adminDisputes.map(d => [d.id, d.status]))
-  );
-  const [matchStatuses, setMatchStatuses] = useState<Record<string, AIMatch['status']>>(
-    Object.fromEntries(aiMatches.map(m => [m.id, m.status]))
   );
   const [activityLogUser, setActivityLogUser] = useState<AdminUser | null>(null);
   const [campaignDetailItem, setCampaignDetailItem] = useState<AdminCampaign | null>(null);
@@ -573,10 +566,27 @@ export default function AdminContent() {
     toast.success(`Dispute ${labels[action]}`);
   };
 
-  const handleMatchAction = (matchId: string, action: 'force_match' | 'remove') => {
-    const newStatus: AIMatch['status'] = action === 'force_match' ? 'force_matched' : 'removed';
-    setMatchStatuses(prev => ({ ...prev, [matchId]: newStatus }));
-    toast.success(`Match ${action === 'force_match' ? 'force-applied' : 'removed'} successfully`);
+  const handleMatchAction = async (matchId: string, action: 'force_match' | 'remove' | 'restore') => {
+    try {
+      const apiStatus = action === 'force_match' ? 'forced' : action === 'restore' ? 'active' : 'removed';
+      await adminApi.updateMatch(matchId, apiStatus);
+      setAiMatches((prev) =>
+        prev.map((m) =>
+          m.id === matchId
+            ? { ...m, status: action === 'force_match' ? 'force_matched' : action === 'restore' ? 'active' : 'removed' }
+            : m,
+        ),
+      );
+      toast.success(
+        action === 'force_match'
+          ? 'Match force-applied successfully'
+          : action === 'restore'
+            ? 'Match restored successfully'
+            : 'Match removed successfully',
+      );
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Match action failed');
+    }
   };
 
   const filteredUsers = displayUsers.filter(u => {
@@ -594,7 +604,7 @@ export default function AdminContent() {
     { key: 'campaigns', label: 'Campaigns', count: pendingApprovalCampaigns + flaggedCampaigns, alert: (pendingApprovalCampaigns + flaggedCampaigns) > 0 },
     { key: 'transactions', label: 'Transactions', count: adminTransactions.length },
     { key: 'disputes', label: 'Disputes', count: openDisputes, alert: openDisputes > 0 },
-    { key: 'ai-matching', label: 'AI Matching', count: aiMatches.filter(m => matchStatuses[m.id] === 'active').length },
+    { key: 'ai-matching', label: 'AI Matching', count: aiMatches.filter(m => m.status === 'active').length },
     { key: 'analytics', label: 'Analytics' },
     { key: 'withdrawals', label: 'Withdrawals', count: pendingWithdrawals, alert: pendingWithdrawals > 0 },
   ];
@@ -1074,13 +1084,24 @@ export default function AdminContent() {
                   <p className="text-xs text-slate-400 mt-0.5">Review AI-recommended creator-campaign pairings and override when needed</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-violet-50 text-violet-700 border border-violet-200 px-2.5 py-1 rounded-lg font-medium flex items-center gap-1"><Zap size={11} /> {aiMatches.filter(m => matchStatuses[m.id] === 'active').length} active</span>
-                  <span className="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-medium">{aiMatches.filter(m => matchStatuses[m.id] === 'removed').length} removed</span>
+                  {aiMatchingEnabled ? (
+                    <>
+                      <span className="text-xs bg-violet-50 text-violet-700 border border-violet-200 px-2.5 py-1 rounded-lg font-medium flex items-center gap-1"><Zap size={11} /> {aiMatches.filter(m => m.status === 'active').length} active</span>
+                      <span className="text-xs bg-red-50 text-red-700 border border-red-200 px-2.5 py-1 rounded-lg font-medium">{aiMatches.filter(m => m.status === 'removed').length} removed</span>
+                    </>
+                  ) : (
+                    <span className="text-xs bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-lg font-medium">AI Matching disabled</span>
+                  )}
                 </div>
               </div>
+              {!aiMatchingEnabled && (
+                <div className="px-5 py-8 text-center">
+                  <p className="text-sm text-slate-500">AI Matching is turned off in Settings. Enable it to generate and review creator-campaign pairings.</p>
+                </div>
+              )}
               <div className="divide-y divide-slate-50">
-                {aiMatches.map(match => {
-                  const currentStatus = matchStatuses[match.id];
+                {aiMatchingEnabled && aiMatches.map(match => {
+                  const currentStatus = match.status;
                   return (
                     <div key={match.id} className={`px-5 py-4 hover:bg-slate-50/60 transition-colors ${currentStatus === 'removed' ? 'opacity-60' : ''}`}>
                       <div className="flex items-start justify-between gap-4">
@@ -1118,13 +1139,18 @@ export default function AdminContent() {
                           {currentStatus !== 'removed' ? (
                             <button onClick={() => handleMatchAction(match.id, 'remove')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg font-medium transition-colors whitespace-nowrap"><XCircle size={12} /> Remove</button>
                           ) : (
-                            <button onClick={() => handleMatchAction(match.id, 'force_match')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg font-medium transition-colors whitespace-nowrap"><RefreshCw size={12} /> Restore</button>
+                            <button onClick={() => handleMatchAction(match.id, 'restore')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg font-medium transition-colors whitespace-nowrap"><RefreshCw size={12} /> Restore</button>
                           )}
                         </div>
                       </div>
                     </div>
                   );
                 })}
+                {aiMatchingEnabled && aiMatches.length === 0 && (
+                  <div className="px-5 py-12 text-center">
+                    <p className="text-sm text-slate-500">No AI matches yet. Approve active campaigns to generate pairings.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

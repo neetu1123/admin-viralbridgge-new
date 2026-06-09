@@ -61,6 +61,7 @@ export default function CampaignDiscoveryContent() {
   const [showFilters, setShowFilters] = useState(true);
   const [sortBy, setSortBy] = useState<'newest' | 'budget_high' | 'budget_low' | 'applicants_low' | 'match'>('match');
   const [activeRecommendedTab, setActiveRecommendedTab] = useState('recommended');
+  const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
 
   const loadCampaigns = useCallback(async () => {
     setLoading(true);
@@ -82,11 +83,21 @@ export default function CampaignDiscoveryContent() {
           budgetMin: budgetRange.min || undefined,
           budgetMax: budgetRange.max === Infinity ? undefined : budgetRange.max,
           sort: sortMap[sortBy],
+          includeMatch: true,
           limit: 50,
         }),
         creatorApi.getApplications({ limit: 100 }),
       ]);
-      setCampaigns(extractList<Record<string, unknown>>(campaignsRes).map(mapDiscoveryCampaign));
+      const aiEnabled =
+        typeof (campaignsRes as { aiMatchingEnabled?: boolean }).aiMatchingEnabled === 'boolean'
+          ? (campaignsRes as { aiMatchingEnabled: boolean }).aiMatchingEnabled
+          : true;
+      setAiMatchingEnabled(aiEnabled);
+      setCampaigns(
+        extractList<Record<string, unknown>>(campaignsRes).map((c) =>
+          mapDiscoveryCampaign(c, { aiEnabled }),
+        ),
+      );
       const appliedIds = new Set(
         extractList<Record<string, unknown>>(appsRes).map((a) => String(a.campaign_id)),
       );
@@ -97,6 +108,12 @@ export default function CampaignDiscoveryContent() {
       setLoading(false);
     }
   }, [search, selectedPlatform, selectedLocality, selectedLanguage, selectedBudget, sortBy]);
+
+  useEffect(() => {
+    if (!aiMatchingEnabled && sortBy === 'match') {
+      setSortBy('newest');
+    }
+  }, [aiMatchingEnabled, sortBy]);
 
   useEffect(() => {
     const timer = setTimeout(() => loadCampaigns(), 300);
@@ -203,22 +220,25 @@ export default function CampaignDiscoveryContent() {
             </button>
           </div>
 
-          {/* AI Match Score */}
-          <div className={`flex items-center justify-between p-2.5 rounded-xl mb-3 border ${campaign.aiMatchScore >= 90 ? 'bg-violet-50 border-violet-200' : campaign.aiMatchScore >= 75 ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
-            <div className="flex items-center gap-2">
-              <Brain size={13} className={campaign.aiMatchScore >= 90 ? 'text-violet-600' : 'text-slate-500'} />
-              <span className="text-xs font-semibold text-slate-700">AI Match</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${campaign.aiMatchScore >= 90 ? 'bg-violet-500' : campaign.aiMatchScore >= 75 ? 'bg-blue-500' : 'bg-slate-400'}`} style={{ width: `${campaign.aiMatchScore}%` }} />
+          {aiMatchingEnabled && campaign.aiMatchScore > 0 && (
+            <>
+              <div className={`flex items-center justify-between p-2.5 rounded-xl mb-3 border ${campaign.aiMatchScore >= 90 ? 'bg-violet-50 border-violet-200' : campaign.aiMatchScore >= 75 ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center gap-2">
+                  <Brain size={13} className={campaign.aiMatchScore >= 90 ? 'text-violet-600' : 'text-slate-500'} />
+                  <span className="text-xs font-semibold text-slate-700">AI Match</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${campaign.aiMatchScore >= 90 ? 'bg-violet-500' : campaign.aiMatchScore >= 75 ? 'bg-blue-500' : 'bg-slate-400'}`} style={{ width: `${campaign.aiMatchScore}%` }} />
+                  </div>
+                  <span className={`text-sm font-black ${campaign.aiMatchScore >= 90 ? 'text-violet-700' : 'text-slate-700'}`}>{campaign.aiMatchScore}%</span>
+                </div>
               </div>
-              <span className={`text-sm font-black ${campaign.aiMatchScore >= 90 ? 'text-violet-700' : 'text-slate-700'}`}>{campaign.aiMatchScore}%</span>
-            </div>
-          </div>
-
-          {/* Match reason */}
-          <p className="text-xs text-slate-500 italic mb-3 leading-relaxed line-clamp-2">"{campaign.matchReason}"</p>
+              {campaign.matchReason && (
+                <p className="text-xs text-slate-500 italic mb-3 leading-relaxed line-clamp-2">&quot;{campaign.matchReason}&quot;</p>
+              )}
+            </>
+          )}
 
           {/* Badges */}
           <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -305,7 +325,7 @@ export default function CampaignDiscoveryContent() {
             ) : (
               <button
                 onClick={() => setApplyTarget(campaign)}
-                className={`w-full text-white text-xs font-bold py-2.5 rounded-xl transition-all duration-150 active:scale-[0.97] ${campaign.aiMatchScore >= 90 ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-md shadow-violet-200' : 'bg-violet-600 hover:bg-violet-700'}`}
+                className={`w-full text-white text-xs font-bold py-2.5 rounded-xl transition-all duration-150 active:scale-[0.97] ${aiMatchingEnabled && campaign.aiMatchScore >= 90 ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-md shadow-violet-200' : 'bg-violet-600 hover:bg-violet-700'}`}
               >
                 Apply & Earn ₹{(campaign.earnAmount / 100 * 8.3).toFixed(0)}K
               </button>
@@ -393,7 +413,7 @@ export default function CampaignDiscoveryContent() {
             onChange={e => setSortBy(e.target.value as typeof sortBy)}
             className="appearance-none pl-3 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-700"
           >
-            <option value="match">Best AI Match</option>
+            {aiMatchingEnabled && <option value="match">Best AI Match</option>}
             <option value="newest">Newest First</option>
             <option value="budget_high">Budget: High to Low</option>
             <option value="budget_low">Budget: Low to High</option>

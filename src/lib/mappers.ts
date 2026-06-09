@@ -162,7 +162,10 @@ export interface DiscoveryCampaignRow {
   paymentType: string;
 }
 
-export function mapDiscoveryCampaign(raw: Record<string, unknown>): DiscoveryCampaignRow {
+export function mapDiscoveryCampaign(
+  raw: Record<string, unknown>,
+  options?: { aiEnabled?: boolean },
+): DiscoveryCampaignRow {
   const brand = (raw.brand as Record<string, unknown>) ?? {};
   const brandName = String(brand.company_name ?? 'Brand');
   const budget = Number(raw.budget) || 0;
@@ -170,6 +173,16 @@ export function mapDiscoveryCampaign(raw: Record<string, unknown>): DiscoveryCam
     Number((raw._count as { applications?: number })?.applications) ||
     ((raw.applications as unknown[])?.length ?? 0);
   const langs = Array.isArray(raw.languages) ? (raw.languages as string[]) : ['English'];
+  const aiEnabled = options?.aiEnabled ?? true;
+  const apiScore = typeof raw.matchScore === 'number' ? Number(raw.matchScore) : undefined;
+  const apiReasons = Array.isArray(raw.matchReasons) ? (raw.matchReasons as string[]) : [];
+  const fallbackScore = Math.min(97, 70 + Math.floor(budget / 200));
+  const aiMatchScore = apiScore ?? (aiEnabled ? fallbackScore : 0);
+  const matchReason =
+    apiReasons[0] ??
+    (aiMatchScore > 0
+      ? `Campaign budget $${budget.toLocaleString()} — ${String(raw.platform ?? 'social')} content`
+      : '');
 
   return {
     id: String(raw.id),
@@ -191,9 +204,9 @@ export function mapDiscoveryCampaign(raw: Record<string, unknown>): DiscoveryCam
     featured: budget >= 2000,
     locality: String(raw.locality ?? 'Global'),
     language: langs[0] ?? 'English',
-    aiMatchScore: Math.min(97, 70 + Math.floor(budget / 200)),
+    aiMatchScore,
     approvalChance: applicantCount < 20 ? 'High' : applicantCount < 50 ? 'Medium' : 'Low',
-    matchReason: `Campaign budget $${budget.toLocaleString()} — ${String(raw.platform ?? 'social')} content`,
+    matchReason,
     earnAmount: budget,
     verifiedBrand: Boolean(brand.user_id),
     escrowProtected: true,

@@ -132,6 +132,46 @@ export const adminApi = {
       id: string; type: string; amount: number; status: string; created_at: string;
       wallet?: { user?: { name: string; email: string } };
     }>>('/admin/transactions'),
+
+  getSettings: () =>
+    apiFetch<{ aiMatchingEnabled: boolean; updatedAt?: string }>('/admin/settings'),
+
+  patchSettings: (body: { aiMatchingEnabled?: boolean }) =>
+    apiFetch<{ aiMatchingEnabled: boolean; updatedAt?: string }>('/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  getMatches: () =>
+    apiFetch<{
+      enabled: boolean;
+      matches: Array<{
+        id: string;
+        campaignTitle: string;
+        campaignId: string;
+        creatorName: string;
+        creatorNiche: string;
+        matchScore: number;
+        reasons: string[];
+        status: 'active' | 'removed' | 'force_matched';
+        matchedAt: string;
+        engagement: number;
+        followers: number;
+      }>;
+    }>('/admin/matching'),
+
+  updateMatch: (id: string, status: 'active' | 'removed' | 'forced') =>
+    apiFetch(`/admin/matching/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+
+  runMatching: () =>
+    apiFetch<{ totalCreated: number; campaigns: number; enabled: boolean }>('/admin/matching/run', {
+      method: 'POST',
+    }),
+};
+
+export const platformApi = {
+  getPublicSettings: () =>
+    apiFetch<{ aiMatchingEnabled: boolean }>('/settings/public'),
 };
 
 // ─── Audit Log APIs ───────────────────────────────────────────────────────────
@@ -220,6 +260,22 @@ export const brandApi = {
   inviteCreator: (campaignId: string, creatorId: string) =>
     apiFetch(`/brand/campaigns/${campaignId}/invite/${creatorId}`, { method: 'POST' }),
   getCampaignDetail: (id: string) => apiFetch(`/brand/campaigns/${id}/detail`),
+  getCampaignRecommendations: (campaignId: string) =>
+    apiFetch<{
+      enabled: boolean;
+      recommendations: Array<{
+        id: string;
+        name: string;
+        niche: string;
+        followers: number;
+        engagementRate: number;
+        matchScore: number;
+        matchReason: string;
+        reasons: string[];
+        platform: string;
+        verified: boolean;
+      }>;
+    }>(`/brand/campaigns/${campaignId}/recommendations`),
   getCreators: (params?: Record<string, string | number | boolean | undefined>) =>
     apiFetch(`/brand/creators${toQuery(params)}`),
   getMyCreators: (params?: Record<string, string | number | boolean | undefined>) =>
