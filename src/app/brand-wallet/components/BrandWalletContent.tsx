@@ -1,6 +1,10 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
+import { brandApi } from '@/src/lib/api';
+import { mapEscrowRows, type EscrowRow } from '@/src/lib/mappers';
+import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
+import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
 import { DollarSign, TrendingUp, Lock, ArrowUpRight, ArrowDownLeft, ChevronDown, Download, Plus, Shield, FileText, Brain, CheckCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -52,9 +56,36 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
 
 type WalletTab = 'overview' | 'escrow' | 'invoices';
 
+const escrowStatusLabel: Record<string, string> = {
+  HELD: 'In Escrow',
+  RELEASED: 'Released',
+  DISPUTED: 'Dispute Active',
+  REFUNDED: 'Refunded',
+};
+
 export default function BrandWalletContent() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [activeTab, setActiveTab] = useState<WalletTab>('overview');
+  const [escrows, setEscrows] = useState<EscrowRow[]>([]);
+  const [escrowsLoading, setEscrowsLoading] = useState(false);
+  const [disputeTarget, setDisputeTarget] = useState<EscrowRow | null>(null);
+  const [disputeRefreshKey, setDisputeRefreshKey] = useState(0);
+
+  const loadEscrows = useCallback(async () => {
+    setEscrowsLoading(true);
+    try {
+      const data = await brandApi.getEscrows();
+      setEscrows(mapEscrowRows(data));
+    } catch {
+      setEscrows([]);
+    } finally {
+      setEscrowsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'escrow') loadEscrows();
+  }, [activeTab, loadEscrows, disputeRefreshKey]);
 
   const totalBudget = 41700;
   const inEscrow = 22100;
@@ -259,41 +290,65 @@ export default function BrandWalletContent() {
       {activeTab === 'escrow' && (
         <div className="space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <h2 className="text-sm font-bold text-slate-700 mb-4">Active Escrow Holdings</h2>
-            <div className="space-y-3">
-              {[
-                { campaign: 'Summer Glow Skincare Launch', amount: 6000, released: 1200, status: 'active', creators: 2 },
-                { campaign: 'FitPro App — 30-Day Challenge', amount: 10500, released: 3500, status: 'active', creators: 2 },
-                { campaign: 'NomadPay Travel Creator Push', amount: 8000, released: 0, status: 'active', creators: 2 },
-              ].map((e, i) => {
-                const releasedPct = Math.round((e.released / e.amount) * 100);
-                return (
-                  <div key={i} className="border border-slate-100 rounded-2xl p-4 hover:border-blue-200 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold text-slate-700 mb-4">Escrow Holdings</h2>
+            {escrowsLoading ? (
+              <p className="text-sm text-slate-400 py-6 text-center">Loading escrow...</p>
+            ) : escrows.length === 0 ? (
+              <p className="text-sm text-slate-500 py-6 text-center">No escrow holdings yet. Accept creators on campaigns to lock funds.</p>
+            ) : (
+              <div className="space-y-3">
+                {escrows.map((e) => (
+                  <div
+                    key={e.id}
+                    className={`border rounded-2xl p-4 transition-colors ${e.status === 'DISPUTED' ? 'border-red-200 bg-red-50/30' : 'border-slate-100 hover:border-blue-200'}`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
                       <div>
-                        <p className="text-sm font-bold text-slate-800">{e.campaign}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{e.creators} creators · Escrow active</p>
+                        <p className="text-sm font-bold text-slate-800">{e.campaignTitle}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{e.creatorName}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-black text-slate-800">${e.amount.toLocaleString()}</p>
-                        <p className="text-xs text-blue-600 font-semibold">Locked</p>
+                        <p className="text-lg font-black text-slate-800">₹{e.amount.toLocaleString()}</p>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${e.status === 'DISPUTED' ? 'bg-red-100 text-red-700' : e.status === 'HELD' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                          {escrowStatusLabel[e.status] ?? e.status}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${releasedPct}%` }} />
-                      </div>
-                      <span className="text-xs text-slate-500 tabular-nums">${e.released.toLocaleString()} released</span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <button onClick={() => toast.success('Release initiated')} className="flex-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl transition-colors">Release Funds</button>
-                      <button onClick={() => toast.info('Dispute opened')} className="flex-1 text-xs font-bold bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 py-2 rounded-xl transition-colors">Dispute</button>
+                      {e.status === 'HELD' && !e.hasOpenDispute && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await brandApi.releaseEscrow(e.id);
+                              toast.success('Funds released to creator');
+                              loadEscrows();
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Release failed');
+                            }
+                          }}
+                          className="flex-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl transition-colors"
+                        >
+                          Release Funds
+                        </button>
+                      )}
+                      {e.canDispute && (
+                        <button
+                          onClick={() => setDisputeTarget(e)}
+                          className="flex-1 text-xs font-bold bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 py-2 rounded-xl transition-colors"
+                        >
+                          Raise Issue
+                        </button>
+                      )}
+                      {e.hasOpenDispute && (
+                        <span className="flex-1 text-center text-xs font-semibold text-red-600 py-2">Dispute under review</span>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
+          <MyDisputesPanel role="brand" refreshKey={disputeRefreshKey} />
         </div>
       )}
 
@@ -329,6 +384,22 @@ export default function BrandWalletContent() {
           </div>
         </div>
       )}
+
+      <OpenDisputeModal
+        open={!!disputeTarget}
+        onClose={() => setDisputeTarget(null)}
+        role="brand"
+        campaignId={disputeTarget?.campaignId ?? ''}
+        campaignTitle={disputeTarget?.campaignTitle ?? ''}
+        creatorId={disputeTarget?.creatorId}
+        creatorName={disputeTarget?.creatorName}
+        amount={disputeTarget?.amount}
+        escrowStatus={disputeTarget?.status}
+        onSuccess={() => {
+          setDisputeRefreshKey((k) => k + 1);
+          loadEscrows();
+        }}
+      />
     </div>
   );
 }

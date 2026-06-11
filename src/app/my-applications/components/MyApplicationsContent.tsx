@@ -1,7 +1,9 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, MessageSquare, Eye, Clock, CheckCircle, XCircle, Briefcase, DollarSign, Star } from 'lucide-react';
+import { Search, ChevronDown, MessageSquare, Eye, Clock, CheckCircle, XCircle, Briefcase, DollarSign, Star, AlertTriangle } from 'lucide-react';
+import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
+import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import Link from 'next/link';
 import { creatorApi } from '@/src/lib/api';
@@ -29,6 +31,8 @@ export default function MyApplicationsContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [disputeApp, setDisputeApp] = useState<Application | null>(null);
+  const [disputeRefreshKey, setDisputeRefreshKey] = useState(0);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -199,12 +203,20 @@ export default function MyApplicationsContent() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {app.status === 'approved' && (
-                    <Link
-                      href="/messaging-inbox"
-                      className="flex items-center gap-1.5 text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      <MessageSquare size={12} /> Message Brand
-                    </Link>
+                    <>
+                      <Link
+                        href="/messaging-inbox"
+                        className="flex items-center gap-1.5 text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <MessageSquare size={12} /> Message Brand
+                      </Link>
+                      <button
+                        onClick={() => setDisputeApp(app)}
+                        className="flex items-center gap-1.5 text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <AlertTriangle size={12} /> Raise Issue
+                      </button>
+                    </>
                   )}
                   <Link
                     href="/campaign-discovery"
@@ -231,6 +243,20 @@ export default function MyApplicationsContent() {
           </div>
         )}
       </div>
+
+      <div className="mt-8">
+        <MyDisputesPanel role="creator" refreshKey={disputeRefreshKey} />
+      </div>
+
+      <OpenDisputeModal
+        open={!!disputeApp}
+        onClose={() => setDisputeApp(null)}
+        role="creator"
+        campaignId={disputeApp?.campaignId ?? ''}
+        campaignTitle={disputeApp?.campaignTitle ?? ''}
+        amount={disputeApp?.paymentAmount}
+        onSuccess={() => setDisputeRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }

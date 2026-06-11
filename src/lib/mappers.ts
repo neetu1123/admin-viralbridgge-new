@@ -243,8 +243,74 @@ export function mapDiscoveryCampaign(
   };
 }
 
+export interface EscrowRow {
+  id: string;
+  campaignId: string;
+  campaignTitle: string;
+  creatorId?: string;
+  creatorName?: string;
+  brandName?: string;
+  amount: number;
+  status: string;
+  hasOpenDispute: boolean;
+  canDispute: boolean;
+  createdAt: string;
+}
+
+export function mapEscrowRow(raw: Record<string, unknown>): EscrowRow {
+  return {
+    id: String(raw.id),
+    campaignId: String(raw.campaignId ?? raw.campaign_id ?? ''),
+    campaignTitle: String(raw.campaignTitle ?? (raw.campaign as Record<string, unknown>)?.title ?? ''),
+    creatorId: raw.creatorId != null ? String(raw.creatorId) : raw.creator_id != null ? String(raw.creator_id) : undefined,
+    creatorName: raw.creatorName != null ? String(raw.creatorName) : undefined,
+    brandName: raw.brandName != null ? String(raw.brandName) : undefined,
+    amount: Number(raw.amount) || 0,
+    status: String(raw.status ?? 'HELD'),
+    hasOpenDispute: Boolean(raw.hasOpenDispute),
+    canDispute: Boolean(raw.canDispute),
+    createdAt: String(raw.createdAt ?? raw.created_at ?? '').slice(0, 10),
+  };
+}
+
+export function mapEscrowRows(raw: unknown): EscrowRow[] {
+  return extractList<Record<string, unknown>>(raw).map(mapEscrowRow);
+}
+
+export interface UserDisputeRow {
+  id: string;
+  campaignTitle: string;
+  creator: string;
+  brand: string;
+  reason: string;
+  amount: number;
+  status: 'open' | 'escalated' | 'resolved' | 'refunded';
+  openedAt: string;
+  raisedBy: 'brand' | 'creator';
+}
+
+export function mapUserDispute(raw: Record<string, unknown>): UserDisputeRow {
+  const mapped = mapAdminDispute(raw);
+  return {
+    id: mapped.id,
+    campaignTitle: mapped.campaignTitle,
+    creator: mapped.creator,
+    brand: mapped.brand,
+    reason: mapped.reason,
+    amount: mapped.amount,
+    status: mapped.status,
+    openedAt: mapped.openedAt,
+    raisedBy: mapped.raisedBy,
+  };
+}
+
+export function mapUserDisputes(raw: unknown): UserDisputeRow[] {
+  return extractList<Record<string, unknown>>(raw).map(mapUserDispute);
+}
+
 export interface CreatorApplicationRow {
   id: string;
+  campaignId: string;
   campaignTitle: string;
   brand: string;
   brandAvatar: string;
@@ -272,6 +338,7 @@ export function mapCreatorApplication(raw: Record<string, unknown>): CreatorAppl
 
   return {
     id: String(raw.id),
+    campaignId: String(raw.campaign_id ?? campaign.id ?? ''),
     campaignTitle: String(campaign.title ?? ''),
     brand: brandName,
     brandAvatar: initials(brandName),
@@ -372,6 +439,69 @@ export function mapAdminUsers(raw: unknown): AdminPanelUser[] {
   return extractList<Record<string, unknown>>(raw)
     .map(mapAdminUser)
     .filter((user): user is AdminPanelUser => user !== null);
+}
+
+export interface AdminDisputeRow {
+  id: string;
+  campaignTitle: string;
+  campaignId: string;
+  creator: string;
+  brand: string;
+  reason: string;
+  amount: number;
+  status: 'open' | 'escalated' | 'resolved' | 'refunded';
+  openedAt: string;
+  priority: 'high' | 'medium' | 'low';
+  raisedBy: 'brand' | 'creator';
+}
+
+function mapDisputeStatus(status: string): AdminDisputeRow['status'] {
+  const s = (status || '').toLowerCase();
+  if (s === 'open') return 'open';
+  if (s === 'escalated') return 'escalated';
+  if (s === 'resolved') return 'resolved';
+  if (s === 'refunded') return 'refunded';
+  const upper = (status || '').toUpperCase();
+  if (upper === 'OPEN') return 'open';
+  if (upper === 'ESCALATED') return 'escalated';
+  if (upper === 'RESOLVED') return 'resolved';
+  if (upper === 'REFUNDED') return 'refunded';
+  return 'open';
+}
+
+function mapDisputePriority(priority: string): AdminDisputeRow['priority'] {
+  const p = (priority || '').toLowerCase();
+  if (p === 'high' || p === 'medium' || p === 'low') return p;
+  const upper = (priority || '').toUpperCase();
+  if (upper === 'HIGH') return 'high';
+  if (upper === 'LOW') return 'low';
+  return 'medium';
+}
+
+export function mapAdminDispute(raw: Record<string, unknown>): AdminDisputeRow {
+  const opened = raw.openedAt ?? raw.created_at;
+  const raised = String(raw.raisedBy ?? raw.raised_by ?? 'brand').toLowerCase();
+
+  return {
+    id: String(raw.id),
+    campaignId: String(raw.campaignId ?? raw.campaign_id ?? ''),
+    campaignTitle: String(raw.campaignTitle ?? (raw.campaign as Record<string, unknown>)?.title ?? ''),
+    creator: String(raw.creator ?? 'Creator'),
+    brand: String(raw.brand ?? 'Brand'),
+    reason: String(raw.reason ?? ''),
+    amount: Number(raw.amount) || 0,
+    status: mapDisputeStatus(String(raw.status ?? 'open')),
+    openedAt: String(opened ?? '').slice(0, 10),
+    priority: mapDisputePriority(String(raw.priority ?? 'medium')),
+    raisedBy: raised === 'creator' ? 'creator' : 'brand',
+  };
+}
+
+export function mapAdminDisputes(raw: unknown): AdminDisputeRow[] {
+  if (raw && typeof raw === 'object' && 'data' in raw && Array.isArray((raw as { data: unknown }).data)) {
+    return ((raw as { data: Record<string, unknown>[] }).data).map(mapAdminDispute);
+  }
+  return extractList<Record<string, unknown>>(raw).map(mapAdminDispute);
 }
 
 export function mapCreatorCard(raw: Record<string, unknown>): CreatorCardRow {

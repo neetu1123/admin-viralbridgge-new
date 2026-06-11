@@ -1,10 +1,13 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { ArrowLeft, CheckCircle, XCircle, MessageSquare, Users, DollarSign, Calendar, TrendingUp, Star, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
+import { brandApi } from '@/src/lib/api';
+import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
 
 type Tab = 'overview' | 'applicants' | 'approved' | 'deliverables' | 'payments';
 
@@ -67,13 +70,71 @@ const paymentStatusColors: Record<string, string> = {
   in_escrow: 'bg-amber-50 text-amber-700 border-amber-200',
   partial: 'bg-blue-50 text-blue-700 border-blue-200',
   pending: 'bg-slate-50 text-slate-600 border-slate-200',
+  disputed: 'bg-red-50 text-red-700 border-red-200',
+  refunded: 'bg-slate-50 text-slate-600 border-slate-200',
 };
 
+interface PaymentRow {
+  id: string;
+  creator: string;
+  creatorId: string;
+  amount: number;
+  status: string;
+  uiStatus: keyof typeof paymentStatusColors;
+  date: string;
+  canDispute: boolean;
+  hasOpenDispute: boolean;
+}
+
+function mapEscrowToPayment(escrow: Record<string, unknown>): PaymentRow {
+  const creator = (escrow.creator as Record<string, unknown>) ?? {};
+  const user = (creator.user as Record<string, unknown>) ?? {};
+  const status = String(escrow.status ?? 'HELD');
+  const dispute = escrow.dispute as Record<string, unknown> | null;
+  const hasOpenDispute = dispute ? ['OPEN', 'ESCALATED'].includes(String(dispute.status)) : false;
+  let uiStatus: PaymentRow['uiStatus'] = 'pending';
+  if (status === 'RELEASED') uiStatus = 'released';
+  else if (status === 'HELD') uiStatus = 'in_escrow';
+  else if (status === 'DISPUTED') uiStatus = 'disputed';
+  else if (status === 'REFUNDED') uiStatus = 'refunded';
+
+  return {
+    id: String(escrow.id),
+    creator: String(creator.full_name ?? user.name ?? 'Creator'),
+    creatorId: String(escrow.creator_id ?? creator.id ?? ''),
+    amount: Number(escrow.amount) || 0,
+    status,
+    uiStatus,
+    date: String(escrow.created_at ?? '').slice(0, 10),
+    canDispute: ['HELD', 'RELEASED'].includes(status) && !hasOpenDispute,
+    hasOpenDispute,
+  };
+}
+
 export default function CampaignDetailContent() {
+  const searchParams = useSearchParams();
+  const campaignId = searchParams.get('id') ?? '';
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [apiPayments, setApiPayments] = useState<PaymentRow[]>([]);
+  const [disputePayment, setDisputePayment] = useState<PaymentRow | null>(null);
   const [appStatuses, setAppStatuses] = useState<Record<string, 'pending' | 'accepted' | 'rejected'>>(
     Object.fromEntries(applicants.map(a => [a.id, a.status]))
   );
+
+  const loadPayments = useCallback(async () => {
+    if (!campaignId) return;
+    try {
+      const detail = await brandApi.getCampaignDetail(campaignId) as { payments?: Record<string, unknown>[] };
+      const rows = (detail.payments ?? []).map(mapEscrowToPayment);
+      setApiPayments(rows);
+    } catch {
+      setApiPayments([]);
+    }
+  }, [campaignId]);
+
+  useEffect(() => {
+    if (campaignId && activeTab === 'payments') loadPayments();
+  }, [campaignId, activeTab, loadPayments]);
 
   const handleDecision = (appId: string, decision: 'accepted' | 'rejected') => {
     setAppStatuses(prev => ({ ...prev, [appId]: decision }));
@@ -341,52 +402,106 @@ export default function CampaignDetailContent() {
       {/* Payments Tab */}
       {activeTab === 'payments' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Budget</p>
-              <p className="text-xl font-bold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-emerald-200 p-4 shadow-sm">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Released</p>
-              <p className="text-xl font-bold text-emerald-700 tabular-nums">₹{payments.filter(p => p.status === 'released').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">In Escrow</p>
-              <p className="text-xl font-bold text-amber-700 tabular-nums">₹{payments.filter(p => p.status === 'in_escrow').reduce((s, p) => s + p.amount, 0).toLocaleString()}</p>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-100">
-              <h3 className="text-sm font-semibold text-slate-700">Payment History</h3>
-            </div>
-            <div className="divide-y divide-slate-50">
-              {payments.map(payment => (
-                <div key={payment.id} className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50/60 transition-colors">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${payment.status === 'released' ? 'bg-emerald-50' : payment.status === 'in_escrow' ? 'bg-amber-50' : 'bg-slate-50'}`}>
-                    <CreditCard size={15} className={payment.status === 'released' ? 'text-emerald-600' : payment.status === 'in_escrow' ? 'text-amber-600' : 'text-slate-400'} />
+          {(() => {
+            const displayPayments = campaignId && apiPayments.length > 0
+              ? apiPayments
+              : payments.map((p) => ({
+                  id: p.id,
+                  creator: p.creator,
+                  creatorId: '',
+                  amount: p.amount,
+                  status: p.status,
+                  uiStatus: p.status as PaymentRow['uiStatus'],
+                  date: p.date,
+                  canDispute: false,
+                  hasOpenDispute: false,
+                }));
+            const releasedTotal = displayPayments.filter((p) => p.uiStatus === 'released').reduce((s, p) => s + p.amount, 0);
+            const escrowTotal = displayPayments.filter((p) => p.uiStatus === 'in_escrow' || p.uiStatus === 'disputed').reduce((s, p) => s + p.amount, 0);
+
+            return (
+              <>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Budget</p>
+                    <p className="text-xl font-bold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-800">{payment.type}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{payment.creator}</p>
+                  <div className="bg-white rounded-xl border border-emerald-200 p-4 shadow-sm">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Released</p>
+                    <p className="text-xl font-bold text-emerald-700 tabular-nums">₹{releasedTotal.toLocaleString()}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-slate-800 tabular-nums">₹{payment.amount.toLocaleString()}</p>
-                    <p className="text-xs text-slate-400">{new Date(payment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">In Escrow</p>
+                    <p className="text-xl font-bold text-amber-700 tabular-nums">₹{escrowTotal.toLocaleString()}</p>
                   </div>
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${paymentStatusColors[payment.status]}`}>
-                    {payment.status === 'released' ? 'Released' : payment.status === 'in_escrow' ? 'In Escrow' : 'Pending'}
-                  </span>
-                  {payment.status === 'in_escrow' && (
-                    <button onClick={() => toast.success('Payment released to creator!')} className="text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
-                      Release
-                    </button>
-                  )}
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 border-b border-slate-100">
+                    <h3 className="text-sm font-semibold text-slate-700">Payment History</h3>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {displayPayments.map((payment) => (
+                      <div key={payment.id} className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50/60 transition-colors flex-wrap">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${payment.uiStatus === 'released' ? 'bg-emerald-50' : payment.uiStatus === 'in_escrow' ? 'bg-amber-50' : payment.uiStatus === 'disputed' ? 'bg-red-50' : 'bg-slate-50'}`}>
+                          <CreditCard size={15} className={payment.uiStatus === 'released' ? 'text-emerald-600' : payment.uiStatus === 'in_escrow' ? 'text-amber-600' : payment.uiStatus === 'disputed' ? 'text-red-600' : 'text-slate-400'} />
+                        </div>
+                        <div className="flex-1 min-w-[120px]">
+                          <p className="text-sm font-medium text-slate-800">Escrow payment</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{payment.creator}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-slate-800 tabular-nums">₹{payment.amount.toLocaleString()}</p>
+                          <p className="text-xs text-slate-400">{payment.date}</p>
+                        </div>
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${paymentStatusColors[payment.uiStatus]}`}>
+                          {payment.uiStatus === 'released' ? 'Released' : payment.uiStatus === 'in_escrow' ? 'In Escrow' : payment.uiStatus === 'disputed' ? 'Dispute Active' : payment.uiStatus === 'refunded' ? 'Refunded' : 'Pending'}
+                        </span>
+                        {payment.status === 'HELD' && campaignId && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await brandApi.releaseEscrow(payment.id);
+                                toast.success('Payment released to creator');
+                                loadPayments();
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Release failed');
+                              }
+                            }}
+                            className="text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            Release
+                          </button>
+                        )}
+                        {payment.canDispute && campaignId && (
+                          <button
+                            onClick={() => setDisputePayment(payment)}
+                            className="text-xs font-medium bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            Raise Issue
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
+
+      <OpenDisputeModal
+        open={!!disputePayment}
+        onClose={() => setDisputePayment(null)}
+        role="brand"
+        campaignId={campaignId}
+        campaignTitle={campaign.title}
+        creatorId={disputePayment?.creatorId}
+        creatorName={disputePayment?.creator}
+        amount={disputePayment?.amount}
+        escrowStatus={disputePayment?.status}
+        onSuccess={loadPayments}
+      />
     </div>
   );
 }

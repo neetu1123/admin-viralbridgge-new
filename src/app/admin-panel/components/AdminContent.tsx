@@ -6,7 +6,7 @@ import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import AdminPlatformChart from './AdminPlatformChart';
 import { adminApi } from '@/src/lib/api';
-import { mapAdminUsers, type AdminPanelUser } from '@/src/lib/mappers';
+import { mapAdminUsers, mapAdminDisputes, type AdminPanelUser, type AdminDisputeRow } from '@/src/lib/mappers';
 import { useAuth } from '@/src/lib/useAuth';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -445,23 +445,29 @@ export default function AdminContent() {
     brand?: { company_name: string };
   }> | null>(null);
   const [apiLoading, setApiLoading] = useState(true);
+  const [apiDisputes, setApiDisputes] = useState<AdminDisputeRow[]>([]);
+  const [disputeOpenCount, setDisputeOpenCount] = useState(0);
   const [aiMatches, setAiMatches] = useState<AIMatch[]>([]);
   const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
 
   const loadApiData = useCallback(async () => {
     setApiLoading(true);
     try {
-      const [stats, users, campaigns, matchesRes] = await Promise.all([
+      const [stats, users, campaigns, matchesRes, disputesRes, disputeStats] = await Promise.all([
         adminApi.getDashboardStats(),
         adminApi.getUsers(),
         adminApi.getCampaigns(),
         adminApi.getMatches(),
+        adminApi.getDisputes(),
+        adminApi.getDisputeStats(),
       ]);
       setApiStats(stats);
       setApiUsers(users);
       setApiCampaigns(campaigns);
       setAiMatchingEnabled(matchesRes.enabled);
       setAiMatches(matchesRes.matches);
+      setApiDisputes(mapAdminDisputes(disputesRes));
+      setDisputeOpenCount(disputeStats.openCount);
     } catch (err: any) {
       // Silently fall back to mock data — avoids breaking the UI
       console.warn('Admin API error, using mock data:', err.message);
@@ -490,9 +496,6 @@ export default function AdminContent() {
   const [transactionStatuses, setTransactionStatuses] = useState<Record<string, AdminTransaction['paymentStatus']>>(
     Object.fromEntries(adminTransactions.map(t => [t.id, t.paymentStatus]))
   );
-  const [disputeStatuses, setDisputeStatuses] = useState<Record<string, AdminDispute['status']>>(
-    Object.fromEntries(adminDisputes.map(d => [d.id, d.status]))
-  );
   const [activityLogUser, setActivityLogUser] = useState<AdminUser | null>(null);
   const [campaignDetailItem, setCampaignDetailItem] = useState<AdminCampaign | null>(null);
   const [txnFilter, setTxnFilter] = useState('all');
@@ -507,7 +510,10 @@ export default function AdminContent() {
   const pendingWithdrawals = adminWithdrawals.filter(w => withdrawalStatuses[w.id] === 'pending').length;
   const flaggedCampaigns = adminCampaigns.filter(c => campaignStatuses[c.id] === 'flagged').length;
   const pendingApprovalCampaigns = adminCampaigns.filter(c => campaignStatuses[c.id] === 'pending_approval').length;
-  const openDisputes = adminDisputes.filter(d => disputeStatuses[d.id] === 'open' || disputeStatuses[d.id] === 'escalated').length;
+  const displayDisputes = apiDisputes.length > 0 ? apiDisputes : adminDisputes;
+  const openDisputes = apiDisputes.length > 0
+    ? disputeOpenCount
+    : adminDisputes.filter(d => d.status === 'open' || d.status === 'escalated').length;
   const escrowVolume = 42800;
   const platformFee = 3640;
   const pendingVerifications = displayUsers.filter(u => u.status === 'pending_kyc').length;
@@ -559,11 +565,26 @@ export default function AdminContent() {
     toast.success(`Payment ${action === 'release' ? 'released to creator' : action === 'hold' ? 'placed on hold' : 'refunded to brand'}`);
   };
 
-  const handleDisputeAction = (dspId: string, action: 'resolve' | 'refund' | 'escalate' | 'partial_payout') => {
-    const newStatus: AdminDispute['status'] = action === 'resolve' ? 'resolved' : action === 'refund' || action === 'partial_payout' ? 'refunded' : 'escalated';
-    setDisputeStatuses(prev => ({ ...prev, [dspId]: newStatus }));
-    const labels: Record<string, string> = { resolve: 'resolved', refund: 'refunded', escalate: 'escalated to senior team', partial_payout: 'partial payout issued' };
-    toast.success(`Dispute ${labels[action]}`);
+  const handleDisputeAction = async (dspId: string, action: 'resolve' | 'refund' | 'escalate' | 'partial_payout') => {
+    const dispute = displayDisputes.find((d) => d.id === dspId);
+    try {
+      if (action === 'resolve') {
+        await adminApi.resolveDispute(dspId);
+      } else if (action === 'refund') {
+        await adminApi.refundDispute(dspId);
+      } else if (action === 'escalate') {
+        await adminApi.escalateDispute(dspId);
+      } else if (action === 'partial_payout' && dispute) {
+        const creatorAmount = Math.round(dispute.amount * 0.6);
+        const brandAmount = dispute.amount - creatorAmount;
+        await adminApi.partialPayoutDispute(dspId, { creatorAmount, brandAmount });
+      }
+      const labels: Record<string, string> = { resolve: 'resolved', refund: 'refunded', escalate: 'escalated to senior team', partial_payout: 'partial payout issued' };
+      toast.success(`Dispute ${labels[action]}`);
+      loadApiData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Dispute action failed');
+    }
   };
 
   const handleMatchAction = async (matchId: string, action: 'force_match' | 'remove' | 'restore') => {
@@ -597,7 +618,7 @@ export default function AdminContent() {
   });
 
   const filteredTransactions = adminTransactions.filter(t => txnFilter === 'all' || t.paymentStatus === txnFilter || t.type === txnFilter);
-  const filteredDisputes = adminDisputes.filter(d => disputeFilter === 'all' || disputeStatuses[d.id] === disputeFilter);
+  const filteredDisputes = displayDisputes.filter(d => disputeFilter === 'all' || d.status === disputeFilter);
 
   const tabs: { key: AdminTab; label: string; count?: number; alert?: boolean }[] = [
     { key: 'users', label: 'Users', count: displayUsers.length },
@@ -1031,7 +1052,7 @@ export default function AdminContent() {
               </div>
               <div className="divide-y divide-slate-50">
                 {filteredDisputes.map(dispute => {
-                  const currentStatus = disputeStatuses[dispute.id];
+                  const currentStatus = dispute.status;
                   const isActionable = currentStatus === 'open' || currentStatus === 'escalated';
                   return (
                     <div key={dispute.id} className={`px-5 py-4 hover:bg-slate-50/60 transition-colors ${currentStatus === 'escalated' ? 'bg-orange-50/20' : currentStatus === 'open' ? 'bg-red-50/10' : ''}`}>

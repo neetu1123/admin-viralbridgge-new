@@ -1,8 +1,9 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppLogo from '../components/ui/AppLogo';
+import { adminApi } from '@/src/lib/api';
 import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
 import Icon from '../components/ui/AppIcon';
 
@@ -55,7 +56,7 @@ const adminNavSections: AdminNavSection[] = [
     section: 'Moderation',
     items: [
       { label: 'Flagged Content', icon: Flag, href: '/admin-panel/flagged', badge: '1', badgeColor: 'red' },
-      { label: 'Disputes', icon: Scale, href: '/admin-panel/disputes', badge: '2', badgeColor: 'orange' },
+      { label: 'Disputes', icon: Scale, href: '/admin-panel/disputes', badge: null as string | null, badgeColor: 'orange' },
     ],
   },
   {
@@ -79,7 +80,16 @@ const badgeColorMap: Record<string, string> = {
 export default function Sidebar({ role = 'creator' }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [disputeBadge, setDisputeBadge] = useState<string | null>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (role !== 'admin') return;
+    adminApi
+      .getDisputeStats()
+      .then((stats) => setDisputeBadge(stats.openCount > 0 ? String(stats.openCount) : null))
+      .catch(() => setDisputeBadge(null));
+  }, [role, pathname]);
 
   const roleLabel = role === 'admin' ? 'Admin' : role === 'brand' ? 'Brand' : 'Creator';
   const roleColor = role === 'admin' ? 'bg-red-100 text-red-700' : role === 'brand' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700';
@@ -132,6 +142,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
                   {section.items.map((item) => {
                     const isActive = isAdminRouteActive(item.href);
                     const Icon = item.icon;
+                    const badge = item.href === '/admin-panel/disputes' ? disputeBadge : item.badge;
                     const badgeCls = item.badgeColor ? badgeColorMap[item.badgeColor] : 'bg-violet-100 text-violet-700';
                     return (
                       <Link
@@ -146,14 +157,14 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
                       >
                         <Icon size={17} className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'}`} />
                         {!collapsed && <span className="text-sm flex-1 font-medium">{item.label}</span>}
-                        {!collapsed && item.badge && (
+                        {!collapsed && badge && (
                           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${isActive ? 'bg-white/20 text-white' : badgeCls}`}>
-                            {item.badge}
+                            {badge}
                           </span>
                         )}
-                        {collapsed && item.badge && (
-                          <span className={`absolute top-1 right-1 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none ${item.badgeColor === 'red' ? 'bg-red-500' : item.badgeColor === 'amber' ? 'bg-amber-500' : 'bg-violet-600'}`}>
-                            {item.badge}
+                        {collapsed && badge && (
+                          <span className={`absolute top-1 right-1 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none ${item.badgeColor === 'red' ? 'bg-red-500' : item.badgeColor === 'amber' ? 'bg-amber-500' : item.badgeColor === 'orange' ? 'bg-orange-500' : 'bg-violet-600'}`}>
+                            {badge}
                           </span>
                         )}
                       </Link>

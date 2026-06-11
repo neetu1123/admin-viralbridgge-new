@@ -1,7 +1,11 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, Lock, TrendingUp, ChevronDown, Download, RefreshCw } from 'lucide-react';
+import { creatorApi } from '@/src/lib/api';
+import { mapEscrowRows, type EscrowRow } from '@/src/lib/mappers';
+import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
+import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
+import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, Lock, TrendingUp, ChevronDown, Download, RefreshCw, AlertTriangle } from 'lucide-react';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import WithdrawModal from './WithdrawModal';
 import WalletChart from './WalletChart';
@@ -35,11 +39,12 @@ const transactions: Transaction[] = [
   { id: 'txn-012', type: 'credit', amount: 450, description: 'Platform bonus — top creator of the week', campaign: undefined, brand: undefined, status: 'released', date: '2026-03-20', balance: 1670.50 },
 ];
 
-const escrowItems = [
-  { id: 'esc-001', campaign: 'TechDrop Wireless Earbuds Review', brand: 'TechDrop', amount: 800, lockedAt: '2026-04-11', expectedRelease: '2026-04-25', status: 'escrow' as const },
-  { id: 'esc-002', campaign: 'StyleForward Fall Collection', brand: 'StyleForward', amount: 1800, lockedAt: '2026-04-04', expectedRelease: '2026-05-10', status: 'escrow' as const },
-  { id: 'esc-003', campaign: 'Harvest Kitchen Home Chef Series', brand: 'Harvest Kitchen', amount: 600, lockedAt: '2026-04-14', expectedRelease: '2026-04-30', status: 'pending' as const },
-];
+const escrowStatusLabel: Record<string, string> = {
+  HELD: 'In Escrow',
+  RELEASED: 'Released',
+  DISPUTED: 'Dispute Active',
+  REFUNDED: 'Refunded',
+};
 
 const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; amountColor: string }> = {
   credit:          { label: 'Credit',          icon: ArrowDownLeft,  color: 'text-emerald-600 bg-emerald-50', amountColor: 'text-emerald-700' },
@@ -55,9 +60,25 @@ export default function WalletContent() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [page, setPage] = useState(1);
   const perPage = 8;
+  const [escrowItems, setEscrowItems] = useState<EscrowRow[]>([]);
+  const [disputeTarget, setDisputeTarget] = useState<EscrowRow | null>(null);
+  const [disputeRefreshKey, setDisputeRefreshKey] = useState(0);
+
+  const loadEscrows = useCallback(async () => {
+    try {
+      const data = await creatorApi.getEscrows();
+      setEscrowItems(mapEscrowRows(data));
+    } catch {
+      setEscrowItems([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadEscrows();
+  }, [loadEscrows, disputeRefreshKey]);
 
   const availableBalance = 3420.50;
-  const escrowBalance = escrowItems.reduce((s, e) => s + e.amount, 0);
+  const escrowBalance = escrowItems.filter((e) => e.status === 'HELD' || e.status === 'DISPUTED').reduce((s, e) => s + e.amount, 0);
   const totalEarned = 8650.00;
   const pendingWithdrawal = 0;
 
@@ -144,29 +165,49 @@ export default function WalletContent() {
           <span className="text-xs text-slate-400">{escrowItems.length} campaigns</span>
         </div>
         <div className="space-y-3">
-          {escrowItems.map(item => {
-            const daysUntilRelease = Math.ceil((new Date(item.expectedRelease).getTime() - Date.now()) / 86400000);
-            return (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
-                    <Lock size={14} className="text-blue-600" />
+          {escrowItems.length === 0 ? (
+            <p className="text-sm text-slate-500 py-4 text-center">No escrow holdings</p>
+          ) : (
+            escrowItems.map((item) => (
+              <div
+                key={item.id}
+                className={`p-3 rounded-lg border ${item.status === 'DISPUTED' ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Lock size={14} className="text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-700 line-clamp-1">{item.campaignTitle}</p>
+                      <p className="text-xs text-slate-400">
+                        {item.brandName} · {escrowStatusLabel[item.status] ?? item.status}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700 line-clamp-1">{item.campaign}</p>
-                    <p className="text-xs text-slate-400">{item.brand} · Locked {new Date(item.lockedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-bold text-blue-700 tabular-nums">₹{item.amount.toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0 ml-4">
-                  <p className="text-sm font-bold text-blue-700 tabular-nums">₹{item.amount.toLocaleString()}</p>
-                  <p className={`text-xs mt-0.5 ${daysUntilRelease <= 7 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                    Release in {daysUntilRelease}d
-                  </p>
-                </div>
+                {item.canDispute && (
+                  <button
+                    onClick={() => setDisputeTarget(item)}
+                    className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 py-1.5 rounded-lg transition-colors"
+                  >
+                    <AlertTriangle size={12} /> Raise Issue
+                  </button>
+                )}
+                {item.hasOpenDispute && (
+                  <p className="mt-2 text-xs text-center font-medium text-red-600">Dispute under admin review</p>
+                )}
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
+      </div>
+
+      <div className="mb-6">
+        <MyDisputesPanel role="creator" refreshKey={disputeRefreshKey} />
       </div>
 
       {/* Transaction history */}
@@ -297,6 +338,20 @@ export default function WalletContent() {
           }}
         />
       )}
+
+      <OpenDisputeModal
+        open={!!disputeTarget}
+        onClose={() => setDisputeTarget(null)}
+        role="creator"
+        campaignId={disputeTarget?.campaignId ?? ''}
+        campaignTitle={disputeTarget?.campaignTitle ?? ''}
+        amount={disputeTarget?.amount}
+        escrowStatus={disputeTarget?.status}
+        onSuccess={() => {
+          setDisputeRefreshKey((k) => k + 1);
+          loadEscrows();
+        }}
+      />
     </div>
   );
 }

@@ -167,7 +167,66 @@ export const adminApi = {
     apiFetch<{ totalCreated: number; campaigns: number; enabled: boolean }>('/admin/matching/run', {
       method: 'POST',
     }),
+
+  getDisputes: (params?: { status?: string; priority?: string; raised_by?: string; page?: number; limit?: number }) =>
+    apiFetch<{
+      data: AdminDisputeApi[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/admin/disputes${toQuery(params)}`),
+
+  getDisputeStats: () =>
+    apiFetch<{ openCount: number; totalAtStake: number; resolvedCount: number }>('/admin/disputes/stats'),
+
+  getDispute: (id: string) => apiFetch<AdminDisputeApi>(`/admin/disputes/${id}`),
+
+  escalateDispute: (id: string, notes?: string) =>
+    apiFetch<AdminDisputeApi>(`/admin/disputes/${id}/escalate`, {
+      method: 'PATCH',
+      body: JSON.stringify({ notes }),
+    }),
+
+  resolveDispute: (id: string, notes?: string) =>
+    apiFetch<AdminDisputeApi>(`/admin/disputes/${id}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ notes }),
+    }),
+
+  refundDispute: (id: string, notes?: string) =>
+    apiFetch<AdminDisputeApi>(`/admin/disputes/${id}/refund`, {
+      method: 'PATCH',
+      body: JSON.stringify({ notes }),
+    }),
+
+  partialPayoutDispute: (
+    id: string,
+    body: { creatorAmount: number; brandAmount: number; notes?: string },
+  ) =>
+    apiFetch<AdminDisputeApi>(`/admin/disputes/${id}/partial-payout`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
 };
+
+export interface AdminDisputeApi {
+  id: string;
+  campaignId: string;
+  campaignTitle: string;
+  creator: string;
+  brand: string;
+  reason: string;
+  amount: number;
+  status: 'open' | 'escalated' | 'resolved' | 'refunded';
+  openedAt: string;
+  priority: 'high' | 'medium' | 'low';
+  raisedBy: 'brand' | 'creator';
+  resolutionNotes?: string | null;
+  payoutCreatorAmount?: number | null;
+  payoutBrandAmount?: number | null;
+  resolvedAt?: string | null;
+}
 
 export const platformApi = {
   getPublicSettings: () =>
@@ -288,6 +347,23 @@ export const brandApi = {
     apiFetch(`/brand/deliverables/${id}/revise`, { method: 'POST', body: JSON.stringify({ notes }) }),
   releaseEscrow: (id: string) => apiFetch(`/brand/escrows/${id}/release`, { method: 'POST' }),
 
+  openDispute: (body: { campaign_id: string; creator_id: string; reason: string }) =>
+    apiFetch('/brand/disputes', { method: 'POST', body: JSON.stringify(body) }),
+  getDisputes: () => apiFetch<AdminDisputeApi[]>('/brand/disputes'),
+  getEscrows: () =>
+    apiFetch<Array<{
+      id: string;
+      campaignId: string;
+      campaignTitle: string;
+      creatorId: string;
+      creatorName: string;
+      amount: number;
+      status: string;
+      hasOpenDispute: boolean;
+      canDispute: boolean;
+      createdAt: string;
+    }>>('/brand/escrows'),
+
   getDashboard: () => apiFetch('/brand/dashboard'),
   getWallet: () => apiFetch('/brand/wallet'),
   addFunds: (amount: number) =>
@@ -331,6 +407,22 @@ export const creatorApi = {
   getDeliverables: () => apiFetch('/creator/deliverables'),
   submitDeliverable: (id: string, data: { mediaUrl: string; thumbnailUrl?: string; notes?: string }) =>
     apiFetch(`/creator/deliverables/${id}/submit`, { method: 'POST', body: JSON.stringify(data) }),
+
+  openDispute: (body: { campaign_id: string; reason: string }) =>
+    apiFetch('/creator/disputes', { method: 'POST', body: JSON.stringify(body) }),
+  getDisputes: () => apiFetch<AdminDisputeApi[]>('/creator/disputes'),
+  getEscrows: () =>
+    apiFetch<Array<{
+      id: string;
+      campaignId: string;
+      campaignTitle: string;
+      brandName: string;
+      amount: number;
+      status: string;
+      hasOpenDispute: boolean;
+      canDispute: boolean;
+      createdAt: string;
+    }>>('/creator/escrows'),
 
   getDashboard: () => apiFetch('/creator/dashboard'),
   getWallet: () => apiFetch('/creator/wallet'),
