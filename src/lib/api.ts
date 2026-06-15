@@ -50,7 +50,7 @@ async function apiFetch<T = unknown>(
     // Token expired or invalid — clear and redirect to login
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/sign-up-login-screen';
+    window.location.replace('/sign-up-login-screen');
     throw new Error('Unauthorized');
   }
 

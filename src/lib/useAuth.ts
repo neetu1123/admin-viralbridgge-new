@@ -4,7 +4,7 @@
 // and redirects to login if not authenticated or wrong role.
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { logout as performLogout } from './auth';
 
 export interface AuthUser {
   id: string;
@@ -66,9 +66,7 @@ export function useAuth(requiredRole?: 'admin' | 'brand' | 'creator') {
   }, [requiredRole]);
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/sign-up-login-screen';
+    void performLogout();
   };
 
   return { user, loading, logout };

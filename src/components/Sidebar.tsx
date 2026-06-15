@@ -1,11 +1,13 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppLogo from '../components/ui/AppLogo';
 import { adminApi } from '@/src/lib/api';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
-import Icon from '../components/ui/AppIcon';
+import { logout } from '@/src/lib/auth';
+import { getCurrentUser } from '@/src/lib/useAuth';
+import { initials } from '@/src/lib/mappers';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2 } from 'lucide-react';
 
 
 interface SidebarProps {
@@ -81,7 +83,26 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [disputeBadge, setDisputeBadge] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser({ name: user.name, email: user.email });
+    }
+  }, []);
+
+  const handleSignOut = useCallback(() => {
+    if (signingOut) return;
+    setSigningOut(true);
+    void logout();
+  }, [signingOut]);
+
+  const userInitials = currentUser ? initials(currentUser.name) : 'U';
+  const displayName = currentUser?.name ?? 'User';
+  const displayEmail = currentUser?.email ?? '';
 
   useEffect(() => {
     if (role !== 'admin') return;
@@ -182,19 +203,29 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
           {!collapsed ? (
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs font-semibold">AD</span>
+                <span className="text-white text-xs font-semibold">{userInitials}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">Admin User</p>
-                <p className="text-xs text-slate-400 truncate">admin@viralbridgge.io</p>
+                <p className="text-sm font-medium text-slate-800 truncate">{displayName}</p>
+                <p className="text-xs text-slate-400 truncate">{displayEmail}</p>
               </div>
-              <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
-                <LogOut size={15} className="text-slate-400" />
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="p-1 rounded hover:bg-slate-100 transition-colors disabled:opacity-50"
+                title="Sign out"
+              >
+                {signingOut ? <Loader2 size={15} className="text-slate-400 animate-spin" /> : <LogOut size={15} className="text-slate-400" />}
               </button>
             </div>
           ) : (
-            <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out">
-              <LogOut size={16} className="text-slate-400" />
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="p-1 rounded hover:bg-slate-100 transition-colors disabled:opacity-50"
+              title="Sign out"
+            >
+              {signingOut ? <Loader2 size={16} className="text-slate-400 animate-spin" /> : <LogOut size={16} className="text-slate-400" />}
             </button>
           )}
         </div>
@@ -268,16 +299,30 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-violet-700 text-xs font-semibold">{role === 'brand' ? 'NK' : 'SM'}</span>
+              <span className="text-violet-700 text-xs font-semibold">{userInitials}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">{role === 'brand' ? 'NovaSpark Co.' : 'Sofia Martinez'}</p>
-              <p className="text-xs text-slate-400 truncate">{role === 'brand' ? 'brand@novaspark.co' : 'sofia@creators.io'}</p>
+              <p className="text-sm font-medium text-slate-800 truncate">{displayName}</p>
+              <p className="text-xs text-slate-400 truncate">{displayEmail}</p>
             </div>
-            <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out"><LogOut size={15} className="text-slate-400" /></button>
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="p-1 rounded hover:bg-slate-100 transition-colors disabled:opacity-50"
+              title="Sign out"
+            >
+              {signingOut ? <Loader2 size={15} className="text-slate-400 animate-spin" /> : <LogOut size={15} className="text-slate-400" />}
+            </button>
           </div>
         ) : (
-          <button className="p-1 rounded hover:bg-slate-100 transition-colors" title="Sign out"><LogOut size={16} className="text-slate-400" /></button>
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="p-1 rounded hover:bg-slate-100 transition-colors disabled:opacity-50"
+            title="Sign out"
+          >
+            {signingOut ? <Loader2 size={16} className="text-slate-400 animate-spin" /> : <LogOut size={16} className="text-slate-400" />}
+          </button>
         )}
       </div>
       <button
