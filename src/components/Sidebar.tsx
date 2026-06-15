@@ -3,11 +3,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppLogo from '../components/ui/AppLogo';
-import { adminApi } from '@/src/lib/api';
+import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2 } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck } from 'lucide-react';
+import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 
 interface SidebarProps {
@@ -43,6 +44,7 @@ const adminNavSections: AdminNavSection[] = [
     items: [
       { label: 'Dashboard', icon: LayoutDashboard, href: '/admin-panel', badge: null },
       { label: 'Users', icon: Users, href: '/admin-panel/users', badge: '4', badgeColor: 'violet' },
+      { label: 'KYC Verification', icon: ShieldCheck, href: '/admin-panel/kyc', badge: null },
       { label: 'Campaigns', icon: Briefcase, href: '/admin-panel/campaigns', badge: null },
     ],
   },
@@ -103,6 +105,8 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
   const userInitials = currentUser ? initials(currentUser.name) : 'U';
   const displayName = currentUser?.name ?? 'User';
   const displayEmail = currentUser?.email ?? '';
+  const notificationApi = role === 'brand' ? brandApi : creatorApi;
+  const unreadNotifications = useUnreadCount(notificationApi, role === 'creator' || role === 'brand');
 
   useEffect(() => {
     if (role !== 'admin') return;
@@ -285,9 +289,15 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
         })}
         <div className="pt-4">
           <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${collapsed ? 'hidden' : ''}`}>Other</p>
-          <Link href={role === 'brand' ? '/brand-notifications' : '/creator-notifications'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Notifications' : undefined}>
+          <Link href={role === 'brand' ? '/brand-notifications' : '/creator-notifications'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 relative ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Notifications' : undefined}>
             <Bell size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
-            {!collapsed && <span className="text-sm">Notifications</span>}
+            {!collapsed && <span className="text-sm flex-1">Notifications</span>}
+            {!collapsed && unreadNotifications > 0 && (
+              <span className="bg-violet-100 text-violet-700 text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{unreadNotifications}</span>
+            )}
+            {collapsed && unreadNotifications > 0 && (
+              <span className="absolute top-1 right-1 bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
+            )}
           </Link>
           <Link href={role === 'brand' ? '/brand-settings' : '/creator-settings'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Settings' : undefined}>
             <Settings size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />

@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
 import { brandApi } from '@/src/lib/api';
-import { Building2, Bell, CreditCard, Shield, Users, ChevronRight, Save } from 'lucide-react';
+import { Building2, Bell, CreditCard, Shield, Users, ChevronRight, Save, ShieldCheck } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
+import KycVerificationPanel from '@/src/components/KycVerificationPanel';
 
 
-type SettingsTab = 'profile' | 'notifications' | 'billing' | 'team' | 'security';
+type SettingsTab = 'profile' | 'verification' | 'notifications' | 'billing' | 'team' | 'security';
 
 export default function BrandSettingsContent() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
@@ -60,6 +61,7 @@ export default function BrandSettingsContent() {
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: 'profile', label: 'Brand Profile', icon: Building2 },
+    { id: 'verification', label: 'Verification', icon: ShieldCheck },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
     { id: 'team', label: 'Team Members', icon: Users },
@@ -150,6 +152,8 @@ export default function BrandSettingsContent() {
               </div>
             </div>
           )}
+
+          {activeTab === 'verification' && <KycVerificationPanel role="brand" />}
 
           {activeTab === 'notifications' && (
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">

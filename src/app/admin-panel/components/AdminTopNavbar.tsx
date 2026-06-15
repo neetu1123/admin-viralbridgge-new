@@ -1,15 +1,15 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
-import { Bell, ChevronDown, Zap, RefreshCw, Plus, UserPlus, AlertTriangle } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Bell, ChevronDown, Zap, UserPlus, AlertTriangle, ShieldCheck, DollarSign, Flag, Plus } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
-// import Icon from '@/components/ui/AppIcon';
-
+import { adminApi } from '@/src/lib/api';
 
 const pageTitles: Record<string, string> = {
   '/admin-panel': 'Dashboard',
   '/admin-panel/users': 'Users',
+  '/admin-panel/kyc': 'KYC Verification',
   '/admin-panel/campaigns': 'Campaigns',
   '/admin-panel/transactions': 'Transactions',
   '/admin-panel/escrow': 'Escrow',
@@ -23,19 +23,37 @@ const pageTitles: Record<string, string> = {
 };
 
 const quickActions = [
-  { label: 'Create Campaign (Test)', icon: Plus, color: 'text-violet-700', action: 'create_campaign' },
-  { label: 'Add Admin', icon: UserPlus, color: 'text-blue-700', action: 'add_admin' },
-  { label: 'Resolve Alerts', icon: AlertTriangle, color: 'text-amber-700', action: 'resolve_alerts' },
-  { label: 'Refresh Data', icon: RefreshCw, color: 'text-emerald-700', action: 'refresh_data' },
+  { label: 'Approve KYC', icon: ShieldCheck, color: 'text-emerald-700', href: '/admin-panel/kyc?status=PENDING' },
+  { label: 'Approve Withdrawals', icon: DollarSign, color: 'text-blue-700', href: '/admin-panel/payouts?status=PENDING' },
+  { label: 'Review Disputes', icon: AlertTriangle, color: 'text-amber-700', href: '/admin-panel/disputes?status=OPEN' },
+  { label: 'Moderate Campaigns', icon: Flag, color: 'text-red-700', href: '/admin-panel/campaigns?status=FLAGGED' },
+  { label: 'Invite Admin', icon: UserPlus, color: 'text-violet-700', action: 'invite_admin' as const },
+  { label: 'Create Test Campaign', icon: Plus, color: 'text-indigo-700', action: 'test_campaign' as const },
 ];
 
 export default function AdminTopNavbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [showQuickActions, setShowQuickActions] = useState(false);
-  const [notifCount] = useState(3);
+  const [notifCount, setNotifCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const pageTitle = pageTitles[pathname] ?? 'Admin Panel';
+
+  const loadUnread = useCallback(async () => {
+    try {
+      const res = await adminApi.getUnreadNotificationCount();
+      setNotifCount(res.count);
+    } catch {
+      setNotifCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUnread();
+    const interval = setInterval(loadUnread, 60000);
+    return () => clearInterval(interval);
+  }, [loadUnread, pathname]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -47,21 +65,30 @@ export default function AdminTopNavbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = async (action: typeof quickActions[number]) => {
     setShowQuickActions(false);
-    const messages: Record<string, string> = {
-      create_campaign: 'Test campaign created successfully',
-      add_admin: 'Admin invite sent',
-      resolve_alerts: 'All alerts marked as reviewed',
-      refresh_data: 'Data refreshed',
-    };
-    toast.success(messages[action] ?? 'Action completed');
+    if ('href' in action && action.href) {
+      router.push(action.href);
+      return;
+    }
+    if (action.action === 'invite_admin') {
+      router.push('/admin-panel/roles');
+      toast.info('Use the Roles page to invite or assign an admin.');
+      return;
+    }
+    if (action.action === 'test_campaign') {
+      try {
+        const campaign = await adminApi.createTestCampaign() as { title?: string };
+        toast.success(`Test campaign created: ${campaign?.title ?? 'Draft campaign'}`);
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to create test campaign');
+      }
+    }
   };
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
       <div className="flex items-center justify-between px-6 h-14">
-        {/* Left: Page title */}
         <div className="flex items-center gap-3">
           <div>
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Admin Dashboard</p>
@@ -69,28 +96,21 @@ export default function AdminTopNavbar() {
           </div>
         </div>
 
-        {/* Right: Status + Notifications + Quick Actions */}
         <div className="flex items-center gap-3">
-          {/* Platform Status */}
           <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium px-3 py-1.5 rounded-lg">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Platform Live
           </div>
 
-          {/* Last Sync */}
-          <span className="hidden md:block text-xs text-slate-400">Last sync: 2 min ago</span>
-
-          {/* Notifications */}
           <Link href="/admin-panel/notifications" className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors">
             <Bell size={18} className="text-slate-600" />
             {notifCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold leading-none">
-                {notifCount}
+                {notifCount > 9 ? '9+' : notifCount}
               </span>
             )}
           </Link>
 
-          {/* Quick Actions */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowQuickActions(!showQuickActions)}
@@ -102,7 +122,7 @@ export default function AdminTopNavbar() {
             </button>
 
             {showQuickActions && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
                 <div className="px-3 py-2 border-b border-slate-100">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Quick Actions</p>
                 </div>
@@ -110,8 +130,8 @@ export default function AdminTopNavbar() {
                   const Icon = action.icon;
                   return (
                     <button
-                      key={action.action}
-                      onClick={() => handleQuickAction(action.action)}
+                      key={action.label}
+                      onClick={() => handleQuickAction(action)}
                       className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left"
                     >
                       <Icon size={15} className={action.color} />

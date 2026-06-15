@@ -1,11 +1,12 @@
 'use client';
 import React, { useState } from 'react';
 import { toast, Toaster } from 'sonner';
-import { User, Bell, CreditCard, Shield, ChevronRight, Save } from 'lucide-react';
+import { User, Bell, CreditCard, Shield, ChevronRight, Save, ShieldCheck } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
+import KycVerificationPanel from '@/src/components/KycVerificationPanel';
 
 
-type SettingsTab = 'account' | 'notifications' | 'payouts' | 'security';
+type SettingsTab = 'account' | 'verification' | 'notifications' | 'payouts' | 'security';
 
 export default function CreatorSettingsContent() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
@@ -17,6 +18,7 @@ export default function CreatorSettingsContent() {
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: 'account', label: 'Account', icon: User },
+    { id: 'verification', label: 'Verification', icon: ShieldCheck },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'payouts', label: 'Payout Settings', icon: CreditCard },
     { id: 'security', label: 'Security', icon: Shield },
@@ -102,6 +104,8 @@ export default function CreatorSettingsContent() {
               </div>
             </div>
           )}
+
+          {activeTab === 'verification' && <KycVerificationPanel role="creator" />}
 
           {activeTab === 'notifications' && (
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">

@@ -208,6 +208,90 @@ export const adminApi = {
       method: 'PATCH',
       body: JSON.stringify(body),
     }),
+
+  getKycRequests: (params?: { status?: string; user_type?: string; page?: number; limit?: number }) =>
+    apiFetch<{
+      data: KycRequestApi[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/admin/kyc${toQuery(params)}`),
+
+  approveKyc: (id: string, remarks?: string) =>
+    apiFetch(`/admin/kyc/${id}/approve`, { method: 'POST', body: JSON.stringify({ remarks }) }),
+
+  rejectKyc: (id: string, remarks?: string) =>
+    apiFetch(`/admin/kyc/${id}/reject`, { method: 'POST', body: JSON.stringify({ remarks }) }),
+
+  getNotifications: (params?: { page?: number; limit?: number; type?: string; unread?: boolean }) =>
+    apiFetch<NotificationListResponse>(`/admin/notifications${toQuery(params)}`),
+
+  getUnreadNotificationCount: () =>
+    apiFetch<{ count: number }>('/admin/notifications/unread-count'),
+
+  markNotificationRead: (id: string) =>
+    apiFetch(`/admin/notifications/${id}/read`, { method: 'PATCH' }),
+
+  markAllNotificationsRead: () =>
+    apiFetch('/admin/notifications/read-all', { method: 'PATCH' }),
+
+  getWithdrawals: (status = 'PENDING') =>
+    apiFetch(`/admin/withdrawals${toQuery({ status })}`),
+
+  approveWithdrawal: (id: string) =>
+    apiFetch(`/admin/withdrawals/${id}/approve`, { method: 'PATCH' }),
+
+  rejectWithdrawal: (id: string, reason?: string) =>
+    apiFetch(`/admin/withdrawals/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+
+  inviteAdmin: (body: { email: string; role_id: string; password?: string; name?: string }) =>
+    apiFetch('/admin/invite-admin', { method: 'POST', body: JSON.stringify(body) }),
+
+  createTestCampaign: () =>
+    apiFetch('/admin/test-campaign', { method: 'POST' }),
+};
+
+export interface NotificationItem {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  message: string;
+  entity_type?: string | null;
+  entity_id?: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface NotificationListResponse {
+  data: NotificationItem[];
+  total: number;
+  unreadCount: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface KycRequestApi {
+  id: string;
+  user_id: string;
+  user_type: string;
+  status: string;
+  submitted_at: string;
+  reviewed_at?: string | null;
+  remarks?: string | null;
+  user?: { id: string; name: string; email: string; role?: { name: string } };
+  creator_kyc?: Record<string, unknown> | null;
+  brand_kyc?: Record<string, unknown> | null;
+}
+
+export const kycApi = {
+  getStatus: () => apiFetch('/kyc/status'),
+  submitCreator: (body: Record<string, unknown>) =>
+    apiFetch('/kyc/creator/submit', { method: 'POST', body: JSON.stringify(body) }),
+  submitBrand: (body: Record<string, unknown>) =>
+    apiFetch('/kyc/brand/submit', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 export interface AdminDisputeApi {
@@ -378,9 +462,14 @@ export const brandApi = {
   getMessages: (conversationId: string) => apiFetch(`/brand/messages/${conversationId}`),
   sendMessage: (data: { conversationId: string; message: string }) =>
     apiFetch('/brand/messages/send', { method: 'POST', body: JSON.stringify(data) }),
-  getNotifications: (params?: Record<string, string | number | boolean | undefined>) =>
-    apiFetch(`/brand/notifications${toQuery(params)}`),
-  markNotificationRead: (id: string) => apiFetch(`/brand/notifications/${id}/read`, { method: 'PATCH' }),
+  getNotifications: (params?: { page?: number; limit?: number; type?: string; unread?: boolean }) =>
+    apiFetch<NotificationListResponse>(`/brand/notifications${toQuery(params)}`),
+  getUnreadNotificationCount: () =>
+    apiFetch<{ count: number }>('/brand/notifications/unread-count'),
+  markNotificationRead: (id: string) =>
+    apiFetch(`/brand/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () =>
+    apiFetch('/brand/notifications/read-all', { method: 'PATCH' }),
   getSettings: () => apiFetch('/brand/settings'),
   updateSettings: (data: Record<string, unknown>) =>
     apiFetch('/brand/settings', { method: 'PUT', body: JSON.stringify(data) }),
@@ -435,9 +524,14 @@ export const creatorApi = {
   getMessages: (conversationId: string) => apiFetch(`/creator/messages/${conversationId}`),
   sendMessage: (data: { conversationId: string; message: string }) =>
     apiFetch('/creator/messages/send', { method: 'POST', body: JSON.stringify(data) }),
-  getNotifications: (params?: Record<string, string | number | boolean | undefined>) =>
-    apiFetch(`/creator/notifications${toQuery(params)}`),
-  markNotificationRead: (id: string) => apiFetch(`/creator/notifications/${id}/read`, { method: 'PATCH' }),
+  getNotifications: (params?: { page?: number; limit?: number; type?: string; unread?: boolean }) =>
+    apiFetch<NotificationListResponse>(`/creator/notifications${toQuery(params)}`),
+  getUnreadNotificationCount: () =>
+    apiFetch<{ count: number }>('/creator/notifications/unread-count'),
+  markNotificationRead: (id: string) =>
+    apiFetch(`/creator/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () =>
+    apiFetch('/creator/notifications/read-all', { method: 'PATCH' }),
   getSettings: () => apiFetch('/creator/settings'),
   updateSettings: (data: Record<string, unknown>) =>
     apiFetch('/creator/settings', { method: 'PUT', body: JSON.stringify(data) }),
