@@ -1,9 +1,11 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, CheckCircle, XCircle, Flag, Eye, Pause, AlertTriangle, X } from 'lucide-react';
+import { Search, ChevronDown, CheckCircle, XCircle, Flag, Eye, Pause, AlertTriangle, X, Plus } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import { adminApi } from '@/src/lib/api';
+import AdminCreateCampaignModal from './AdminCreateCampaignModal';
 
 interface AdminCampaign {
   id: string;
@@ -61,11 +63,13 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
 };
 
 export default function AdminCampaignsContent() {
+  const searchParams = useSearchParams();
   const [campaigns, setCampaigns] = useState<AdminCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [detailCampaign, setDetailCampaign] = useState<AdminCampaign | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const loadCampaigns = useCallback(async () => {
     setLoading(true);
@@ -83,6 +87,10 @@ export default function AdminCampaignsContent() {
   useEffect(() => {
     loadCampaigns();
   }, [loadCampaigns]);
+
+  useEffect(() => {
+    if (searchParams.get('create') === '1') setShowCreateModal(true);
+  }, [searchParams]);
 
   const handleApprove = async (campaign: AdminCampaign) => {
     try {
@@ -130,6 +138,12 @@ export default function AdminCampaignsContent() {
             {loading ? 'Loading campaigns...' : 'Review, approve, flag, and manage all platform campaigns'}
           </p>
         </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+        >
+          <Plus size={16} /> Create Campaign for Brand
+        </button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -308,6 +322,12 @@ export default function AdminCampaignsContent() {
           </div>
         </div>
       )}
+
+      <AdminCreateCampaignModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={loadCampaigns}
+      />
     </div>
   );
 }

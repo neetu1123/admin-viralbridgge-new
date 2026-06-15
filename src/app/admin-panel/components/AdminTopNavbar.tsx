@@ -28,7 +28,7 @@ const quickActions = [
   { label: 'Review Disputes', icon: AlertTriangle, color: 'text-amber-700', href: '/admin-panel/disputes?status=OPEN' },
   { label: 'Moderate Campaigns', icon: Flag, color: 'text-red-700', href: '/admin-panel/campaigns?status=FLAGGED' },
   { label: 'Invite Admin', icon: UserPlus, color: 'text-violet-700', action: 'invite_admin' as const },
-  { label: 'Create Test Campaign', icon: Plus, color: 'text-indigo-700', action: 'test_campaign' as const },
+  { label: 'Create Campaign for Brand', icon: Plus, color: 'text-indigo-700', href: '/admin-panel/campaigns?create=1' },
 ];
 
 export default function AdminTopNavbar() {
@@ -74,15 +74,6 @@ export default function AdminTopNavbar() {
     if (action.action === 'invite_admin') {
       router.push('/admin-panel/roles');
       toast.info('Use the Roles page to invite or assign an admin.');
-      return;
-    }
-    if (action.action === 'test_campaign') {
-      try {
-        const campaign = await adminApi.createTestCampaign() as { title?: string };
-        toast.success(`Test campaign created: ${campaign?.title ?? 'Draft campaign'}`);
-      } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : 'Failed to create test campaign');
-      }
     }
   };
 

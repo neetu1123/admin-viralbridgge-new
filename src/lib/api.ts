@@ -248,8 +248,45 @@ export const adminApi = {
   inviteAdmin: (body: { email: string; role_id: string; password?: string; name?: string }) =>
     apiFetch('/admin/invite-admin', { method: 'POST', body: JSON.stringify(body) }),
 
-  createTestCampaign: () =>
-    apiFetch('/admin/test-campaign', { method: 'POST' }),
+  searchBrands: (params?: { search?: string; industry?: string; status?: string; verified?: string; page?: number; limit?: number }) =>
+    apiFetch<{
+      data: Array<{
+        id: string;
+        userId: string;
+        companyName: string;
+        contactPerson: string;
+        email: string;
+        phone?: string;
+        website?: string;
+        industry?: string;
+        status: string;
+        verified: boolean;
+        campaignCount: number;
+      }>;
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/admin/brands${toQuery(params)}`),
+
+  getBrandDetail: (id: string) =>
+    apiFetch<{
+      profile: Record<string, unknown>;
+      wallet: { availableBalance: number; pendingBalance: number };
+      kycStatus: string;
+      activeCampaigns: unknown[];
+      completedCampaigns: unknown[];
+      totalCampaigns: number;
+    }>(`/admin/brands/${id}`),
+
+  createCampaignForBrand: (body: Record<string, unknown>) =>
+    apiFetch('/admin/campaigns/create-for-brand', { method: 'POST', body: JSON.stringify(body) }),
+
+  createCampaignWithBrand: (body: Record<string, unknown>) =>
+    apiFetch<{ campaign: { id: string; title: string }; brand: Record<string, unknown>; invitationNote?: string }>(
+      '/admin/campaigns/create-with-brand',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
 };
 
 export interface NotificationItem {
