@@ -5,6 +5,7 @@ import { brandApi } from '@/src/lib/api';
 import { mapEscrowRows, type EscrowRow } from '@/src/lib/mappers';
 import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
 import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
+import AddFundsModal from '@/src/components/wallet/AddFundsModal';
 import { DollarSign, TrendingUp, Lock, ArrowUpRight, ArrowDownLeft, ChevronDown, Download, Plus, Shield, FileText, Brain, CheckCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -70,6 +71,37 @@ export default function BrandWalletContent() {
   const [escrowsLoading, setEscrowsLoading] = useState(false);
   const [disputeTarget, setDisputeTarget] = useState<EscrowRow | null>(null);
   const [disputeRefreshKey, setDisputeRefreshKey] = useState(0);
+  const [showAddFunds, setShowAddFunds] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [inEscrow, setInEscrow] = useState(0);
+  const [apiTransactions, setApiTransactions] = useState<Array<{
+    id: string;
+    type: string;
+    amount: number;
+    status: string;
+    created_at: string;
+  }>>([]);
+
+  const loadWallet = useCallback(async () => {
+    setWalletLoading(true);
+    try {
+      const [wallet, txns] = await Promise.all([
+        brandApi.getWallet(),
+        brandApi.getTransactions({ limit: 50 }),
+      ]);
+      setAvailableBalance(Number(wallet.available_balance ?? 0));
+      setInEscrow(Number(wallet.pending_balance ?? 0));
+      const rows = (txns as { data?: typeof apiTransactions }).data ?? [];
+      setApiTransactions(rows);
+    } catch {
+      setAvailableBalance(0);
+      setInEscrow(0);
+      setApiTransactions([]);
+    } finally {
+      setWalletLoading(false);
+    }
+  }, []);
 
   const loadEscrows = useCallback(async () => {
     setEscrowsLoading(true);
@@ -84,16 +116,41 @@ export default function BrandWalletContent() {
   }, []);
 
   useEffect(() => {
+    loadWallet();
+  }, [loadWallet]);
+
+  useEffect(() => {
     if (activeTab === 'escrow') loadEscrows();
   }, [activeTab, loadEscrows, disputeRefreshKey]);
 
-  const totalBudget = 41700;
-  const inEscrow = 22100;
-  const totalSpent = 19600;
-  const availableBalance = 8300;
-  const predictedMonthlySpend = 11200;
+  const totalSpent = apiTransactions
+    .filter((t) => t.type === 'ESCROW_RELEASE' && t.status === 'COMPLETED')
+    .reduce((sum, t) => sum + t.amount, 0);
+  const predictedMonthlySpend = Math.round((availableBalance + inEscrow) * 0.35) || 0;
 
-  const filtered = transactions.filter(t => typeFilter === 'all' || t.type === typeFilter);
+  const txnTypeMap: Record<string, string> = {
+    ADD_FUNDS: 'topup',
+    DEPOSIT: 'topup',
+    ESCROW_LOCK: 'escrow_lock',
+    ESCROW_HOLD: 'escrow_lock',
+    ESCROW_RELEASE: 'payment',
+    REFUND: 'refund',
+    WITHDRAWAL: 'payment',
+  };
+
+  const displayTransactions = apiTransactions.length > 0
+    ? apiTransactions.map((t) => ({
+        id: t.id,
+        type: txnTypeMap[t.type] ?? 'payment',
+        description: t.type.replace(/_/g, ' '),
+        campaign: undefined as string | undefined,
+        amount: ['ESCROW_LOCK', 'ESCROW_HOLD', 'WITHDRAWAL'].includes(t.type) ? -t.amount : t.amount,
+        status: t.status === 'COMPLETED' ? 'completed' : t.status.toLowerCase(),
+        date: new Date(t.created_at).toISOString().slice(0, 10),
+      }))
+    : transactions;
+
+  const filtered = displayTransactions.filter(t => typeFilter === 'all' || t.type === typeFilter);
 
   return (
     <div className="pb-8">
@@ -105,7 +162,7 @@ export default function BrandWalletContent() {
           <p className="text-slate-500 text-sm mt-1">Escrow protection, spend forecasting & invoice management</p>
         </div>
         <button
-          onClick={() => toast.success('Top-up initiated')}
+          onClick={() => setShowAddFunds(true)}
           className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm"
         >
           <Plus size={16} />
@@ -120,7 +177,9 @@ export default function BrandWalletContent() {
             <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide">Available Balance</p>
             <DollarSign size={18} className="text-violet-300" />
           </div>
-          <p className="text-3xl font-black tabular-nums">${availableBalance.toLocaleString()}</p>
+          <p className="text-3xl font-black tabular-nums">
+            {walletLoading ? '...' : `₹${availableBalance.toLocaleString()}`}
+          </p>
           <p className="text-violet-300 text-xs mt-1">Ready to allocate</p>
         </div>
         <div className="bg-white rounded-2xl border border-blue-200 p-5 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
@@ -128,7 +187,9 @@ export default function BrandWalletContent() {
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">In Escrow</p>
             <Shield size={16} className="text-blue-500" />
           </div>
-          <p className="text-2xl font-black text-slate-800 tabular-nums">${inEscrow.toLocaleString()}</p>
+          <p className="text-2xl font-black text-slate-800 tabular-nums">
+            {walletLoading ? '...' : `₹${inEscrow.toLocaleString()}`}
+          </p>
           <div className="flex items-center gap-1 mt-1">
             <CheckCircle size={11} className="text-emerald-500" />
             <p className="text-emerald-600 text-xs font-semibold">Escrow Protected</p>
@@ -139,7 +200,7 @@ export default function BrandWalletContent() {
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Total Spent</p>
             <ArrowUpRight size={16} className="text-red-500" />
           </div>
-          <p className="text-2xl font-black text-slate-800 tabular-nums">${totalSpent.toLocaleString()}</p>
+          <p className="text-2xl font-black text-slate-800 tabular-nums">₹{totalSpent.toLocaleString()}</p>
           <p className="text-slate-400 text-xs mt-1">Paid to creators</p>
         </div>
         <div className="bg-white rounded-2xl border border-emerald-200 p-5 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
@@ -147,7 +208,7 @@ export default function BrandWalletContent() {
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Predicted Spend</p>
             <Brain size={16} className="text-violet-500" />
           </div>
-          <p className="text-2xl font-black text-slate-800 tabular-nums">${predictedMonthlySpend.toLocaleString()}</p>
+          <p className="text-2xl font-black text-slate-800 tabular-nums">₹{predictedMonthlySpend.toLocaleString()}</p>
           <div className="flex items-center gap-1 mt-1">
             <TrendingUp size={11} className="text-violet-500" />
             <p className="text-violet-600 text-xs font-semibold">Next month forecast</p>
@@ -166,7 +227,7 @@ export default function BrandWalletContent() {
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <div className="text-center">
-            <p className="text-lg font-black text-blue-700">${inEscrow.toLocaleString()}</p>
+            <p className="text-lg font-black text-blue-700">₹{inEscrow.toLocaleString()}</p>
             <p className="text-xs text-blue-500">Currently locked</p>
           </div>
         </div>
@@ -384,6 +445,12 @@ export default function BrandWalletContent() {
           </div>
         </div>
       )}
+
+      <AddFundsModal
+        open={showAddFunds}
+        onClose={() => setShowAddFunds(false)}
+        onSuccess={loadWallet}
+      />
 
       <OpenDisputeModal
         open={!!disputeTarget}

@@ -486,7 +486,15 @@ export const brandApi = {
     }>>('/brand/escrows'),
 
   getDashboard: () => apiFetch('/brand/dashboard'),
-  getWallet: () => apiFetch('/brand/wallet'),
+  getWallet: () => apiFetch<{ available_balance: number; pending_balance: number }>('/brand/wallet'),
+  getRazorpayKey: () => apiFetch<{ keyId: string | null }>('/brand/wallet/razorpay-key'),
+  createPaymentOrder: (amount: number) =>
+    apiFetch<{ orderId: string; amount: number; keyId: string | null; mock?: boolean }>(
+      '/brand/wallet/create-order',
+      { method: 'POST', body: JSON.stringify({ amount }) },
+    ),
+  verifyPayment: (body: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
+    apiFetch('/brand/wallet/verify-payment', { method: 'POST', body: JSON.stringify(body) }),
   addFunds: (amount: number) =>
     apiFetch('/brand/wallet/add-funds', { method: 'POST', body: JSON.stringify({ amount }) }),
   getTransactions: (params?: Record<string, string | number | boolean | undefined>) =>
