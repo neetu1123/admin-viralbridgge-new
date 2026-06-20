@@ -5,6 +5,9 @@ import { brandApi } from '@/src/lib/api';
 import { Building2, Bell, CreditCard, Shield, Users, ChevronRight, Save, ShieldCheck } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 import KycVerificationPanel from '@/src/components/KycVerificationPanel';
+import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
+import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
+import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
 
 
 type SettingsTab = 'profile' | 'verification' | 'notifications' | 'billing' | 'team' | 'security';
@@ -76,6 +79,8 @@ export default function BrandSettingsContent() {
         <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
         <p className="text-slate-500 text-sm mt-1">Manage your brand profile, notifications, billing, and team</p>
       </div>
+
+      <AcceptInvitationBanner />
 
       <div className="flex gap-6">
         {/* Sidebar */}
@@ -222,74 +227,9 @@ export default function BrandSettingsContent() {
             </div>
           )}
 
-          {activeTab === 'team' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-semibold text-slate-800">Team Members</h2>
-                <button onClick={() => toast.success('Invite sent')} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all">
-                  <Users size={14} /> Invite Member
-                </button>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { name: 'Kavya Reddy', email: 'kavya@novaspark.co', role: 'Owner', avatar: 'KR' },
-                  { name: 'Ravi Sharma', email: 'ravi@novaspark.co', role: 'Campaign Manager', avatar: 'RS' },
-                  { name: 'Lena Fischer', email: 'lena@novaspark.co', role: 'Finance', avatar: 'LF' },
-                ].map(member => (
-                  <div key={member.email} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-violet-700 text-xs font-bold">{member.avatar}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{member.name}</p>
-                        <p className="text-xs text-slate-400">{member.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-full">{member.role}</span>
-                      {member.role !== 'Owner' && <button onClick={() => toast.error('Member removed')} className="text-xs text-red-500 hover:text-red-700 transition-colors">Remove</button>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {activeTab === 'team' && <TeamMembersPanel orgType="BRAND" />}
 
-          {activeTab === 'security' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <h2 className="text-base font-semibold text-slate-800 mb-5">Security Settings</h2>
-              <div className="space-y-4">
-                <div className="border border-slate-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">Change Password</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Last changed 3 months ago</p>
-                    </div>
-                    <button onClick={() => toast.success('Password reset email sent')} className="text-xs text-violet-600 hover:text-violet-700 font-medium border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors">Update</button>
-                  </div>
-                </div>
-                <div className="border border-slate-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">Two-Factor Authentication</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Add an extra layer of security</p>
-                    </div>
-                    <button onClick={() => toast.success('2FA setup initiated')} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">Enable 2FA</button>
-                  </div>
-                </div>
-                <div className="border border-slate-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">Active Sessions</p>
-                      <p className="text-xs text-slate-400 mt-0.5">2 active sessions</p>
-                    </div>
-                    <button onClick={() => toast.warning('All other sessions signed out')} className="text-xs text-red-600 hover:text-red-700 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">Sign Out All</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'security' && <SecuritySettingsPanel />}
         </div>
       </div>
     </div>

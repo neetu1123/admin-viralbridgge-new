@@ -582,6 +582,164 @@ export const creatorApi = {
     apiFetch('/creator/settings', { method: 'PUT', body: JSON.stringify(data) }),
 };
 
+// ─── Organization Team APIs (Brand & Creator) ────────────────────────────────
+export type OrgType = 'BRAND' | 'CREATOR';
+
+export interface TeamMember {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  avatar?: string | null;
+  role: string;
+  roleLabel: string;
+  status: string;
+  lastActiveAt?: string | null;
+  joinedAt: string;
+  isOwner: boolean;
+}
+
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  role: string;
+  roleLabel: string;
+  status: string;
+  invitedBy: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface TeamResponse {
+  organizationType: OrgType;
+  organizationId: string;
+  organizationName: string;
+  currentUserRole: string;
+  canManageTeam: boolean;
+  activeMembers: TeamMember[];
+  pendingInvitations: PendingInvitation[];
+  availableRoles: string[];
+}
+
+export interface MyTeamInvitation extends PendingInvitation {
+  token: string;
+  organizationId: string;
+  organizationName: string;
+  organizationType: OrgType;
+}
+
+export const organizationApi = {
+  getTeam: () => apiFetch<TeamResponse>('/organization/team'),
+
+  getMyInvitations: () => apiFetch<MyTeamInvitation[]>('/organization/team/invitations/mine'),
+
+  inviteMember: (body: { email: string; role: string }) =>
+    apiFetch<{ invitation: PendingInvitation; permissionPreview: { role: string; permissions: string[] } }>(
+      '/organization/team/invite',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
+  acceptInvitation: (token: string) =>
+    apiFetch<TeamMember>('/organization/team/accept', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
+  changeMemberRole: (memberId: string, role: string) =>
+    apiFetch<TeamMember>(`/organization/team/member/${memberId}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+
+  removeMember: (memberId: string) =>
+    apiFetch(`/organization/team/member/${memberId}`, { method: 'DELETE' }),
+
+  reinvite: (invitationId: string) =>
+    apiFetch<PendingInvitation>(`/organization/team/member/${invitationId}/reinvite`, {
+      method: 'POST',
+    }),
+
+  cancelInvitation: (invitationId: string) =>
+    apiFetch<PendingInvitation>(`/organization/team/invitation/${invitationId}/cancel`, {
+      method: 'POST',
+    }),
+
+  getRolePermissions: (type: OrgType, role: string) =>
+    apiFetch<{ role: string; permissions: string[] }>(
+      `/organization/team/roles/permissions${toQuery({ type, role })}`,
+    ),
+};
+
+// ─── Security APIs (Brand & Creator) ───────────────────────────────────────
+export interface SecuritySettings {
+  twoFactorEnabled: boolean;
+  twoFactorType?: string | null;
+  phoneNumber?: string | null;
+  lastPasswordChange?: string | null;
+  activeSessionCount: number;
+}
+
+export interface TwoFactorStatus {
+  enabled: boolean;
+  type?: string | null;
+  phoneNumber?: string | null;
+  pendingEnrollment: boolean;
+  firebaseMfaEnrolled?: boolean;
+}
+
+export interface UserSessionItem {
+  id: string;
+  deviceName?: string | null;
+  browser?: string | null;
+  ipAddress?: string | null;
+  location?: string | null;
+  isActive: boolean;
+  isCurrent: boolean;
+  lastActive: string;
+  createdAt: string;
+}
+
+export interface SecurityActivityItem {
+  id: string;
+  type: string;
+  label: string;
+  device?: string | null;
+  browser?: string | null;
+  ipAddress?: string | null;
+  location?: string | null;
+  createdAt: string;
+}
+
+export const securityApi = {
+  getSettings: () => apiFetch<SecuritySettings>('/security/settings'),
+  get2FaStatus: () => apiFetch<TwoFactorStatus>('/security/2fa/status'),
+  changePassword: () => apiFetch<{ message: string }>('/security/change-password', { method: 'POST' }),
+  enable2Fa: (phoneNumber: string) =>
+    apiFetch<{ enabled: boolean; pendingEnrollment: boolean; message: string }>('/security/2fa/enable', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber }),
+    }),
+  confirm2Fa: () =>
+    apiFetch<{ enabled: boolean; type?: string; phoneNumber?: string }>('/security/2fa/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ firebaseMfaCompleted: true }),
+    }),
+  disable2Fa: () =>
+    apiFetch<{ enabled: boolean; message: string }>('/security/2fa/disable', { method: 'POST' }),
+  getSessions: () => apiFetch<UserSessionItem[]>('/security/sessions'),
+  removeSession: (sessionId: string) =>
+    apiFetch(`/security/sessions/${sessionId}`, { method: 'DELETE' }),
+  signOutAll: (signOutCurrentDevice = false) =>
+    apiFetch<{ signedOut: number; message: string }>('/security/signout-all', {
+      method: 'POST',
+      body: JSON.stringify({ signOutCurrentDevice }),
+    }),
+  getActivity: (params?: { page?: number; limit?: number }) =>
+    apiFetch<{ data: SecurityActivityItem[]; meta: { total: number; page: number; limit: number; totalPages: number } }>(
+      `/security/activity${toQuery(params)}`,
+    ),
+};
+
 // ─── Socket helper (local / dedicated WS host only) ───────────────────────────
 export function getSocketUrl(): string {
   return process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';

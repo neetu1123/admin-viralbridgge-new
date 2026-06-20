@@ -1,12 +1,15 @@
 'use client';
 import React, { useState } from 'react';
 import { toast, Toaster } from 'sonner';
-import { User, Bell, CreditCard, Shield, ChevronRight, Save, ShieldCheck } from 'lucide-react';
+import { User, Bell, CreditCard, Shield, ChevronRight, Save, ShieldCheck, Users } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 import KycVerificationPanel from '@/src/components/KycVerificationPanel';
+import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
+import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
+import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
 
 
-type SettingsTab = 'account' | 'verification' | 'notifications' | 'payouts' | 'security';
+type SettingsTab = 'account' | 'verification' | 'notifications' | 'payouts' | 'team' | 'security';
 
 export default function CreatorSettingsContent() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
@@ -21,6 +24,7 @@ export default function CreatorSettingsContent() {
     { id: 'verification', label: 'Verification', icon: ShieldCheck },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'payouts', label: 'Payout Settings', icon: CreditCard },
+    { id: 'team', label: 'Team Members', icon: Users },
     { id: 'security', label: 'Security', icon: Shield },
   ];
 
@@ -32,6 +36,8 @@ export default function CreatorSettingsContent() {
         <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
         <p className="text-slate-500 text-sm mt-1">Manage your account, notifications, payout preferences, and security</p>
       </div>
+
+      <AcceptInvitationBanner />
 
       <div className="flex gap-6">
         {/* Sidebar */}
@@ -197,27 +203,9 @@ export default function CreatorSettingsContent() {
             </div>
           )}
 
-          {activeTab === 'security' && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <h2 className="text-base font-semibold text-slate-800 mb-5">Security Settings</h2>
-              <div className="space-y-4">
-                {[
-                  { title: 'Change Password', desc: 'Last changed 3 months ago', action: 'Update', actionFn: () => toast.success('Password reset email sent'), actionCls: 'text-violet-600 border-violet-200 hover:bg-violet-50' },
-                  { title: 'Two-Factor Authentication', desc: 'Not enabled — add extra security', action: 'Enable 2FA', actionFn: () => toast.success('2FA setup initiated'), actionCls: 'bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600' },
-                  { title: 'Login Activity', desc: '2 active sessions', action: 'View Sessions', actionFn: () => toast.success('Sessions loaded'), actionCls: 'text-slate-600 border-slate-200 hover:bg-slate-50' },
-                  { title: 'Sign Out All Devices', desc: 'Revoke all active sessions', action: 'Sign Out All', actionFn: () => toast.warning('All sessions signed out'), actionCls: 'text-red-600 border-red-200 hover:bg-red-50' },
-                ].map(item => (
-                  <div key={item.title} className="flex items-center justify-between py-4 border-b border-slate-100 last:border-0">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">{item.title}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
-                    </div>
-                    <button onClick={item.actionFn} className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${item.actionCls}`}>{item.action}</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {activeTab === 'team' && <TeamMembersPanel orgType="CREATOR" />}
+
+          {activeTab === 'security' && <SecuritySettingsPanel />}
         </div>
       </div>
     </div>
