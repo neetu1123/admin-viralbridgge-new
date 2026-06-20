@@ -670,6 +670,71 @@ export const organizationApi = {
     ),
 };
 
+export type AnalyticsPeriod = '7d' | '30d' | '90d' | '1y';
+
+export interface AnalyticsRangeParams {
+  period?: AnalyticsPeriod;
+  from?: string;
+  to?: string;
+}
+
+function analyticsQuery(params?: AnalyticsRangeParams) {
+  const { period, from, to } = params ?? { period: '30d' };
+  if (from && to) return toQuery({ from, to });
+  return toQuery({ period: period ?? '30d' });
+}
+
+export const analyticsApi = {
+  creatorDashboard: (params?: AnalyticsRangeParams) =>
+    apiFetch<{ kpis: { totalEarnings: number; pendingEarnings: number; campaignsCompleted: number; applicationSuccessRate: number } }>(
+      `/analytics/creator/dashboard${analyticsQuery(params)}`,
+    ),
+  creatorEarnings: (params?: AnalyticsRangeParams) =>
+    apiFetch<{
+      monthlyEarningsTrend: { month: string; earnings: number }[];
+      applicationFunnel: { status: string; count: number }[];
+      categoryBreakdown: { name: string; count: number }[];
+    }>(`/analytics/creator/earnings${analyticsQuery(params)}`),
+  creatorProfilePerformance: (params?: AnalyticsRangeParams) =>
+    apiFetch<{ metrics: { profileViews: number; invitationsReceived: number; messagesReceived: number; campaignOffers: number } }>(
+      `/analytics/creator/profile-performance${analyticsQuery(params)}`,
+    ),
+  creatorTopBrands: (params?: AnalyticsRangeParams) =>
+    apiFetch<{ topBrands: { brandId: string; brandName: string; campaignCount: number; earnings: number }[] }>(
+      `/analytics/creator/top-brands${analyticsQuery(params)}`,
+    ),
+
+  adminDashboard: (params?: AnalyticsRangeParams) =>
+    apiFetch<{ kpis: { totalCreators: number; totalBrands: number; platformRevenue: number; escrowVolume: number } }>(
+      `/analytics/admin/dashboard${analyticsQuery(params)}`,
+    ),
+  adminUsers: (params?: AnalyticsRangeParams) =>
+    apiFetch<{
+      userGrowth: { month: string; creators: number; brands: number; total: number }[];
+      growthMetrics: { newCreators: number; newBrands: number; creatorGrowthPercent: number; brandGrowthPercent: number };
+    }>(`/analytics/admin/users${analyticsQuery(params)}`),
+  adminRevenue: (params?: AnalyticsRangeParams) =>
+    apiFetch<{
+      revenueGrowth: { month: string; revenue: number }[];
+      growthMetrics: { totalRevenue: number; revenueGrowthPercent: number };
+    }>(`/analytics/admin/revenue${analyticsQuery(params)}`),
+  adminCampaigns: (params?: AnalyticsRangeParams) =>
+    apiFetch<{
+      campaignAnalytics: { created: number; active: number; completed: number; flagged: number };
+      campaignGrowth: { month: string; count: number }[];
+      growthMetrics: { campaignGrowthPercent: number };
+    }>(`/analytics/admin/campaigns${analyticsQuery(params)}`),
+  adminKyc: (params?: AnalyticsRangeParams) =>
+    apiFetch<{ kycAnalytics: { verified: number; pending: number; rejected: number } }>(
+      `/analytics/admin/kyc${analyticsQuery(params)}`,
+    ),
+  adminPlatforms: (params?: AnalyticsRangeParams) =>
+    apiFetch<{
+      platformDistribution: { name: string; value: number; color: string }[];
+      topCategories: { name: string; count: number; color: string }[];
+    }>(`/analytics/admin/platforms${analyticsQuery(params)}`),
+};
+
 // ─── Security APIs (Brand & Creator) ───────────────────────────────────────
 export interface SecuritySettings {
   twoFactorEnabled: boolean;

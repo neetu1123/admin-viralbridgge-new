@@ -20,6 +20,7 @@ const creatorNav = [
   { label: 'My Applications', icon: FileText, href: '/my-applications', badge: '3' },
   { label: 'Messages', icon: MessageSquare, href: '/messaging-inbox', badge: '5' },
   { label: 'Wallet', icon: Wallet, href: '/wallet-payments', badge: null },
+  { label: 'Analytics', icon: BarChart3, href: '/creator/analytics', badge: null },
   { label: 'My Profile', icon: User, href: '/creator-profile', badge: null },
 ];
 
@@ -43,6 +44,7 @@ const adminNavSections: AdminNavSection[] = [
     section: 'Core',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard, href: '/admin-panel', badge: null },
+      { label: 'Analytics', icon: BarChart3, href: '/admin/analytics', badge: null },
       { label: 'Users', icon: Users, href: '/admin-panel/users', badge: '4', badgeColor: 'violet' },
       { label: 'KYC Verification', icon: ShieldCheck, href: '/admin-panel/kyc', badge: null },
       { label: 'Campaigns', icon: Briefcase, href: '/admin-panel/campaigns', badge: null },
