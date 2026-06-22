@@ -61,7 +61,8 @@ export default function InviteTeamMemberModal({
     if (!email.trim() || !role) return;
     setLoading(true);
     try {
-      await organizationApi.inviteMember({ email: email.trim(), role });
+      const result = await organizationApi.inviteMember({ email: email.trim(), role });
+      toast.success(result.emailSent ? `Invitation email sent to ${email.trim()}` : 'Invitation created');
       onSuccess();
       onClose();
     } catch (error) {

@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import AppLogo from '@/src/components/ui/AppLogo';
 import { Eye, EyeOff, Copy, Check, ArrowRight, Sparkles, Building2, User, Mail, Lock, Globe, ChevronRight } from 'lucide-react';
@@ -39,6 +40,8 @@ const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Te
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';
 
 export default function SignUpLoginClient() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const [mode, setMode] = useState<AuthMode>('login');
 
   useEffect(() => {
@@ -75,7 +78,9 @@ export default function SignUpLoginClient() {
       // Navigate based on role returned from backend
       const role = (result.user.role || '').toLowerCase();
       const home =
-        role === 'brand'
+        redirectTo && redirectTo.startsWith('/')
+          ? redirectTo
+          : role === 'brand'
           ? '/brand-campaign-management'
           : role === 'creator'
             ? '/campaign-discovery'
@@ -102,7 +107,12 @@ export default function SignUpLoginClient() {
       localStorage.setItem('token', result.access_token);
       localStorage.setItem('user', JSON.stringify(result.user));
       toast.success('Account created! Welcome to Viralbridgge.');
-      window.location.href = role === 'brand' ? '/brand-campaign-management' : '/campaign-discovery';
+      window.location.href =
+        redirectTo && redirectTo.startsWith('/')
+          ? redirectTo
+          : role === 'brand'
+            ? '/brand-campaign-management'
+            : '/campaign-discovery';
     } catch (error: any) {
       toast.error(error.message || 'Signup failed');
       signupForm.setError('email', { message: error.message || 'Signup failed' });

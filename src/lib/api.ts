@@ -628,16 +628,43 @@ export interface MyTeamInvitation extends PendingInvitation {
   organizationType: OrgType;
 }
 
+export interface InvitationPreview {
+  organizationName: string;
+  organizationType: OrgType;
+  role: string;
+  roleLabel: string;
+  invitedBy: string;
+  email: string;
+  expiresAt: string;
+  status: string;
+  isExpired: boolean;
+  canAccept: boolean;
+}
+
+async function publicFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error((data as { message?: string }).message || `Request failed (${res.status})`);
+  }
+  return (data as { data?: T }).data ?? (data as T);
+}
+
 export const organizationApi = {
   getTeam: () => apiFetch<TeamResponse>('/organization/team'),
 
   getMyInvitations: () => apiFetch<MyTeamInvitation[]>('/organization/team/invitations/mine'),
 
   inviteMember: (body: { email: string; role: string }) =>
-    apiFetch<{ invitation: PendingInvitation; permissionPreview: { role: string; permissions: string[] } }>(
+    apiFetch<{ invitation: PendingInvitation; permissionPreview: { role: string; permissions: string[] }; emailSent: boolean }>(
       '/organization/team/invite',
       { method: 'POST', body: JSON.stringify(body) },
     ),
+
+  getInvitationByToken: (token: string) =>
+    publicFetch<InvitationPreview>(`/organization/team/invitation/${encodeURIComponent(token)}`),
 
   acceptInvitation: (token: string) =>
     apiFetch<TeamMember>('/organization/team/accept', {
