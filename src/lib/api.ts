@@ -805,7 +805,11 @@ export interface SecurityActivityItem {
 export const securityApi = {
   getSettings: () => apiFetch<SecuritySettings>('/security/settings'),
   get2FaStatus: () => apiFetch<TwoFactorStatus>('/security/2fa/status'),
-  changePassword: () => apiFetch<{ message: string }>('/security/change-password', { method: 'POST' }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiFetch<{ message: string }>('/security/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
   enable2Fa: (phoneNumber: string) =>
     apiFetch<{ enabled: boolean; pendingEnrollment: boolean; message: string }>('/security/2fa/enable', {
       method: 'POST',

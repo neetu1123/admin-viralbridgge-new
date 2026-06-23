@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Shield, Smartphone, Monitor } from 'lucide-react';
+import { Loader2, Shield, Smartphone, Monitor, Lock, Eye, EyeOff } from 'lucide-react';
 import Modal from '@/src/components/ui/Modal';
 import {
   securityApi,
@@ -42,8 +42,15 @@ export default function SecuritySettingsPanel() {
   const [activity, setActivity] = useState<SecurityActivityItem[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [twoFaModalOpen, setTwoFaModalOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -69,14 +76,30 @@ export default function SecuritySettingsPanel() {
     loadAll();
   }, [loadAll]);
 
+  const resetPasswordForm = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  };
+
   const handleChangePassword = async () => {
+    if (!currentPassword.trim()) return toast.error('Enter your current password');
+    if (newPassword.length < 8) return toast.error('New password must be at least 8 characters');
+    if (newPassword !== confirmPassword) return toast.error('New passwords do not match');
+    if (currentPassword === newPassword) return toast.error('New password must be different from current password');
+
     setActionLoading('password');
     try {
-      const res = await securityApi.changePassword();
-      toast.success(res.message || 'Password reset email sent');
+      const res = await securityApi.changePassword(currentPassword, newPassword);
+      toast.success(res.message || 'Password changed successfully');
+      setPasswordModalOpen(false);
+      resetPasswordForm();
       loadAll();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to send reset email');
+      toast.error(error instanceof Error ? error.message : 'Failed to change password');
     } finally {
       setActionLoading(null);
     }
@@ -179,11 +202,14 @@ export default function SecuritySettingsPanel() {
                 </p>
               </div>
               <button
-                onClick={handleChangePassword}
+                onClick={() => {
+                  resetPasswordForm();
+                  setPasswordModalOpen(true);
+                }}
                 disabled={actionLoading === 'password'}
                 className="text-xs text-violet-600 hover:text-violet-700 font-medium border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors disabled:opacity-50"
               >
-                {actionLoading === 'password' ? 'Sending...' : 'Update Password'}
+                Change Password
               </button>
             </div>
           </div>
@@ -313,6 +339,104 @@ export default function SecuritySettingsPanel() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={passwordModalOpen}
+        onClose={() => {
+          setPasswordModalOpen(false);
+          resetPasswordForm();
+        }}
+        title="Change Password"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Enter your current password, then choose a new password (minimum 8 characters).
+          </p>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Current Password</label>
+            <div className="relative">
+              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type={showCurrentPassword ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="w-full pl-9 pr-10 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showCurrentPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">New Password</label>
+            <div className="relative">
+              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                className="w-full pl-9 pr-10 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showNewPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Confirm New Password</label>
+            <div className="relative">
+              <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full pl-9 pr-10 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => {
+                setPasswordModalOpen(false);
+                resetPasswordForm();
+              }}
+              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleChangePassword}
+              disabled={actionLoading === 'password'}
+              className="px-4 py-2 text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white rounded-lg disabled:opacity-50"
+            >
+              {actionLoading === 'password' ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal open={twoFaModalOpen} onClose={() => setTwoFaModalOpen(false)} title="Enable Two-Factor Authentication" size="sm">
         <div className="space-y-4">
