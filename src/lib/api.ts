@@ -496,7 +496,7 @@ export const brandApi = {
   rejectDeliverable: (id: string, notes?: string) =>
     apiFetch(`/brand/deliverables/${id}/reject`, { method: 'POST', body: JSON.stringify({ notes }) }),
   fundEscrow: (body: { campaign_id: string; creator_id: string; amount?: number }) =>
-    apiFetch('/escrow/create', { method: 'POST', body: JSON.stringify(body) }),
+    apiFetch('/brand/escrows/fund', { method: 'POST', body: JSON.stringify(body) }),
   releaseEscrow: (id: string) => apiFetch(`/brand/escrows/${id}/release`, { method: 'POST' }),
 
   openDispute: (body: { campaign_id: string; creator_id: string; reason: string }) =>
