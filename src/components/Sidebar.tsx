@@ -7,7 +7,7 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 
@@ -18,6 +18,7 @@ interface SidebarProps {
 const creatorNav = [
   { label: 'Discover Campaigns', icon: Search, href: '/campaign-discovery', badge: null },
   { label: 'My Applications', icon: FileText, href: '/my-applications', badge: '3' },
+  { label: 'My Deliverables', icon: Upload, href: '/creator-deliverables', badge: null },
   { label: 'Messages', icon: MessageSquare, href: '/messaging-inbox', badge: '5' },
   { label: 'Wallet', icon: Wallet, href: '/wallet-payments', badge: null },
   { label: 'Analytics', icon: BarChart3, href: '/creator/analytics', badge: null },
@@ -27,6 +28,7 @@ const creatorNav = [
 const brandNav = [
   { label: 'Campaigns', icon: Briefcase, href: '/brand-campaign-management', badge: null },
   { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: '12' },
+  { label: 'Review Deliverables', icon: Upload, href: '/brand-deliverables', badge: null },
   { label: 'Creator Discovery', icon: Compass, href: '/creator-discovery', badge: null },
   { label: 'My Creators', icon: BookOpen, href: '/my-creators', badge: null },
   { label: 'Messages', icon: MessageSquare, href: '/brand-messages', badge: '2' },

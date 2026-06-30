@@ -63,6 +63,33 @@ async function apiFetch<T = unknown>(
   return (json?.success === true && 'data' in json ? json.data : json) as T;
 }
 
+/** Multipart upload — do not set Content-Type (browser sets boundary). */
+async function apiUpload<T = unknown>(path: string, formData: FormData): Promise<T> {
+  const token = getToken();
+  const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.replace('/sign-up-login-screen');
+    throw new Error('Unauthorized');
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: 'Upload failed' }));
+    throw new Error(err.message || 'Upload failed');
+  }
+
+  const json = await res.json();
+  return (json?.success === true && 'data' in json ? json.data : json) as T;
+}
+
 function toQuery(params?: Record<string, string | number | boolean | undefined>): string {
   const qs = new URLSearchParams();
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -466,6 +493,10 @@ export const brandApi = {
     apiFetch(`/brand/deliverables/${id}/approve`, { method: 'POST' }),
   reviseDeliverable: (id: string, notes: string) =>
     apiFetch(`/brand/deliverables/${id}/revise`, { method: 'POST', body: JSON.stringify({ notes }) }),
+  rejectDeliverable: (id: string, notes?: string) =>
+    apiFetch(`/brand/deliverables/${id}/reject`, { method: 'POST', body: JSON.stringify({ notes }) }),
+  fundEscrow: (body: { campaign_id: string; creator_id: string; amount?: number }) =>
+    apiFetch('/escrow/create', { method: 'POST', body: JSON.stringify(body) }),
   releaseEscrow: (id: string) => apiFetch(`/brand/escrows/${id}/release`, { method: 'POST' }),
 
   openDispute: (body: { campaign_id: string; creator_id: string; reason: string }) =>
@@ -541,6 +572,13 @@ export const creatorApi = {
   getDeliverables: () => apiFetch('/creator/deliverables'),
   submitDeliverable: (id: string, data: { mediaUrl: string; thumbnailUrl?: string; notes?: string }) =>
     apiFetch(`/creator/deliverables/${id}/submit`, { method: 'POST', body: JSON.stringify(data) }),
+  submitDeliverableFile: (id: string, file: File, notes?: string, thumbnail?: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (notes) form.append('notes', notes);
+    if (thumbnail) form.append('thumbnail', thumbnail);
+    return apiUpload(`/creator/deliverables/${id}/submit-file`, form);
+  },
 
   openDispute: (body: { campaign_id: string; reason: string }) =>
     apiFetch('/creator/disputes', { method: 'POST', body: JSON.stringify(body) }),
