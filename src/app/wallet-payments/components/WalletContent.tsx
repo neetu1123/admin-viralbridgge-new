@@ -12,32 +12,55 @@ import WalletChart from './WalletChart';
 // import Icon from '@/components/ui/AppIcon';
 
 
-interface Transaction {
+interface ApiTransaction {
   id: string;
-  type: 'credit' | 'debit' | 'escrow_lock' | 'escrow_release' | 'withdrawal' | 'refund';
+  type: string;
   amount: number;
-  description: string;
-  campaign?: string;
-  brand?: string;
-  status: 'released' | 'escrow' | 'pending' | 'failed' | 'completed';
-  date: string;
-  balance: number;
+  status: string;
+  reference_id?: string | null;
+  balance_after?: number | null;
+  created_at: string;
 }
 
-const transactions: Transaction[] = [
-  { id: 'txn-001', type: 'escrow_release', amount: 1200, description: 'Payment released — Summer Glow Campaign', campaign: 'Summer Glow Skincare Launch', brand: 'Luminary Skincare', status: 'released', date: '2026-04-13', balance: 3420.50 },
-  { id: 'txn-002', type: 'escrow_lock', amount: 800, description: 'Funds locked in escrow — TechDrop Review', campaign: 'TechDrop Wireless Earbuds Review', brand: 'TechDrop', status: 'escrow', date: '2026-04-11', balance: 2220.50 },
-  { id: 'txn-003', type: 'withdrawal', amount: -500, description: 'Withdrawal to PayPal — sofia@Viralbridgge.io', campaign: undefined, brand: undefined, status: 'completed', date: '2026-04-10', balance: 1420.50 },
-  { id: 'txn-004', type: 'escrow_release', amount: 950, description: 'Payment released — FitPro 30-Day Challenge', campaign: 'FitPro App — 30-Day Challenge', brand: 'FitPro Health', status: 'released', date: '2026-04-08', balance: 1920.50 },
-  { id: 'txn-005', type: 'credit', amount: 600, description: 'Bonus tip from brand — Harvest Kitchen', campaign: 'Harvest Kitchen Series', brand: 'Harvest Kitchen', status: 'released', date: '2026-04-06', balance: 970.50 },
-  { id: 'txn-006', type: 'escrow_lock', amount: 1800, description: 'Funds locked in escrow — StyleForward Fall', campaign: 'StyleForward Fall Collection', brand: 'StyleForward', status: 'escrow', date: '2026-04-04', balance: 370.50 },
-  { id: 'txn-007', type: 'escrow_release', amount: 750, description: 'Payment released — MindClear Wellness', campaign: 'MindClear Meditation App', brand: 'MindClear', status: 'released', date: '2026-04-02', balance: 2170.50 },
-  { id: 'txn-008', type: 'withdrawal', amount: -1000, description: 'Withdrawal to bank account ****4821', campaign: undefined, brand: undefined, status: 'completed', date: '2026-03-31', balance: 1420.50 },
-  { id: 'txn-009', type: 'escrow_release', amount: 1100, description: 'Payment released — NomadPay Travel Campaign', campaign: 'Wanderlust Travel Card Launch', brand: 'NomadPay', status: 'released', date: '2026-03-28', balance: 2420.50 },
-  { id: 'txn-010', type: 'refund', amount: 200, description: 'Refund — campaign cancelled by brand', campaign: 'PureBrew Cold Brew Launch', brand: 'PureBrew Coffee', status: 'released', date: '2026-03-25', balance: 1320.50 },
-  { id: 'txn-011', type: 'escrow_lock', amount: 550, description: 'Funds locked in escrow — PureBrew Launch', campaign: 'PureBrew Cold Brew Launch', brand: 'PureBrew Coffee', status: 'escrow', date: '2026-03-22', balance: 1120.50 },
-  { id: 'txn-012', type: 'credit', amount: 450, description: 'Platform bonus — top creator of the week', campaign: undefined, brand: undefined, status: 'released', date: '2026-03-20', balance: 1670.50 },
-];
+interface DisplayTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  description: string;
+  status: string;
+  date: string;
+  balance: number | null;
+}
+
+function mapTxnType(raw: string): string {
+  const t = raw.toUpperCase();
+  if (t.includes('RELEASE') || t === 'ESCROW_RELEASE') return 'escrow_release';
+  if (t.includes('LOCK') || t === 'ESCROW_LOCK' || t === 'ESCROW_HOLD') return 'escrow_lock';
+  if (t.includes('WITHDRAW')) return 'withdrawal';
+  if (t.includes('REFUND')) return 'refund';
+  if (t.includes('TOPUP') || t.includes('ADD_FUNDS') || t.includes('DEPOSIT')) return 'credit';
+  return 'debit';
+}
+
+function mapTxnStatus(raw: string): string {
+  const s = raw.toUpperCase();
+  if (s === 'COMPLETED' || s === 'APPROVED') return 'completed';
+  if (s === 'PENDING') return 'pending';
+  if (s === 'REJECTED' || s === 'FAILED') return 'failed';
+  return 'completed';
+}
+
+function txnDescription(type: string, amount: number): string {
+  const labels: Record<string, string> = {
+    escrow_release: 'Payment released from escrow',
+    escrow_lock: 'Funds locked in escrow',
+    withdrawal: 'Withdrawal request',
+    refund: 'Refund processed',
+    credit: 'Funds added',
+    debit: 'Debit',
+  };
+  return labels[type] ?? `Transaction — ${amount}`;
+}
 
 const escrowStatusLabel: Record<string, string> = {
   HELD: 'In Escrow',
@@ -63,6 +86,59 @@ export default function WalletContent() {
   const [escrowItems, setEscrowItems] = useState<EscrowRow[]>([]);
   const [disputeTarget, setDisputeTarget] = useState<EscrowRow | null>(null);
   const [disputeRefreshKey, setDisputeRefreshKey] = useState(0);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [lifetimeEarnings, setLifetimeEarnings] = useState(0);
+  const [pendingWithdrawal, setPendingWithdrawal] = useState(0);
+  const [transactions, setTransactions] = useState<DisplayTransaction[]>([]);
+  const [txnTotal, setTxnTotal] = useState(0);
+
+  const loadWallet = useCallback(async () => {
+    setWalletLoading(true);
+    try {
+      const wallet = await creatorApi.getWallet() as {
+        available_balance?: number;
+        lifetime_earnings?: number;
+        pending_balance?: number;
+        locked_balance?: number;
+      };
+      setAvailableBalance(Number(wallet.available_balance ?? 0));
+      setLifetimeEarnings(Number(wallet.lifetime_earnings ?? 0));
+    } catch {
+      setAvailableBalance(0);
+      setLifetimeEarnings(0);
+    } finally {
+      setWalletLoading(false);
+    }
+  }, []);
+
+  const loadTransactions = useCallback(async () => {
+    try {
+      const res = await creatorApi.getTransactions({ page, limit: perPage }) as {
+        data?: ApiTransaction[];
+        meta?: { total?: number };
+      };
+      const rows = res.data ?? [];
+      setTxnTotal(res.meta?.total ?? rows.length);
+      setTransactions(
+        rows.map((t) => {
+          const mappedType = mapTxnType(t.type);
+          return {
+            id: t.id,
+            type: mappedType,
+            amount: mappedType === 'withdrawal' ? -Math.abs(t.amount) : t.amount,
+            description: txnDescription(mappedType, t.amount),
+            status: mapTxnStatus(t.status),
+            date: t.created_at,
+            balance: t.balance_after ?? null,
+          };
+        }),
+      );
+    } catch {
+      setTransactions([]);
+      setTxnTotal(0);
+    }
+  }, [page]);
 
   const loadEscrows = useCallback(async () => {
     try {
@@ -74,17 +150,21 @@ export default function WalletContent() {
   }, []);
 
   useEffect(() => {
+    loadWallet();
     loadEscrows();
-  }, [loadEscrows, disputeRefreshKey]);
+  }, [loadWallet, loadEscrows, disputeRefreshKey]);
 
-  const availableBalance = 3420.50;
-  const escrowBalance = escrowItems.filter((e) => e.status === 'HELD' || e.status === 'DISPUTED').reduce((s, e) => s + e.amount, 0);
-  const totalEarned = 8650.00;
-  const pendingWithdrawal = 0;
+  useEffect(() => {
+    loadTransactions();
+  }, [loadTransactions]);
 
-  const filteredTxns = transactions.filter(t => typeFilter === 'all' || t.type === typeFilter);
-  const totalPages = Math.ceil(filteredTxns.length / perPage);
-  const paginated = filteredTxns.slice((page - 1) * perPage, page * perPage);
+  const escrowBalance = escrowItems
+    .filter((e) => e.status === 'HELD' || e.status === 'DISPUTED' || e.status === 'IN_PROGRESS' || e.status === 'REVIEW')
+    .reduce((s, e) => s + e.amount, 0);
+
+  const filteredTxns = transactions.filter((t) => typeFilter === 'all' || t.type === typeFilter);
+  const totalPages = Math.max(1, Math.ceil(txnTotal / perPage));
+  const paginated = filteredTxns;
 
   return (
     <div className="pb-8">
@@ -112,7 +192,9 @@ export default function WalletContent() {
             <p className="text-violet-200 text-xs font-medium uppercase tracking-wide">Available Balance</p>
             <Wallet size={18} className="text-violet-300" />
           </div>
-          <p className="text-3xl font-bold tabular-nums">₹{availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+          <p className="text-3xl font-bold tabular-nums">
+            {walletLoading ? '…' : `₹${availableBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+          </p>
           <p className="text-violet-300 text-xs mt-1">Ready to withdraw</p>
         </div>
 
@@ -130,7 +212,7 @@ export default function WalletContent() {
             <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Total Earned</p>
             <TrendingUp size={16} className="text-emerald-500" />
           </div>
-          <p className="text-2xl font-bold text-slate-800 tabular-nums">₹{totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+          <p className="text-2xl font-bold text-slate-800 tabular-nums">₹{lifetimeEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
           <p className="text-emerald-600 text-xs mt-1">All time</p>
         </div>
 
@@ -240,7 +322,7 @@ export default function WalletContent() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100">
-                {['Type', 'Description', 'Campaign', 'Date', 'Status', 'Amount', 'Balance'].map(col => (
+                {['Type', 'Description', 'Date', 'Status', 'Amount', 'Balance'].map(col => (
                   <th key={`txn-th-${col}`} className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
                     {col}
                   </th>
@@ -248,7 +330,13 @@ export default function WalletContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {paginated.map(txn => {
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-400">
+                    {walletLoading ? 'Loading transactions…' : 'No transactions yet'}
+                  </td>
+                </tr>
+              ) : paginated.map(txn => {
                 const config = typeConfig[txn.type];
                 const Icon = config.icon;
                 const isPositive = txn.type !== 'withdrawal' && txn.type !== 'debit';
@@ -263,20 +351,13 @@ export default function WalletContent() {
                     <td className="px-5 py-3.5">
                       <p className="text-sm text-slate-700 line-clamp-1 max-w-xs">{txn.description}</p>
                     </td>
-                    <td className="px-5 py-3.5">
-                      {txn.campaign ? (
-                        <p className="text-xs text-slate-500 line-clamp-1 max-w-[160px]">{txn.campaign}</p>
-                      ) : (
-                        <span className="text-xs text-slate-300">—</span>
-                      )}
-                    </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <p className="text-sm text-slate-600">
                         {new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
                       </p>
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
-                      <StatusBadge status={txn.status} />
+                      <StatusBadge status={txn.status as 'completed' | 'pending' | 'failed' | 'released' | 'escrow'} />
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <span className={`text-sm font-bold tabular-nums ${isPositive ? 'text-emerald-700' : 'text-slate-700'}`}>
@@ -285,7 +366,9 @@ export default function WalletContent() {
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <span className="text-sm text-slate-600 tabular-nums font-mono">
-                        ${txn.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        {txn.balance != null
+                          ? `₹${txn.balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                          : '—'}
                       </span>
                     </td>
                   </tr>
@@ -298,7 +381,7 @@ export default function WalletContent() {
         {/* Pagination */}
         <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-100">
           <p className="text-xs text-slate-500">
-            Showing {(page - 1) * perPage + 1}–{Math.min(page * perPage, filteredTxns.length)} of {filteredTxns.length} transactions
+            Showing {paginated.length === 0 ? 0 : (page - 1) * perPage + 1}–{(page - 1) * perPage + paginated.length} of {txnTotal} transactions
           </p>
           <div className="flex items-center gap-1">
             <button
@@ -334,7 +417,9 @@ export default function WalletContent() {
           onClose={() => setShowWithdraw(false)}
           onSuccess={() => {
             setShowWithdraw(false);
-            toast.success('Withdrawal request submitted — 1–3 business days to process');
+            toast.success('Withdrawal request submitted — pending admin approval');
+            loadWallet();
+            loadTransactions();
           }}
         />
       )}
