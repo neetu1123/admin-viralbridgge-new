@@ -20,6 +20,8 @@ export default function BrandSettingsContent() {
   const [website, setWebsite] = useState('');
   const [industry, setIndustry] = useState('');
   const [bio, setBio] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -29,6 +31,7 @@ export default function BrandSettingsContent() {
       setWebsite(String(profile.website ?? ''));
       setIndustry(String(profile.industry ?? ''));
       setBio(String(profile.description ?? ''));
+      setLogoUrl(profile.logo ? String(profile.logo) : null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load brand profile');
     } finally {
@@ -56,6 +59,36 @@ export default function BrandSettingsContent() {
       setSaving(false);
     }
   };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be 5MB or smaller');
+      e.target.value = '';
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const result = (await brandApi.uploadLogo(file)) as Record<string, unknown>;
+      const url = String(result.logo ?? result.url ?? '');
+      if (url) setLogoUrl(url);
+      toast.success('Brand logo uploaded!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to upload logo');
+    } finally {
+      setUploadingLogo(false);
+      e.target.value = '';
+    }
+  };
+
+  const logoInitials = brandName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'BR';
+
   const [notifApplicants, setNotifApplicants] = useState(true);
   const [notifPayments, setNotifPayments] = useState(true);
   const [notifMessages, setNotifMessages] = useState(true);
@@ -112,12 +145,33 @@ export default function BrandSettingsContent() {
               <h2 className="text-base font-semibold text-slate-800 mb-5">Brand Profile</h2>
               <div className="space-y-5">
                 <div className="flex items-center gap-4 pb-5 border-b border-slate-100">
-                  <div className="w-16 h-16 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-violet-700 text-xl font-bold">NK</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800 mb-1">Brand Logo</p>
-                    <button onClick={() => toast.success('Upload triggered')} className="text-xs text-violet-600 hover:text-violet-700 font-medium border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors">Upload Logo</button>
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={brandName || 'Brand logo'}
+                      className="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-violet-700 text-xl font-bold">{logoInitials}</span>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-800 mb-2">Brand Logo</p>
+                    <label htmlFor="brandLogoUpload" className="block text-xs font-semibold text-violet-700 mb-1.5">
+                      Upload Image
+                    </label>
+                    <input
+                      type="file"
+                      id="brandLogoUpload"
+                      name="image"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo || loading}
+                      className="block w-full max-w-xs text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+                    />
+                    <p className="text-xs text-slate-400 mt-1">JPG, PNG or GIF. Max 5MB.</p>
+                    {uploadingLogo && <p className="text-xs text-slate-400 mt-1">Uploading…</p>}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

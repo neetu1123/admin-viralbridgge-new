@@ -32,6 +32,7 @@ export default function CreatorProfileContent() {
   >([]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [followersCount, setFollowersCount] = useState(0);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -51,7 +52,7 @@ export default function CreatorProfileContent() {
       setWebsite('');
       setSelectedNiches(profile.niche ? [String(profile.niche)] : []);
       setMediaKitUrl(String(profile.media_kit ?? ''));
-      setPhotoUrl(profile.profile_photo ? String(profile.profile_photo) : null);
+      setPhotoUrl(profile.photo ? String(profile.photo) : profile.profile_photo ? String(profile.profile_photo) : null);
       setFollowersCount(Number(profile.followers_count ?? 0));
       const portfolio = Array.isArray(profile.portfolio) ? profile.portfolio : [];
       setPortfolioItems(
@@ -120,6 +121,35 @@ export default function CreatorProfileContent() {
     );
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be 5MB or smaller');
+      e.target.value = '';
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const result = (await creatorApi.uploadPhoto(file)) as Record<string, unknown>;
+      const url = String(result.photo ?? result.url ?? '');
+      if (url) setPhotoUrl(url);
+      toast.success('Profile photo uploaded!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to upload photo');
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = '';
+    }
+  };
+
+  const photoInitials = name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'U';
+
   const removePortfolioItem = (id: string) => setPortfolioItems(prev => prev.filter(p => p.id !== id));
 
   const socialLinks = [
@@ -162,20 +192,41 @@ export default function CreatorProfileContent() {
             <h2 className="text-sm font-semibold text-slate-700 mb-4">Profile Photo</h2>
             <div className="flex flex-col items-center">
               <div className="relative mb-4">
-                <div className="w-24 h-24 rounded-full bg-violet-100 flex items-center justify-center">
-                  <span className="text-violet-700 text-2xl font-bold">SM</span>
-                </div>
-                <button
-                  onClick={() => toast.success('Upload triggered')}
-                  className="absolute bottom-0 right-0 w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center shadow-md hover:bg-violet-700 transition-colors"
+                {photoUrl ? (
+                  <img
+                    src={photoUrl}
+                    alt={name || 'Profile'}
+                    className="w-24 h-24 rounded-full object-cover border-2 border-violet-100"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-violet-100 flex items-center justify-center">
+                    <span className="text-violet-700 text-2xl font-bold">{photoInitials}</span>
+                  </div>
+                )}
+                <label
+                  htmlFor="creatorProfilePhotoUpload"
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center shadow-md hover:bg-violet-700 transition-colors cursor-pointer"
+                  title="Upload profile photo"
                 >
                   <Camera size={14} className="text-white" />
-                </button>
+                </label>
               </div>
               <p className="text-xs text-slate-500 text-center">JPG, PNG or GIF. Max 5MB.</p>
-              <button onClick={() => toast.success('Upload triggered')} className="mt-3 text-xs text-violet-600 hover:text-violet-700 font-medium border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors">
-                Upload Photo
-              </button>
+              <div className="mt-3 w-full">
+                <label htmlFor="creatorProfilePhotoUpload" className="block text-xs font-semibold text-violet-700 mb-1.5">
+                  Upload Image
+                </label>
+                <input
+                  type="file"
+                  id="creatorProfilePhotoUpload"
+                  name="image"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  disabled={uploadingPhoto || loading}
+                  className="block w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+                />
+                {uploadingPhoto && <p className="text-xs text-slate-400 mt-1">Uploading…</p>}
+              </div>
             </div>
           </div>
 

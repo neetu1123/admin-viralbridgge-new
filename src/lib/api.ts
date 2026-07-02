@@ -451,6 +451,11 @@ export const brandApi = {
   getProfile: () => apiFetch('/brand/profile'),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/brand/profile', { method: 'PUT', body: JSON.stringify(data) }),
+  uploadLogo: (file: File) => {
+    const form = new FormData();
+    form.append('image', file);
+    return apiUpload<{ logo?: string; url?: string }>('/brand/upload-logo', form);
+  },
 
   createCampaign: (data: Record<string, unknown>) =>
     apiFetch('/brand/campaigns', { method: 'POST', body: JSON.stringify(data) }),
@@ -556,7 +561,12 @@ export const creatorApi = {
   getProfile: () => apiFetch('/creator/profile'),
   updateProfile: (data: Record<string, unknown>) =>
     apiFetch('/creator/profile', { method: 'PUT', body: JSON.stringify(data) }),
-  uploadPhoto: (url: string) =>
+  uploadPhoto: (file: File) => {
+    const form = new FormData();
+    form.append('image', file);
+    return apiUpload<{ photo?: string; url?: string }>('/creator/upload-photo', form);
+  },
+  uploadPhotoByUrl: (url: string) =>
     apiFetch('/creator/upload-photo', { method: 'POST', body: JSON.stringify({ url }) }),
   uploadMediaKit: (url: string) =>
     apiFetch('/creator/upload-media-kit', { method: 'POST', body: JSON.stringify({ url }) }),
