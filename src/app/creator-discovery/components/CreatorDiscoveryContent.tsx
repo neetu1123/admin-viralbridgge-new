@@ -1,9 +1,10 @@
 'use client';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
 import { brandApi } from '@/src/lib/api';
 import { extractList, extractMeta, mapCreatorCard, type CreatorCardRow } from '@/src/lib/mappers';
-import { Search, SlidersHorizontal, Users, TrendingUp, Star, MessageSquare, UserPlus, ChevronDown, X, MapPin, Globe, DollarSign, Filter } from 'lucide-react';
+import { Search, SlidersHorizontal, Users, TrendingUp, Star, MessageSquare, UserPlus, ChevronDown, X, MapPin, Globe, DollarSign, Filter, Plus } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 
 type Creator = CreatorCardRow;
@@ -52,6 +53,21 @@ export default function CreatorDiscoveryContent() {
   const [showFilters, setShowFilters] = useState(true);
   const [invitedCreators, setInvitedCreators] = useState<Set<string>>(new Set());
   const [totalCreators, setTotalCreators] = useState(0);
+  const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
+
+  useEffect(() => {
+    let scrollTicks = 0;
+    const onScroll = () => {
+      scrollTicks += 1;
+      if (scrollTicks >= 10) setShowCampaignPrompt(true);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    const timer = window.setTimeout(() => setShowCampaignPrompt(true), 40000);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   const loadCreators = useCallback(async () => {
     setLoading(true);
@@ -382,6 +398,27 @@ export default function CreatorDiscoveryContent() {
           )}
         </div>
       </div>
+
+      {showCampaignPrompt && (
+        <div className="fixed bottom-6 right-6 z-40 max-w-sm bg-white border border-violet-200 shadow-xl rounded-2xl p-4 animate-in slide-in-from-bottom-4">
+          <button
+            type="button"
+            onClick={() => setShowCampaignPrompt(false)}
+            className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 text-xs"
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+          <p className="text-sm font-bold text-slate-800 pr-6">Ready to launch a campaign?</p>
+          <p className="text-xs text-slate-500 mt-1 mb-3">You found great creators — create a campaign to start collaborating.</p>
+          <Link
+            href="/brand-campaign-management"
+            className="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={14} /> Create Campaign
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

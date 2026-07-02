@@ -227,7 +227,7 @@ export default function BrandCampaignContent() {
   };
 
   // Business KPI metrics
-  const roiGenerated = 3.4;
+  const reachFactorGenerated = 3.4;
   const costPerEngagement = 0.18;
   const campaignSuccessRate = 78;
   const conversionEfficiency = 4.2;
@@ -240,7 +240,7 @@ export default function BrandCampaignContent() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Brand Intelligence Dashboard</h1>
-          <p className="text-slate-500 text-sm mt-1">Marketing performance, creator intelligence & campaign ROI</p>
+          <p className="text-slate-500 text-sm mt-1">Marketing performance, creator intelligence & reach analytics</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -253,13 +253,13 @@ export default function BrandCampaignContent() {
 
       {/* ROW 1 — Executive Metrics (Big Cards) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        {/* ROI Generated */}
+        {/* Total Reach Factor */}
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wide">ROI Generated</p>
+            <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wide">Total Reach Factor</p>
             <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center"><TrendingUp size={15} className="text-white" /></div>
           </div>
-          <p className="text-3xl font-black tabular-nums mb-1">{roiGenerated}x</p>
+          <p className="text-3xl font-black tabular-nums mb-1">{reachFactorGenerated}x</p>
           <div className="flex items-center gap-1.5">
             <ArrowUpRight size={13} className="text-emerald-200" />
             <p className="text-emerald-200 text-xs font-medium">+0.4x from last month</p>

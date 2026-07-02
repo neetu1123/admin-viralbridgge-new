@@ -4,6 +4,8 @@ import { toast, Toaster } from 'sonner';
 import { creatorApi } from '@/src/lib/api';
 import { Camera, Save, Plus, X, Star, TrendingUp, Users, Briefcase } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
+import ProfileCompletionBanner from '@/src/components/ProfileCompletionBanner';
+import { creatorProfileCompletion } from '@/src/lib/profileCompletion';
 
 
 
@@ -28,6 +30,8 @@ export default function CreatorProfileContent() {
   const [portfolioItems, setPortfolioItems] = useState<
     Array<{ id: string; title: string; platform: string; views: string; engagement: string; url: string }>
   >([]);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [followersCount, setFollowersCount] = useState(0);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -47,6 +51,8 @@ export default function CreatorProfileContent() {
       setWebsite('');
       setSelectedNiches(profile.niche ? [String(profile.niche)] : []);
       setMediaKitUrl(String(profile.media_kit ?? ''));
+      setPhotoUrl(profile.profile_photo ? String(profile.profile_photo) : null);
+      setFollowersCount(Number(profile.followers_count ?? 0));
       const portfolio = Array.isArray(profile.portfolio) ? profile.portfolio : [];
       setPortfolioItems(
         portfolio.map((item: Record<string, unknown>, i: number) => ({
@@ -68,6 +74,20 @@ export default function CreatorProfileContent() {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  const profileCompletion = creatorProfileCompletion({
+    name,
+    bio,
+    photo: photoUrl,
+    niche: selectedNiches[0],
+    locality: location,
+    instagram,
+    youtube,
+    tiktok,
+    followers: followersCount,
+    mediaKit: mediaKitUrl,
+    portfolioCount: portfolioItems.length,
+  });
 
   const saveProfile = async () => {
     setSaving(true);
@@ -127,6 +147,12 @@ export default function CreatorProfileContent() {
           <Save size={15} /> {saving ? 'Saving...' : 'Save Profile'}
         </button>
       </div>
+
+      <ProfileCompletionBanner
+        percent={profileCompletion.percent}
+        prompts={profileCompletion.prompts}
+        role="creator"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column — photo + stats */}

@@ -58,7 +58,7 @@ export default function CampaignDiscoveryContent() {
   const [savedCampaigns, setSavedCampaigns] = useState<Set<string>>(new Set());
   const [appliedCampaigns, setAppliedCampaigns] = useState<Set<string>>(new Set());
   const [applyTarget, setApplyTarget] = useState<Campaign | null>(null);
-  const [showFilters, setShowFilters] = useState(true);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'budget_high' | 'budget_low' | 'applicants_low' | 'match'>('match');
   const [activeRecommendedTab, setActiveRecommendedTab] = useState('recommended');
   const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
@@ -388,8 +388,8 @@ export default function CampaignDiscoveryContent() {
       </div>
 
       {/* Search + sort bar */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1">
+      <div className="flex items-center gap-3 mb-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -399,14 +399,6 @@ export default function CampaignDiscoveryContent() {
             className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 bg-white"
           />
         </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${showFilters ? 'bg-violet-50 border-violet-200 text-violet-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-        >
-          <SlidersHorizontal size={15} />
-          Filters
-          {activeFilters.length > 0 && <span className="bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">{activeFilters.length}</span>}
-        </button>
         <div className="relative">
           <select
             value={sortBy}
@@ -421,6 +413,112 @@ export default function CampaignDiscoveryContent() {
           </select>
           <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
+      </div>
+
+      {/* Myntra-style filters: 3 primary + More Filters */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[140px] flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Platform</label>
+            <select
+              value={selectedPlatform}
+              onChange={e => setSelectedPlatform(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            >
+              {platforms.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="min-w-[140px] flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Budget</label>
+            <select
+              value={selectedBudget}
+              onChange={e => setSelectedBudget(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            >
+              {budgetRanges.map((r, i) => <option key={r.label} value={i}>{r.label}</option>)}
+            </select>
+          </div>
+          <div className="min-w-[140px] flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Location</label>
+            <select
+              value={selectedLocality}
+              onChange={e => setSelectedLocality(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            >
+              {localities.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowMoreFilters(v => !v)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all whitespace-nowrap ${showMoreFilters ? 'bg-violet-50 border-violet-200 text-violet-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+          >
+            <SlidersHorizontal size={15} />
+            More Filters
+            {activeFilters.length > 3 && (
+              <span className="bg-violet-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                {activeFilters.length - 3}
+              </span>
+            )}
+            {showMoreFilters ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />}
+          </button>
+        </div>
+
+        {showMoreFilters && (
+          <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Niche</label>
+              <select value={selectedNiche} onChange={e => setSelectedNiche(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white">
+                {niches.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Language</label>
+              <select value={selectedLanguage} onChange={e => setSelectedLanguage(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white">
+                {languages.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Followers</label>
+              <select value={selectedFollowers} onChange={e => setSelectedFollowers(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white">
+                {followerRequirements.map((r, i) => <option key={r.label} value={i}>{r.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Deliverables</p>
+              <div className="flex flex-wrap gap-2">
+                {deliverableTypes.map(d => (
+                  <label key={d} className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                    <input type="checkbox" checked={selectedDeliverables.includes(d)} onChange={() => toggleMultiFilter(d, selectedDeliverables, setSelectedDeliverables)} className="accent-violet-600" />
+                    {d}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Payment Type</p>
+              <div className="flex flex-wrap gap-2">
+                {paymentTypes.map(p => (
+                  <label key={p} className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                    <input type="checkbox" checked={selectedPaymentTypes.includes(p)} onChange={() => toggleMultiFilter(p, selectedPaymentTypes, setSelectedPaymentTypes)} className="accent-violet-600" />
+                    {p}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Brand Size</p>
+              <div className="flex flex-wrap gap-2">
+                {brandSizes.map(b => (
+                  <label key={b} className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                    <input type="checkbox" checked={selectedBrandSizes.includes(b)} onChange={() => toggleMultiFilter(b, selectedBrandSizes, setSelectedBrandSizes)} className="accent-violet-600" />
+                    {b}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Active filter chips */}
@@ -447,104 +545,7 @@ export default function CampaignDiscoveryContent() {
         </div>
       )}
 
-      <div className="flex gap-6">
-        {/* Advanced Filter sidebar */}
-        {showFilters && (
-          <div className="w-60 flex-shrink-0 space-y-3">
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Platform</h3>
-              <div className="space-y-1">
-                {platforms.map(p => (
-                  <button key={`plat-${p}`} onClick={() => setSelectedPlatform(p)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-sm transition-colors ${selectedPlatform === p ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>{p}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Niche</h3>
-              <div className="space-y-1">
-                {niches.map(n => (
-                  <button key={`niche-${n}`} onClick={() => setSelectedNiche(n)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-sm transition-colors ${selectedNiche === n ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>{n}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><MapPin size={12} />Locality</h3>
-              <div className="space-y-1">
-                {localities.map(l => (
-                  <button key={`loc-${l}`} onClick={() => setSelectedLocality(l)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-sm transition-colors ${selectedLocality === l ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>{l}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Globe size={12} />Language</h3>
-              <div className="space-y-1">
-                {languages.map(l => (
-                  <button key={`lang-${l}`} onClick={() => setSelectedLanguage(l)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-sm transition-colors ${selectedLanguage === l ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>{l}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Budget Range</h3>
-              <div className="space-y-1">
-                {budgetRanges.map((r, i) => (
-                  <button key={`budget-${i}`} onClick={() => setSelectedBudget(i)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-sm transition-colors ${selectedBudget === i ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>{r.label}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Users size={12} />Followers Required</h3>
-              <div className="space-y-1">
-                {followerRequirements.map((r, i) => (
-                  <button key={`fol-${i}`} onClick={() => setSelectedFollowers(i)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-sm transition-colors ${selectedFollowers === i ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>{r.label}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Deliverable Type</h3>
-              <div className="space-y-1.5">
-                {deliverableTypes.map(d => (
-                  <label key={d} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={selectedDeliverables.includes(d)} onChange={() => toggleMultiFilter(d, selectedDeliverables, setSelectedDeliverables)} className="w-3.5 h-3.5 rounded accent-violet-600" />
-                    <span className="text-sm text-slate-600">{d}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Payment Type</h3>
-              <div className="space-y-1.5">
-                {paymentTypes.map(p => (
-                  <label key={p} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={selectedPaymentTypes.includes(p)} onChange={() => toggleMultiFilter(p, selectedPaymentTypes, setSelectedPaymentTypes)} className="w-3.5 h-3.5 rounded accent-violet-600" />
-                    <span className="text-sm text-slate-600">{p}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Brand Size</h3>
-              <div className="space-y-1.5">
-                {brandSizes.map(b => (
-                  <label key={b} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={selectedBrandSizes.includes(b)} onChange={() => toggleMultiFilter(b, selectedBrandSizes, setSelectedBrandSizes)} className="w-3.5 h-3.5 rounded accent-violet-600" />
-                    <span className="text-sm text-slate-600">{b}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Campaign grid */}
-        <div className="flex-1">
+      <div className="flex-1">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-slate-500 font-medium">{filtered.length} campaigns found</p>
           </div>
@@ -559,7 +560,6 @@ export default function CampaignDiscoveryContent() {
               {filtered.map(campaign => renderCampaignCard(campaign))}
             </div>
           )}
-        </div>
       </div>
 
       {applyTarget && (

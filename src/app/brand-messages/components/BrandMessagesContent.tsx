@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, Send, Paperclip, MoreVertical, CheckCheck, Check, Info, Star, TrendingUp, Users } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import StatusBadge from '@/src/components/ui/StatusBadge';
+import MessageTemplatePicker from '@/src/components/MessageTemplatePicker';
 
 interface Conversation {
   id: string; with: string; withRole: 'creator'; avatar: string;
@@ -176,18 +177,14 @@ export default function BrandMessagesContent() {
                     <div ref={messagesEndRef} />
                   </div>
                   <div className="px-4 py-3 border-t border-slate-100">
+                    <MessageTemplatePicker role="brand" onSelect={(text) => setMessage(text)} />
                     <div className="flex items-center gap-2">
-                      <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors flex-shrink-0"><Paperclip size={16} /></button>
-                      <input
-                        type="text"
-                        placeholder={`Message ${activeConv.with}...`}
-                        value={message}
-                        onChange={e => setMessage(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                        className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
-                      />
+                      <div className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 min-h-[42px]">
+                        {message || 'Select a template above to compose your message'}
+                      </div>
                       <button onClick={sendMessage} disabled={!message.trim()} className="p-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-xl transition-colors flex-shrink-0"><Send size={15} /></button>
                     </div>
+                    <p className="text-xs text-slate-400 mt-2 text-center">Messages use predefined templates only</p>
                   </div>
                 </div>
 

@@ -598,8 +598,10 @@ export const creatorApi = {
 
   getDashboard: () => apiFetch('/creator/dashboard'),
   getWallet: () => apiFetch('/creator/wallet'),
-  withdraw: (amount: number) =>
-    apiFetch('/creator/wallet/withdraw', { method: 'POST', body: JSON.stringify({ amount }) }),
+  sendWithdrawOtp: () =>
+    apiFetch<{ sent: boolean; expiresAt: string }>('/creator/wallet/withdraw-otp', { method: 'POST' }),
+  withdraw: (amount: number, otp: string) =>
+    apiFetch('/creator/wallet/withdraw', { method: 'POST', body: JSON.stringify({ amount, otp }) }),
   getTransactions: (params?: Record<string, string | number | boolean | undefined>) =>
     apiFetch(`/creator/wallet/transactions${toQuery(params)}`),
 

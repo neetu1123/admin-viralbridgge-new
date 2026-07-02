@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, Send, Paperclip, MoreVertical, Video, CheckCheck, Check, Image, FileText, Info, ExternalLink } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import StatusBadge from '@/src/components/ui/StatusBadge';
+import MessageTemplatePicker from '@/src/components/MessageTemplatePicker';
 
 interface Conversation {
   id: string;
@@ -261,22 +262,14 @@ export default function MessagingContent() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
+          {/* Input — template-based messaging */}
           <div className="px-5 py-4 border-t border-slate-100 bg-white">
+            <MessageTemplatePicker role="creator" onSelect={(text) => setMessage(text)} />
             <div className="flex items-end gap-3">
-              <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 flex-shrink-0 mb-0.5" title="Attach file">
-                <Paperclip size={16} />
-              </button>
-              <div className="flex-1 border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-violet-500/30 focus-within:border-violet-500 transition-all">
-                <textarea
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={`Message ${activeConv.with}...`}
-                  rows={1}
-                  className="w-full px-4 py-3 text-sm text-slate-800 resize-none focus:outline-none bg-white scrollbar-thin"
-                  style={{ maxHeight: '120px' }}
-                />
+              <div className="flex-1 border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                <p className="px-4 py-3 text-sm text-slate-700 min-h-[48px]">
+                  {message || 'Select a template above to compose your message'}
+                </p>
               </div>
               <button
                 onClick={sendMessage}
@@ -287,7 +280,7 @@ export default function MessagingContent() {
                 <Send size={16} />
               </button>
             </div>
-            <p className="text-xs text-slate-400 mt-2 text-center">Press Enter to send · Shift+Enter for new line</p>
+            <p className="text-xs text-slate-400 mt-2 text-center">Messages use predefined templates only</p>
           </div>
         </div>
       ) : (

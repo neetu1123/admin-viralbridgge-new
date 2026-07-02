@@ -15,6 +15,8 @@ export default function AdminKycContent() {
   const [requests, setRequests] = useState<KycRequestApi[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('PENDING');
+  const [rejectTarget, setRejectTarget] = useState<KycRequestApi | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,11 +43,17 @@ export default function AdminKycContent() {
     }
   };
 
-  const handleReject = async (id: string) => {
-    const remarks = window.prompt('Rejection reason (optional):') ?? undefined;
+  const handleRejectConfirm = async () => {
+    if (!rejectTarget) return;
+    if (!rejectReason.trim()) {
+      toast.error('Rejection reason is required');
+      return;
+    }
     try {
-      await adminApi.rejectKyc(id, remarks);
+      await adminApi.rejectKyc(rejectTarget.id, rejectReason.trim());
       toast.success('KYC rejected');
+      setRejectTarget(null);
+      setRejectReason('');
       load();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Reject failed');
@@ -58,7 +66,7 @@ export default function AdminKycContent() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">KYC Verification</h1>
-          <p className="text-slate-500 text-sm mt-1">Review creator and brand identity submissions</p>
+          <p className="text-slate-500 text-sm mt-1">Review, approve, reject, or revoke creator and brand KYC</p>
         </div>
         <select
           value={statusFilter}
@@ -79,6 +87,7 @@ export default function AdminKycContent() {
         <div className="space-y-4">
           {requests.map(req => {
             const profile = req.user_type === 'CREATOR' ? req.creator_kyc : req.brand_kyc;
+            const canReview = req.status === 'PENDING' || req.status === 'VERIFIED';
             return (
               <div key={req.id} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -91,14 +100,24 @@ export default function AdminKycContent() {
                     </div>
                     <p className="text-xs text-slate-400">{req.user?.email}</p>
                     <p className="text-xs text-slate-400 mt-1">Submitted {req.submitted_at?.slice(0, 10)}</p>
+                    {req.remarks && (
+                      <p className="text-xs text-red-600 mt-2 bg-red-50 border border-red-100 rounded-lg px-2 py-1">
+                        Last rejection: {req.remarks}
+                      </p>
+                    )}
                   </div>
-                  {req.status === 'PENDING' && (
+                  {canReview && (
                     <div className="flex gap-2">
-                      <button onClick={() => handleApprove(req.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg">
-                        <CheckCircle size={14} /> Approve
-                      </button>
-                      <button onClick={() => handleReject(req.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium rounded-lg border border-red-200">
-                        <XCircle size={14} /> Reject
+                      {req.status === 'PENDING' && (
+                        <button onClick={() => handleApprove(req.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg">
+                          <CheckCircle size={14} /> Approve
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { setRejectTarget(req); setRejectReason(''); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium rounded-lg border border-red-200"
+                      >
+                        <XCircle size={14} /> {req.status === 'VERIFIED' ? 'Revoke & Reject' : 'Reject'}
                       </button>
                     </div>
                   )}
@@ -116,6 +135,32 @@ export default function AdminKycContent() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-5">
+            <h3 className="text-sm font-bold text-slate-800 mb-1">Reject KYC</h3>
+            <p className="text-xs text-slate-500 mb-3">
+              Provide a clear reason for {rejectTarget.user?.name}. They can edit and resubmit their KYC.
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+              rows={4}
+              placeholder="e.g. Selfie does not match ID, incomplete business documents…"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 mb-4"
+            />
+            <div className="flex gap-2 justify-end">
+              <button type="button" onClick={() => setRejectTarget(null)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">
+                Cancel
+              </button>
+              <button type="button" onClick={handleRejectConfirm} className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg">
+                Confirm Rejection
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

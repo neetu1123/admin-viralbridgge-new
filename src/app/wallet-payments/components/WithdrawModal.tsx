@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import Modal from '@/src/components/ui/Modal';
-import { DollarSign, AlertCircle } from 'lucide-react';
+import { DollarSign, AlertCircle, ShieldCheck } from 'lucide-react';
 import { creatorApi } from '@/src/lib/api';
 import { toast } from 'sonner';
 
@@ -10,6 +10,7 @@ interface WithdrawForm {
   amount: string;
   method: string;
   accountDetail: string;
+  otp: string;
 }
 
 interface WithdrawModalProps {
@@ -20,9 +21,24 @@ interface WithdrawModalProps {
 
 export default function WithdrawModal({ availableBalance, onClose, onSuccess }: WithdrawModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
   const { register, handleSubmit, formState: { errors }, control } = useForm<WithdrawForm>({
-    defaultValues: { method: 'bank' },
+    defaultValues: { method: 'bank', otp: '' },
   });
+
+  const sendOtp = async () => {
+    setSendingOtp(true);
+    try {
+      await creatorApi.sendWithdrawOtp();
+      setOtpSent(true);
+      toast.success('Verification code sent to your email');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send OTP');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
 
   const onSubmit = async (data: WithdrawForm) => {
     const amount = parseFloat(data.amount);
@@ -34,9 +50,13 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
       toast.error('Amount exceeds available balance');
       return;
     }
+    if (!data.otp?.trim()) {
+      toast.error('Enter the OTP sent to your email');
+      return;
+    }
     setIsSubmitting(true);
     try {
-      await creatorApi.withdraw(amount);
+      await creatorApi.withdraw(amount, data.otp.trim());
       onSuccess();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Withdrawal failed');
@@ -111,6 +131,33 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
             {...register('accountDetail', { required: 'Account detail is required' })}
           />
           {errors.accountDetail && <p className="text-red-500 text-xs mt-1">{errors.accountDetail.message}</p>}
+        </div>
+
+        <div className="border border-slate-200 rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-sm font-medium text-slate-700 flex items-center gap-1.5" htmlFor="wd-otp">
+              <ShieldCheck size={14} className="text-violet-600" /> OTP Verification
+            </label>
+            <button
+              type="button"
+              onClick={sendOtp}
+              disabled={sendingOtp}
+              className="text-xs font-semibold text-violet-600 hover:text-violet-700 disabled:opacity-50"
+            >
+              {sendingOtp ? 'Sending…' : otpSent ? 'Resend OTP' : 'Send OTP'}
+            </button>
+          </div>
+          <input
+            id="wd-otp"
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="Enter 6-digit code"
+            className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${errors.otp ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
+            {...register('otp', { required: 'OTP is required', minLength: { value: 6, message: 'Enter 6-digit OTP' } })}
+          />
+          {errors.otp && <p className="text-red-500 text-xs">{errors.otp.message}</p>}
+          <p className="text-xs text-slate-500">A verification code is required before every withdrawal.</p>
         </div>
 
         {amount > 0 && (

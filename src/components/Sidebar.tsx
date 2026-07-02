@@ -7,7 +7,7 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 
@@ -306,6 +306,10 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
           <Link href={role === 'brand' ? '/brand-settings' : '/creator-settings'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Settings' : undefined}>
             <Settings size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
             {!collapsed && <span className="text-sm">Settings</span>}
+          </Link>
+          <Link href="/troubleshoot" className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Help & Support' : undefined}>
+            <HelpCircle size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
+            {!collapsed && <span className="text-sm">Help & Support</span>}
           </Link>
         </div>
       </nav>
