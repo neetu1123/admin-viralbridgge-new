@@ -35,9 +35,18 @@ type EscrowRow = {
   campaignId: string;
   creatorId: string;
   amount: number;
+  platformFee: number;
+  brandTotal: number;
   status: string;
   creatorName?: string;
 };
+
+const PLATFORM_FEE_PERCENT = 10;
+
+function escrowFundingTotals(campaignAmount: number) {
+  const platformFee = Math.round((campaignAmount * PLATFORM_FEE_PERCENT) / 100 * 100) / 100;
+  return { platformFee, brandTotal: campaignAmount + platformFee };
+}
 
 function normalizeDeliverable(raw: Record<string, unknown>): DeliverableRow {
   const creator = raw.creator as DeliverableRow['creator'];
@@ -101,14 +110,21 @@ export default function BrandDeliverablesContent() {
       setEscrows(
         (Array.isArray(escrowRes) ? escrowRes : [])
           .filter((e: Record<string, unknown>) => String(e.campaignId ?? e.campaign_id) === campaignId)
-          .map((e: Record<string, unknown>) => ({
-            id: String(e.id),
-            campaignId: String(e.campaignId ?? e.campaign_id),
-            creatorId: String(e.creatorId ?? e.creator_id),
-            amount: Number(e.amount) || 0,
-            status: String(e.status ?? '').toUpperCase(),
-            creatorName: String(e.creatorName ?? ''),
-          })),
+          .map((e: Record<string, unknown>) => {
+            const amount = Number(e.amount) || 0;
+            const platformFee = Number(e.platformFee ?? e.platform_fee_amount ?? e.platform_fee) || escrowFundingTotals(amount).platformFee;
+            const brandTotal = Number(e.brandTotal) || amount + platformFee;
+            return {
+              id: String(e.id),
+              campaignId: String(e.campaignId ?? e.campaign_id),
+              creatorId: String(e.creatorId ?? e.creator_id),
+              amount,
+              platformFee,
+              brandTotal,
+              status: String(e.status ?? '').toUpperCase(),
+              creatorName: String(e.creatorName ?? ''),
+            };
+          }),
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load deliverables');
@@ -219,14 +235,20 @@ export default function BrandDeliverablesContent() {
           </p>
           <div className="space-y-2">
             {pendingEscrows.map((e) => (
-              <div key={e.id} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-amber-100">
-                <span className="text-sm text-slate-700">{e.creatorName || 'Creator'} · ₹{e.amount.toLocaleString()}</span>
+              <div key={e.id} className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-xl px-4 py-3 border border-amber-100">
+                <div>
+                  <span className="text-sm font-medium text-slate-800 block">{e.creatorName || 'Creator'}</span>
+                  <span className="text-xs text-slate-500">
+                    Campaign ₹{e.amount.toLocaleString()} + {PLATFORM_FEE_PERCENT}% fee ₹{e.platformFee.toLocaleString()} ={' '}
+                    <span className="font-semibold text-slate-700">₹{e.brandTotal.toLocaleString()} total</span>
+                  </span>
+                </div>
                 <button
                   onClick={() => fundEscrow(e)}
                   disabled={actionId === e.id}
                   className="text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                 >
-                  {actionId === e.id ? 'Funding...' : 'Fund Escrow'}
+                  {actionId === e.id ? 'Funding...' : `Pay ₹${e.brandTotal.toLocaleString()}`}
                 </button>
               </div>
             ))}
