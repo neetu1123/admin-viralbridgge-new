@@ -504,6 +504,130 @@ export function mapAdminDisputes(raw: unknown): AdminDisputeRow[] {
   return extractList<Record<string, unknown>>(raw).map(mapAdminDispute);
 }
 
+export interface MyCreatorRow {
+  id: string;
+  name: string;
+  handle: string;
+  avatar: string;
+  niche: string;
+  platform: string;
+  followers: number;
+  engagementRate: number;
+  totalCollabs: number;
+  totalPaid: number;
+  lastCollab: string;
+  status: 'active' | 'completed' | 'paused';
+  rating: number;
+  tags: string[];
+  campaigns: string[];
+}
+
+function resolveCreatorPlatform(
+  creator: Record<string, unknown>,
+  campaign?: Record<string, unknown>,
+): string {
+  const social = (creator.social_links as Record<string, string>) ?? {};
+  const platformFromCampaign = String(campaign?.platform ?? '');
+  if (social.instagram) return 'Instagram';
+  if (social.youtube) return 'YouTube';
+  if (social.tiktok) return 'TikTok';
+  return platformFromCampaign || 'Instagram';
+}
+
+function resolveMyCreatorStatus(
+  applications: Record<string, unknown>[],
+): MyCreatorRow['status'] {
+  const statuses = applications.map((a) => String(a.status ?? '').toUpperCase());
+  const campaignStatuses = applications.map((a) =>
+    String(((a.campaign as Record<string, unknown>) ?? {}).status ?? '').toUpperCase(),
+  );
+
+  if (statuses.some((s) => s === 'ACCEPTED') && campaignStatuses.some((s) => s === 'ACTIVE')) {
+    return 'active';
+  }
+  if (statuses.every((s) => s === 'COMPLETED')) {
+    return 'completed';
+  }
+  return 'paused';
+}
+
+/** Aggregate accepted/completed brand applications into one row per creator */
+export function mapMyCreatorsFromApplications(
+  apps: Record<string, unknown>[],
+): MyCreatorRow[] {
+  const byCreator = new Map<
+    string,
+    { creator: Record<string, unknown>; applications: Record<string, unknown>[] }
+  >();
+
+  for (const app of apps) {
+    const creator = (app.creator as Record<string, unknown>) ?? {};
+    const creatorId = String(creator.id ?? app.creator_id ?? '');
+    if (!creatorId) continue;
+
+    const existing = byCreator.get(creatorId);
+    if (existing) {
+      existing.applications.push(app);
+    } else {
+      byCreator.set(creatorId, { creator, applications: [app] });
+    }
+  }
+
+  return Array.from(byCreator.values()).map(({ creator, applications }) => {
+    const user = (creator.user as Record<string, unknown>) ?? {};
+    const social = (creator.social_links as Record<string, string>) ?? {};
+    const latestApp = applications[0];
+    const latestCampaign = (latestApp?.campaign as Record<string, unknown>) ?? {};
+    const emailLocal = String(user.email ?? creator.contact_email ?? 'creator').split('@')[0];
+    const handleRaw =
+      social.instagram || social.youtube || social.tiktok || emailLocal;
+    const name = String(creator.full_name || user.name || 'Creator');
+    const engagementRate = Number(creator.engagement_rate) || 0;
+    const niche = String(creator.niche ?? 'General');
+    const status = resolveMyCreatorStatus(applications);
+
+    const campaigns = [
+      ...new Set(
+        applications
+          .map((a) => String(((a.campaign as Record<string, unknown>) ?? {}).title ?? ''))
+          .filter(Boolean),
+      ),
+    ];
+
+    const totalPaid = applications.reduce((sum, a) => {
+      const campaign = (a.campaign as Record<string, unknown>) ?? {};
+      return sum + (Number(a.proposed_price) || Number(campaign.budget) || 0);
+    }, 0);
+
+    const lastCollab = applications.reduce((latest, a) => {
+      const date = String(a.updated_at ?? a.created_at ?? '');
+      return date > latest ? date : latest;
+    }, '');
+
+    const tags = [niche.toLowerCase().split('&')[0].trim()];
+    if (engagementRate >= 5) tags.push('top-performer');
+    if (status === 'active') tags.push('active-collab');
+
+    return {
+      id: String(creator.id ?? creator.user_id ?? user.id ?? ''),
+      name,
+      handle: handleRaw.startsWith('@') ? handleRaw : `@${String(handleRaw).replace('@', '')}`,
+      avatar: initials(name),
+      niche,
+      platform: resolveCreatorPlatform(creator, latestCampaign),
+      followers: Number(creator.followers) || 0,
+      engagementRate,
+      totalCollabs: applications.length,
+      totalPaid,
+      lastCollab: lastCollab.slice(0, 10),
+      status,
+      rating: engagementRate >= 6 ? 4.9 : engagementRate >= 4 ? 4.6 : 4.3,
+      tags: tags.filter(Boolean),
+      campaigns,
+    };
+  });
+}
+
 export function mapCreatorCard(raw: Record<string, unknown>): CreatorCardRow {
   const user = (raw.user as Record<string, unknown>) ?? {};
   const social = (raw.social_links as Record<string, string>) ?? {};
