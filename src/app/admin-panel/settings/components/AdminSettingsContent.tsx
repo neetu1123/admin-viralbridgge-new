@@ -4,22 +4,22 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { adminApi } from '@/src/lib/api';
 
-const STATIC_SETTINGS = [
-  { title: 'Platform Fee', desc: 'Current fee rate applied to all transactions', value: '5%', action: 'Edit' as const },
-  { title: 'Escrow Hold Period', desc: 'Days funds are held before auto-release', value: '14 days', action: 'Edit' as const },
-  { title: 'KYC Required', desc: 'Require KYC verification before first payout', value: 'Enabled', action: 'Toggle' as const },
-];
-
 export default function AdminSettingsContent() {
   const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
+  const [platformFeePercent, setPlatformFeePercent] = useState(10);
+  const [feeInput, setFeeInput] = useState('10');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingFee, setSavingFee] = useState(false);
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
       const data = await adminApi.getSettings();
       setAiMatchingEnabled(data.aiMatchingEnabled);
+      const fee = data.platformFeePercent ?? 10;
+      setPlatformFeePercent(fee);
+      setFeeInput(String(fee));
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to load settings');
     } finally {
@@ -45,6 +45,25 @@ export default function AdminSettingsContent() {
     }
   };
 
+  const handleSaveFee = async () => {
+    const next = Number(feeInput);
+    if (!Number.isFinite(next) || next < 0 || next > 50) {
+      toast.error('Platform fee must be between 0 and 50');
+      return;
+    }
+    setSavingFee(true);
+    try {
+      const data = await adminApi.patchSettings({ platformFeePercent: next });
+      setPlatformFeePercent(data.platformFeePercent ?? next);
+      setFeeInput(String(data.platformFeePercent ?? next));
+      toast.success(`Platform fee updated to ${data.platformFeePercent ?? next}%`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update platform fee');
+    } finally {
+      setSavingFee(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
@@ -60,20 +79,49 @@ export default function AdminSettingsContent() {
         <p className="text-slate-500 text-sm mt-1">Platform configuration and admin preferences</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {STATIC_SETTINGS.map((s) => (
-          <div key={s.title} className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-slate-800">{s.title}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{s.desc}</p>
+              <p className="text-sm font-semibold text-slate-800">Platform Fee</p>
+              <p className="text-xs text-slate-500 mt-0.5">Fee rate applied to all escrow transactions</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-violet-700">{s.value}</span>
-              <button className="text-xs px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
-                {s.action}
-              </button>
-            </div>
+            <span className="text-sm font-bold text-violet-700">{platformFeePercent}%</span>
           </div>
-        ))}
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={50}
+              step={0.5}
+              value={feeInput}
+              onChange={(e) => setFeeInput(e.target.value)}
+              className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            />
+            <button
+              onClick={handleSaveFee}
+              disabled={savingFee}
+              className="text-xs px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-semibold disabled:opacity-50"
+            >
+              {savingFee ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-800">Escrow Hold Period</p>
+            <p className="text-xs text-slate-500 mt-0.5">Auto-release after deliverable approval</p>
+          </div>
+          <span className="text-sm font-bold text-slate-700">7 days</span>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-800">KYC Required</p>
+            <p className="text-xs text-slate-500 mt-0.5">Require KYC verification before first payout</p>
+          </div>
+          <span className="text-sm font-bold text-emerald-700">Enabled</span>
+        </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between">
           <div>

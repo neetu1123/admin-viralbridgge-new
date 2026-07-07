@@ -10,6 +10,7 @@ interface Role {
   name: string;
   description: string;
   _count?: { users: number };
+  permissions?: Array<{ permission: { id: string; key: string; description?: string } }>;
 }
 
 interface AdminUser {
@@ -203,6 +204,98 @@ function AssignAdminModal({
   );
 }
 
+function PermissionsModal({
+  role,
+  onClose,
+  onSave,
+}: {
+  role: Role;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const [allPermissions, setAllPermissions] = useState<Array<{ id: string; key: string; description?: string }>>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const [perms, rolePerms] = await Promise.all([
+          rolesApi.getPermissions(),
+          rolesApi.getRolePermissions(role.id),
+        ]);
+        setAllPermissions(perms);
+        setSelected(new Set(rolePerms.permissions.map((p) => p.key)));
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to load permissions');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [role.id]);
+
+  const toggle = (key: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await rolesApi.updateRolePermissions(role.id, Array.from(selected));
+      toast.success('Permissions updated');
+      onSave();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save permissions');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-slate-800">Permissions — {role.name}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><X size={18} /></button>
+        </div>
+        {loading ? (
+          <p className="text-sm text-slate-500">Loading permissions…</p>
+        ) : (
+          <div className="space-y-2 mb-6">
+            {allPermissions.map((perm) => (
+              <label key={perm.id} className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selected.has(perm.key)}
+                  onChange={() => toggle(perm.key)}
+                  className="mt-0.5"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{perm.key}</p>
+                  {perm.description && <p className="text-xs text-slate-500">{perm.description}</p>}
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold">Cancel</button>
+          <button onClick={handleSave} disabled={saving || loading} className="flex-1 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save Permissions'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function RolesContent() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -213,6 +306,7 @@ export default function RolesContent() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [permissionsRole, setPermissionsRole] = useState<Role | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -284,6 +378,14 @@ export default function RolesContent() {
           roles={roles} 
           onClose={() => setIsAssignModalOpen(false)} 
           onSave={() => { setIsAssignModalOpen(false); loadData(); }} 
+        />
+      )}
+
+      {permissionsRole && (
+        <PermissionsModal
+          role={permissionsRole}
+          onClose={() => setPermissionsRole(null)}
+          onSave={() => { setPermissionsRole(null); loadData(); }}
         />
       )}
 
@@ -382,7 +484,20 @@ export default function RolesContent() {
                 <p className="text-sm text-slate-500 mb-4 min-h-[40px] leading-relaxed line-clamp-2">
                   {role.description || 'No description provided.'}
                 </p>
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                    {role.permissions?.length ?? 0} permissions
+                  </span>
+                  {!['SUPER_ADMIN', 'ADMIN'].includes(role.name) && (
+                    <button
+                      onClick={() => setPermissionsRole(role)}
+                      className="text-xs font-semibold text-violet-600 hover:text-violet-700"
+                    >
+                      Manage
+                    </button>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Assigned Users</span>
                   <span className="text-xs font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
                     {role._count?.users || 0}

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { Plus, Search, ChevronDown, MoreHorizontal, Users, TrendingUp, Eye, Edit, Trash2, PauseCircle, CheckCircle, BarChart3, Zap, MessageSquare, Star, ArrowRight, Sparkles, Trophy, UserCheck, Shield, Activity, Brain, Target, TrendingDown, Award, ShieldCheck, BadgeCheck, AlertTriangle, Flame, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
@@ -108,6 +109,13 @@ export default function BrandCampaignContent() {
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [expandedCreator, setExpandedCreator] = useState<string | null>(null);
   const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('create') === '1') {
+      setShowCreate(true);
+    }
+  }, [searchParams]);
 
   const loadData = React.useCallback(async () => {
     setLoading(true);

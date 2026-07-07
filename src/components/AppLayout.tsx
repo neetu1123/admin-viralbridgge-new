@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from './Sidebar';
+import BrandCampaignNudge from './BrandCampaignNudge';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ export default function AppLayout({ children, role = 'creator', topNavbar }: App
           </div>
         </main>
       </div>
+      {role === 'brand' && <BrandCampaignNudge />}
     </div>
   );
 }

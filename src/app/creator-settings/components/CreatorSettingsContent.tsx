@@ -1,23 +1,110 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { User, Bell, CreditCard, Shield, ChevronRight, Save, ShieldCheck, Users } from 'lucide-react';
+import { User, Bell, CreditCard, Shield, ChevronRight, Save, ShieldCheck, Users, Loader2 } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 import KycVerificationPanel from '@/src/components/KycVerificationPanel';
 import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
 import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
 import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
+import { creatorApi, securityApi } from '@/src/lib/api';
 
 
 type SettingsTab = 'account' | 'verification' | 'notifications' | 'payouts' | 'team' | 'security';
 
 export default function CreatorSettingsContent() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [language, setLanguage] = useState('English');
+  const [timezone, setTimezone] = useState('IST (UTC+5:30)');
+  const [deactivatePassword, setDeactivatePassword] = useState('');
   const [notifCampaigns, setNotifCampaigns] = useState(true);
   const [notifPayments, setNotifPayments] = useState(true);
   const [notifMessages, setNotifMessages] = useState(true);
   const [notifInvites, setNotifInvites] = useState(true);
   const [notifWeekly, setNotifWeekly] = useState(false);
+
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [profile, settings] = await Promise.all([
+        creatorApi.getProfile() as Promise<Record<string, unknown>>,
+        creatorApi.getSettings() as Promise<Record<string, unknown>>,
+      ]);
+      const user = (profile.user as Record<string, unknown>) ?? {};
+      setDisplayName(String(profile.full_name ?? user.name ?? ''));
+      setEmail(String(user.email ?? profile.contact_email ?? ''));
+      setLanguage(String(settings.language ?? 'English'));
+      setTimezone(String(settings.timezone ?? 'IST (UTC+5:30)'));
+      setNotifCampaigns(settings.notifCampaigns !== false);
+      setNotifPayments(settings.notifPayments !== false);
+      setNotifMessages(settings.notifMessages !== false);
+      setNotifInvites(settings.notifInvites !== false);
+      setNotifWeekly(Boolean(settings.notifWeekly));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load settings');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const saveAccount = async () => {
+    setSaving(true);
+    try {
+      await creatorApi.updateProfile({
+        full_name: displayName,
+        contact_email: email,
+      });
+      await creatorApi.updateSettings({ language, timezone });
+      toast.success('Account settings saved');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save account');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveNotifications = async () => {
+    setSaving(true);
+    try {
+      await creatorApi.updateSettings({
+        notifCampaigns,
+        notifPayments,
+        notifMessages,
+        notifInvites,
+        notifWeekly,
+      });
+      toast.success('Notification preferences saved');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save notifications');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    if (!deactivatePassword) {
+      toast.error('Enter your password to deactivate');
+      return;
+    }
+    if (!confirm('This will deactivate your account. Type OK to continue.')) return;
+    try {
+      await securityApi.deactivateAccount(deactivatePassword, 'DELETE');
+      toast.success('Account deactivated');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.replace('/sign-up-login-screen');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Deactivation failed');
+    }
+  };
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: 'account', label: 'Account', icon: User },
@@ -39,6 +126,11 @@ export default function CreatorSettingsContent() {
 
       <AcceptInvitationBanner />
 
+      {loading ? (
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="animate-spin text-violet-600" size={28} />
+        </div>
+      ) : (
       <div className="flex gap-6">
         {/* Sidebar */}
         <div className="w-52 flex-shrink-0">
@@ -71,15 +163,15 @@ export default function CreatorSettingsContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1.5">Display Name</label>
-                    <input type="text" defaultValue="Sofia Martinez" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
+                    <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1.5">Email Address</label>
-                    <input type="email" defaultValue="sofia@Viralbridgge.io" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1.5">Language</label>
-                    <select className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 bg-white">
+                    <select value={language} onChange={e => setLanguage(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 bg-white">
                       <option>English</option>
                       <option>Spanish</option>
                       <option>Hindi</option>
@@ -89,7 +181,7 @@ export default function CreatorSettingsContent() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1.5">Timezone</label>
-                    <select className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 bg-white">
+                    <select value={timezone} onChange={e => setTimezone(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 bg-white">
                       <option>EST (UTC-5)</option>
                       <option>PST (UTC-8)</option>
                       <option>IST (UTC+5:30)</option>
@@ -100,12 +192,19 @@ export default function CreatorSettingsContent() {
                 </div>
                 <div className="pt-2 border-t border-slate-100">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Danger Zone</p>
-                  <button onClick={() => toast.error('Account deactivation requires confirmation')} className="text-xs text-red-600 hover:text-red-700 font-medium border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
+                  <input
+                    type="password"
+                    placeholder="Current password"
+                    value={deactivatePassword}
+                    onChange={e => setDeactivatePassword(e.target.value)}
+                    className="w-full max-w-sm px-3 py-2 border border-red-200 rounded-lg text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-red-200"
+                  />
+                  <button onClick={handleDeactivate} className="text-xs text-red-600 hover:text-red-700 font-medium border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
                     Deactivate Account
                   </button>
                 </div>
-                <button onClick={() => toast.success('Account settings saved')} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-all">
-                  <Save size={14} /> Save Changes
+                <button onClick={saveAccount} disabled={saving} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-all disabled:opacity-50">
+                  <Save size={14} /> {saving ? 'Saving…' : 'Save Changes'}
                 </button>
               </div>
             </div>
@@ -130,7 +229,7 @@ export default function CreatorSettingsContent() {
                       <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
                     </div>
                     <button
-                      onClick={() => { item.setter(!item.value); toast.success(`${item.label} ${!item.value ? 'enabled' : 'disabled'}`); }}
+                      onClick={() => item.setter(!item.value)}
                       className={`relative rounded-full transition-colors flex-shrink-0 ${item.value ? 'bg-violet-600' : 'bg-slate-200'}`}
                       style={{ height: '22px', width: '40px' }}
                     >
@@ -138,6 +237,9 @@ export default function CreatorSettingsContent() {
                     </button>
                   </div>
                 ))}
+                <button onClick={saveNotifications} disabled={saving} className="mt-4 flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-all disabled:opacity-50">
+                  <Save size={14} /> Save Preferences
+                </button>
               </div>
             </div>
           )}
@@ -208,6 +310,7 @@ export default function CreatorSettingsContent() {
           {activeTab === 'security' && <SecuritySettingsPanel />}
         </div>
       </div>
+      )}
     </div>
   );
 }

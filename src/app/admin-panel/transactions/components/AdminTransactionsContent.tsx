@@ -1,30 +1,18 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, ArrowUpRight, ArrowDownLeft, Lock, RefreshCw, TrendingUp, Unlock, RotateCcw } from 'lucide-react';
+import { Search, ChevronDown, ArrowUpRight, ArrowDownLeft, Lock, RefreshCw, TrendingUp, Loader2, Unlock, RotateCcw } from 'lucide-react';
+import { adminApi } from '@/src/lib/api';
+import { downloadCsv } from '@/src/lib/exportCsv';
+import { mapAdminTransactions, type AdminTransactionRow } from '@/src/lib/mappers';
 
 interface AdminTransaction {
   id: string;
   type: 'brand_to_escrow' | 'escrow_to_creator' | 'withdrawal' | 'refund' | 'credit';
   from: string; to: string; amount: number;
-  paymentStatus: 'held' | 'released' | 'disputed' | 'completed' | 'pending' | 'failed';
+  paymentStatus: string;
   date: string; campaignId?: string; campaignTitle?: string;
 }
-
-const adminTransactions: AdminTransaction[] = [
-  { id: 'txn-a001', type: 'escrow_to_creator', from: 'Escrow', to: 'Sofia Martinez', amount: 1200, paymentStatus: 'released', date: '2026-04-13', campaignTitle: 'Summer Glow Skincare' },
-  { id: 'txn-a002', type: 'brand_to_escrow', from: 'Luminary Skincare', to: 'Escrow', amount: 6000, paymentStatus: 'held', date: '2026-04-11', campaignTitle: 'Summer Glow Skincare' },
-  { id: 'txn-a003', type: 'withdrawal', from: 'Sofia Martinez', to: 'PayPal', amount: 500, paymentStatus: 'completed', date: '2026-04-10' },
-  { id: 'txn-a004', type: 'escrow_to_creator', from: 'Escrow', to: 'Jordan Osei', amount: 3500, paymentStatus: 'released', date: '2026-04-09', campaignTitle: 'FitPro 30-Day Challenge' },
-  { id: 'txn-a005', type: 'brand_to_escrow', from: 'FitPro Health', to: 'Escrow', amount: 10500, paymentStatus: 'held', date: '2026-04-08', campaignTitle: 'FitPro 30-Day Challenge' },
-  { id: 'txn-a006', type: 'withdrawal', from: 'Priya Nair', to: 'Bank Transfer', amount: 2000, paymentStatus: 'pending', date: '2026-04-07' },
-  { id: 'txn-a007', type: 'refund', from: 'Escrow', to: 'SpamBrand LLC', amount: 500, paymentStatus: 'completed', date: '2026-03-06', campaignTitle: 'Suspicious Crypto Giveaway' },
-  { id: 'txn-a008', type: 'escrow_to_creator', from: 'Escrow', to: 'Aisha Okonkwo', amount: 950, paymentStatus: 'released', date: '2026-04-06', campaignTitle: 'TechDrop Earbuds Review' },
-  { id: 'txn-a009', type: 'brand_to_escrow', from: 'TechDrop', to: 'Escrow', amount: 6400, paymentStatus: 'disputed', date: '2026-04-04', campaignTitle: 'TechDrop Earbuds Review' },
-  { id: 'txn-a010', type: 'withdrawal', from: 'Mei-Lin Chen', to: 'Wise', amount: 900, paymentStatus: 'failed', date: '2026-04-05' },
-  { id: 'txn-a011', type: 'brand_to_escrow', from: 'EcoBottle', to: 'Escrow', amount: 3200, paymentStatus: 'held', date: '2026-04-05', campaignTitle: 'EcoBottle Zero-Waste Push' },
-  { id: 'txn-a012', type: 'escrow_to_creator', from: 'Escrow', to: 'Priya Nair', amount: 2800, paymentStatus: 'held', date: '2026-04-03', campaignTitle: 'FitPro 30-Day Challenge' },
-];
 
 const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   brand_to_escrow: { label: 'Brand → Escrow', icon: Lock, color: 'text-blue-700 bg-blue-50 border-blue-200' },
@@ -44,9 +32,28 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
 };
 
 export default function AdminTransactionsContent() {
+  const [adminTransactions, setAdminTransactions] = useState<AdminTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await adminApi.getTransactions();
+      setAdminTransactions(mapAdminTransactions(data) as AdminTransaction[]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load transactions');
+      setAdminTransactions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const filtered = adminTransactions.filter(t => {
     const matchSearch = t.from.toLowerCase().includes(search.toLowerCase()) || t.to.toLowerCase().includes(search.toLowerCase()) || (t.campaignTitle ?? '').toLowerCase().includes(search.toLowerCase());
@@ -60,6 +67,35 @@ export default function AdminTransactionsContent() {
   const disputed = adminTransactions.filter(t => t.paymentStatus === 'disputed').length;
   const pending = adminTransactions.filter(t => t.paymentStatus === 'pending').length;
 
+  const handleExport = () => {
+    if (!filtered.length) {
+      toast.error('No transactions to export');
+      return;
+    }
+    downloadCsv(
+      `transactions-${new Date().toISOString().slice(0, 10)}.csv`,
+      filtered.map(t => ({
+        id: t.id,
+        type: t.type,
+        from: t.from,
+        to: t.to,
+        amount: t.amount,
+        status: t.paymentStatus,
+        date: t.date,
+        campaign: t.campaignTitle ?? '',
+      })),
+    );
+    toast.success('Export complete');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <Loader2 className="animate-spin text-violet-600" size={28} />
+      </div>
+    );
+  }
+
   return (
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
@@ -69,7 +105,7 @@ export default function AdminTransactionsContent() {
           <h1 className="text-2xl font-bold text-slate-800">Transaction Management</h1>
           <p className="text-slate-500 text-sm mt-1">Monitor all financial flows — escrow, payouts, withdrawals, and disputes</p>
         </div>
-        <button onClick={() => toast.success('Export started')} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all">
+        <button onClick={handleExport} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all">
           Export CSV
         </button>
       </div>

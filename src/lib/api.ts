@@ -160,11 +160,26 @@ export const adminApi = {
       wallet?: { user?: { name: string; email: string } };
     }>>('/admin/transactions'),
 
-  getSettings: () =>
-    apiFetch<{ aiMatchingEnabled: boolean; updatedAt?: string }>('/admin/settings'),
+  getEscrows: (status?: string) =>
+    apiFetch<Array<{
+      id: string;
+      campaignId: string;
+      campaignTitle?: string;
+      brandId?: string;
+      creatorId?: string;
+      amount: number;
+      platformFee?: number;
+      status: string;
+      lockedAt?: string | null;
+      createdAt?: string;
+      releasedAt?: string | null;
+    }>>(`/admin/escrows${toQuery({ status })}`),
 
-  patchSettings: (body: { aiMatchingEnabled?: boolean }) =>
-    apiFetch<{ aiMatchingEnabled: boolean; updatedAt?: string }>('/admin/settings', {
+  getSettings: () =>
+    apiFetch<{ aiMatchingEnabled: boolean; platformFeePercent?: number; updatedAt?: string }>('/admin/settings'),
+
+  patchSettings: (body: { aiMatchingEnabled?: boolean; platformFeePercent?: number }) =>
+    apiFetch<{ aiMatchingEnabled: boolean; platformFeePercent?: number; updatedAt?: string }>('/admin/settings', {
       method: 'PATCH',
       body: JSON.stringify(body),
     }),
@@ -262,6 +277,31 @@ export const adminApi = {
 
   markAllNotificationsRead: () =>
     apiFetch('/admin/notifications/read-all', { method: 'PATCH' }),
+
+  getEmailStatus: () =>
+    apiFetch<{ configured: boolean; fromEmail: string; appUrl: string; provider: string; hint: string }>(
+      '/admin/email/status',
+    ),
+
+  sendTestEmail: (to: string) =>
+    apiFetch<{ sent: boolean; to: string }>('/admin/email/test', {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+
+  sendBroadcast: (body: {
+    subject: string;
+    title: string;
+    message: string;
+    audience?: 'all' | 'creators' | 'brands' | 'admins';
+    sendInApp?: boolean;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  }) =>
+    apiFetch<{ sent: number; failed: number; inApp: number; total: number; audience: string; errors?: string[] }>(
+      '/admin/broadcast',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
 
   getWithdrawals: (status = 'PENDING') =>
     apiFetch(`/admin/withdrawals${toQuery({ status })}`),
@@ -437,10 +477,26 @@ export const auditApi = {
 
 // ─── Roles API ────────────────────────────────────────────────────────────────
 export const rolesApi = {
-  getRoles: () => apiFetch<Array<{ id: string; name: string; description: string; _count?: { users: number } }>>('/admin/roles'),
+  getRoles: () => apiFetch<Array<{
+    id: string;
+    name: string;
+    description: string;
+    _count?: { users: number };
+    permissions?: Array<{ permission: { id: string; key: string; description?: string } }>;
+  }>>('/admin/roles'),
   createRole: (data: { name: string; description: string }) => apiFetch('/admin/roles', { method: 'POST', body: JSON.stringify(data) }),
   updateRole: (id: string, data: { name: string; description: string }) => apiFetch(`/admin/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteRole: (id: string) => apiFetch(`/admin/roles/${id}`, { method: 'DELETE' }),
+  getPermissions: () => apiFetch<Array<{ id: string; key: string; description?: string }>>('/admin/permissions'),
+  getRolePermissions: (roleId: string) =>
+    apiFetch<{ roleId: string; roleName: string; permissions: Array<{ id: string; key: string; description?: string }> }>(
+      `/admin/roles/${roleId}/permissions`,
+    ),
+  updateRolePermissions: (roleId: string, permissionKeys: string[]) =>
+    apiFetch(`/admin/roles/${roleId}/permissions`, {
+      method: 'PUT',
+      body: JSON.stringify({ permissionKeys }),
+    }),
   
   getAdmins: () => apiFetch<Array<{ id: string; name: string; email: string; role?: { name: string }; status: string }>>('/admin/admins'),
   assignAdminRole: (data: { email: string; role_id: string; password?: string; name?: string }) => apiFetch('/admin/admins/assign', { method: 'POST', body: JSON.stringify(data) }),
@@ -859,6 +915,11 @@ export const securityApi = {
     apiFetch<{ message: string }>('/security/change-password', {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+  deactivateAccount: (currentPassword: string, confirmation: string) =>
+    apiFetch<{ message: string }>('/security/deactivate-account', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, confirmation }),
     }),
   enable2Fa: (phoneNumber: string) =>
     apiFetch<{ enabled: boolean; pendingEnrollment: boolean; message: string }>('/security/2fa/enable', {

@@ -551,7 +551,6 @@ function resolveMyCreatorStatus(
   return 'paused';
 }
 
-/** Aggregate accepted/completed brand applications into one row per creator */
 export function mapMyCreatorsFromApplications(
   apps: Record<string, unknown>[],
 ): MyCreatorRow[] {
@@ -626,6 +625,151 @@ export function mapMyCreatorsFromApplications(
       campaigns,
     };
   });
+}
+
+export interface AdminTransactionRow {
+  id: string;
+  type: string;
+  from: string;
+  to: string;
+  amount: number;
+  paymentStatus: string;
+  date: string;
+  campaignTitle?: string;
+}
+
+export function mapAdminTransaction(raw: Record<string, unknown>): AdminTransactionRow {
+  const user = (raw.wallet as { user?: { name?: string; email?: string } })?.user;
+  const type = String(raw.type ?? '').toUpperCase();
+  const status = String(raw.status ?? 'PENDING').toLowerCase();
+  let uiType = 'credit';
+  let from = user?.name ?? 'User';
+  let to = 'Platform';
+
+  if (type.includes('ESCROW')) {
+    uiType = type.includes('RELEASE') ? 'escrow_to_creator' : 'brand_to_escrow';
+    from = type.includes('RELEASE') ? 'Escrow' : from;
+    to = type.includes('RELEASE') ? (user?.name ?? 'Creator') : 'Escrow';
+  } else if (type.includes('WITHDRAW')) {
+    uiType = 'withdrawal';
+    to = 'Payout';
+  } else if (type.includes('REFUND')) {
+    uiType = 'refund';
+    from = 'Escrow';
+    to = user?.name ?? 'User';
+  }
+
+  return {
+    id: String(raw.id),
+    type: uiType,
+    from,
+    to,
+    amount: Number(raw.amount) || 0,
+    paymentStatus: status,
+    date: String(raw.created_at ?? '').slice(0, 10),
+    campaignTitle: String((raw.metadata as { campaignTitle?: string })?.campaignTitle ?? ''),
+  };
+}
+
+export function mapAdminTransactions(raw: unknown): AdminTransactionRow[] {
+  return extractList<Record<string, unknown>>(raw).map(mapAdminTransaction);
+}
+
+export interface AdminWithdrawalRow {
+  id: string;
+  creator: string;
+  email: string;
+  amount: number;
+  method: string;
+  account: string;
+  status: string;
+  requestedAt: string;
+  fee: number;
+}
+
+export function mapAdminWithdrawal(raw: Record<string, unknown>): AdminWithdrawalRow {
+  const amount = Number(raw.amount) || 0;
+  const fee = Number(raw.fee ?? raw.platformFee ?? amount * 0.01) || 0;
+  return {
+    id: String(raw.id),
+    creator: String(raw.creator ?? raw.creatorName ?? 'Creator'),
+    email: String(raw.creatorEmail ?? raw.email ?? ''),
+    amount,
+    method: String(raw.method ?? raw.payoutMethod ?? 'Bank Transfer'),
+    account: String(raw.account ?? raw.payoutAccount ?? '—'),
+    status: String(raw.status ?? 'PENDING').toLowerCase(),
+    requestedAt: String(raw.requestedAt ?? raw.requested_at ?? raw.created_at ?? '').slice(0, 10),
+    fee,
+  };
+}
+
+export function mapAdminWithdrawals(raw: unknown): AdminWithdrawalRow[] {
+  return extractList<Record<string, unknown>>(raw).map(mapAdminWithdrawal);
+}
+
+export interface AdminEscrowRow {
+  id: string;
+  campaign: string;
+  brand: string;
+  creator: string;
+  amount: number;
+  status: string;
+  lockedAt: string;
+  releaseDate: string;
+}
+
+export function mapAdminEscrow(raw: Record<string, unknown>): AdminEscrowRow {
+  const locked = String(raw.lockedAt ?? raw.locked_at ?? raw.createdAt ?? raw.created_at ?? '').slice(0, 10);
+  return {
+    id: String(raw.id),
+    campaign: String(raw.campaignTitle ?? (raw.campaign as { title?: string })?.title ?? 'Campaign'),
+    brand: String((raw.brand as { user?: { name?: string }; company_name?: string })?.user?.name
+      ?? (raw.brand as { company_name?: string })?.company_name
+      ?? 'Brand'),
+    creator: String((raw.creator as { user?: { name?: string }; full_name?: string })?.user?.name
+      ?? (raw.creator as { full_name?: string })?.full_name
+      ?? 'Creator'),
+    amount: Number(raw.amount) || 0,
+    status: String(raw.status ?? 'HELD').toLowerCase(),
+    lockedAt: locked,
+    releaseDate: String(raw.releasedAt ?? raw.released_at ?? '—').slice(0, 10),
+  };
+}
+
+export function mapAdminEscrows(raw: unknown): AdminEscrowRow[] {
+  return extractList<Record<string, unknown>>(raw).map(mapAdminEscrow);
+}
+
+export interface FlaggedCampaignRow {
+  id: string;
+  title: string;
+  brand: string;
+  platform: string;
+  budget: number;
+  reportCount: number;
+  flagReason: string;
+  flaggedAt: string;
+  severity: 'critical' | 'low' | 'medium';
+}
+
+export function mapFlaggedCampaign(raw: Record<string, unknown>): FlaggedCampaignRow {
+  const brand = (raw.brand as Record<string, unknown>) ?? {};
+  const budget = Number(raw.budget) || 0;
+  return {
+    id: String(raw.id),
+    title: String(raw.title ?? ''),
+    brand: String(brand.company_name ?? 'Brand'),
+    platform: String(raw.platform ?? 'Instagram'),
+    budget,
+    reportCount: Number((raw._count as { reports?: number })?.reports ?? 1),
+    flagReason: String(raw.flag_reason ?? raw.admin_notes ?? 'Flagged for review'),
+    flaggedAt: String(raw.updated_at ?? raw.created_at ?? '').slice(0, 10),
+    severity: budget >= 5000 ? 'critical' : 'low',
+  };
+}
+
+export function mapFlaggedCampaigns(raw: unknown): FlaggedCampaignRow[] {
+  return extractList<Record<string, unknown>>(raw).map(mapFlaggedCampaign);
 }
 
 export function mapCreatorCard(raw: Record<string, unknown>): CreatorCardRow {

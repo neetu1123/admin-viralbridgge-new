@@ -4,6 +4,7 @@ import { toast, Toaster } from 'sonner';
 import { Search, ChevronDown, CheckCircle, Ban, Eye, X, Activity, Loader2 } from 'lucide-react';
 import { adminApi } from '@/src/lib/api';
 import { mapAdminUsers, type AdminPanelUser } from '@/src/lib/mappers';
+import { downloadCsv } from '@/src/lib/exportCsv';
 
 const kycBadge: Record<string, { label: string; cls: string }> = {
   verified: { label: 'Verified', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -67,6 +68,29 @@ export default function AdminUsersContent() {
     return matchSearch && matchRole && matchStatus;
   });
 
+  const handleExport = () => {
+    if (!filtered.length) {
+      toast.error('No users to export');
+      return;
+    }
+    downloadCsv(
+      `users-export-${new Date().toISOString().slice(0, 10)}.csv`,
+      filtered.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: u.status,
+        kycStatus: u.kycStatus,
+        joinedAt: u.joinedAt,
+        followers: u.followers ?? '',
+        campaigns: u.campaigns ?? '',
+        collabs: u.collabs ?? '',
+      })),
+    );
+    toast.success(`Exported ${filtered.length} users`);
+  };
+
   const totalCreators = users.filter(u => u.role === 'creator').length;
   const totalBrands = users.filter(u => u.role === 'brand').length;
   const pendingKyc = users.filter(u => u.kycStatus === 'pending' || u.kycStatus === 'not_submitted').length;
@@ -93,7 +117,7 @@ export default function AdminUsersContent() {
           <p className="text-slate-500 text-sm mt-1">Manage creators, brands, KYC verification, and account status</p>
         </div>
         <button
-          onClick={() => toast.success('Export started')}
+          onClick={handleExport}
           className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all"
         >
           Export Users
