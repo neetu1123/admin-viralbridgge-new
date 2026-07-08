@@ -31,17 +31,24 @@ export default function AdminNotificationsContent() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, status] = await Promise.all([
-        adminApi.getNotifications({ limit: 50 }),
-        adminApi.getEmailStatus(),
-      ]);
+      const res = await adminApi.getNotifications({ limit: 50 });
       setItems(res.data);
-      setEmailStatus(status);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to load');
+      toast.error(err instanceof Error ? err.message : 'Failed to load notifications');
       setItems([]);
     } finally {
       setLoading(false);
+    }
+
+    try {
+      const status = await adminApi.getEmailStatus();
+      setEmailStatus(status);
+    } catch {
+      setEmailStatus({
+        configured: false,
+        fromEmail: '',
+        hint: 'Email API not available on the deployed backend yet. Redeploy backend-admin-viralbridgge to enable broadcast and test email.',
+      });
     }
   }, []);
 
