@@ -1,10 +1,21 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Loader2, Mail, Send, Bell, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, Mail, Send, Bell, AlertCircle, CheckCircle2, Filter } from 'lucide-react';
 import { adminApi, type NotificationItem } from '@/src/lib/api';
 
 type Tab = 'inbox' | 'broadcast';
+
+const broadcastStates = ['All States', 'Maharashtra', 'Karnataka', 'Delhi', 'Tamil Nadu', 'California', 'Texas', 'New York', 'England', 'UAE'];
+const broadcastCities = ['All Cities', 'Mumbai', 'Bangalore', 'Delhi', 'Chennai', 'Los Angeles', 'London', 'Dubai', 'Singapore'];
+const broadcastLanguages = ['All Languages', 'English', 'Hindi', 'Spanish', 'German', 'Japanese', 'Mandarin', 'Arabic', 'Korean', 'French'];
+const followerTiers = [
+  { label: 'All follower counts', min: undefined as number | undefined, max: undefined as number | undefined },
+  { label: 'Nano (1K–10K)', min: 1000, max: 10000 },
+  { label: 'Micro (10K–100K)', min: 10000, max: 100000 },
+  { label: 'Mid (100K–500K)', min: 100000, max: 500000 },
+  { label: 'Macro (500K+)', min: 500000, max: undefined },
+];
 
 export default function AdminNotificationsContent() {
   const [tab, setTab] = useState<Tab>('inbox');
@@ -21,11 +32,17 @@ export default function AdminNotificationsContent() {
     subject: '',
     title: '',
     message: '',
-    audience: 'all' as 'all' | 'creators' | 'brands' | 'admins',
+    audience: 'everyone' as 'everyone' | 'creators' | 'brands' | 'admins',
     sendInApp: true,
     ctaLabel: '',
     ctaUrl: '',
+    state: 'All States',
+    city: 'All Cities',
+    language: 'All Languages',
+    followerTier: 0,
+    brandId: '',
   });
+  const [brandOptions, setBrandOptions] = useState<Array<{ id: string; companyName: string }>>([]);
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
   const load = useCallback(async () => {
@@ -54,6 +71,9 @@ export default function AdminNotificationsContent() {
 
   useEffect(() => {
     load();
+    adminApi.searchBrands({ limit: 100 }).then(res => {
+      setBrandOptions(res.data.map(b => ({ id: b.id, companyName: b.companyName })));
+    }).catch(() => {});
   }, [load]);
 
   const markRead = async (id: string) => {
@@ -98,6 +118,17 @@ export default function AdminNotificationsContent() {
     }
     if (!confirm(`Send broadcast to "${broadcast.audience}" users? This sends real emails.`)) return;
 
+    const tier = followerTiers[broadcast.followerTier];
+    const filters = {
+      state: broadcast.state !== 'All States' ? broadcast.state : undefined,
+      city: broadcast.city !== 'All Cities' ? broadcast.city : undefined,
+      language: broadcast.language !== 'All Languages' ? broadcast.language : undefined,
+      followersMin: tier.min,
+      followersMax: tier.max,
+      brandId: broadcast.brandId || undefined,
+    };
+    const hasFilters = Object.values(filters).some(v => v !== undefined);
+
     setSendingBroadcast(true);
     try {
       const result = await adminApi.sendBroadcast({
@@ -108,6 +139,7 @@ export default function AdminNotificationsContent() {
         sendInApp: broadcast.sendInApp,
         ctaLabel: broadcast.ctaLabel.trim() || undefined,
         ctaUrl: broadcast.ctaUrl.trim() || undefined,
+        filters: hasFilters ? filters : undefined,
       });
       toast.success(`Broadcast sent: ${result.sent} emails, ${result.inApp} in-app (${result.failed} failed)`);
       if (result.errors?.length) {
@@ -212,11 +244,73 @@ export default function AdminNotificationsContent() {
                 onChange={e => setBroadcast(b => ({ ...b, audience: e.target.value as typeof b.audience }))}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
               >
-                <option value="all">All Creators & Brands</option>
-                <option value="brands">Brands only</option>
+                <option value="everyone">Everyone (Admins + Creators + Brands)</option>
                 <option value="creators">Creators only</option>
+                <option value="brands">Brands only</option>
                 <option value="admins">Admins only</option>
               </select>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+              <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Filter size={13} className="text-violet-600" />
+                Target filters (optional — leave as All to include everyone in audience)
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">State</label>
+                  <select
+                    value={broadcast.state}
+                    onChange={e => setBroadcast(b => ({ ...b, state: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                  >
+                    {broadcastStates.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">City</label>
+                  <select
+                    value={broadcast.city}
+                    onChange={e => setBroadcast(b => ({ ...b, city: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                  >
+                    {broadcastCities.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Language</label>
+                  <select
+                    value={broadcast.language}
+                    onChange={e => setBroadcast(b => ({ ...b, language: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                  >
+                    {broadcastLanguages.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Followers</label>
+                  <select
+                    value={broadcast.followerTier}
+                    onChange={e => setBroadcast(b => ({ ...b, followerTier: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                  >
+                    {followerTiers.map((t, i) => <option key={t.label} value={i}>{t.label}</option>)}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Brand (creators linked to brand campaigns)</label>
+                  <select
+                    value={broadcast.brandId}
+                    onChange={e => setBroadcast(b => ({ ...b, brandId: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                  >
+                    <option value="">All brands</option>
+                    {brandOptions.map(b => (
+                      <option key={b.id} value={b.id}>{b.companyName}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">Email subject</label>

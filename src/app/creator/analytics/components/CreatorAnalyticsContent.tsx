@@ -5,9 +5,10 @@ import { toast } from 'sonner';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { DollarSign, TrendingUp, Briefcase, Target, Loader2, MessageSquare, Mail, Eye } from 'lucide-react';
+import { DollarSign, TrendingUp, Briefcase, Target, Loader2, MessageSquare, Mail, Eye, Download } from 'lucide-react';
 import { analyticsApi, type AnalyticsRangeParams } from '@/src/lib/api';
 import PeriodSelector, { formatCurrency, formatPercent, type AnalyticsDateRange } from '@/src/components/analytics/PeriodSelector';
+import { downloadCsv } from '@/src/lib/exportCsv';
 
 const FUNNEL_COLORS = ['#f59e0b', '#8b5cf6', '#10b981', '#ef4444', '#3b82f6'];
 
@@ -80,14 +81,63 @@ export default function CreatorAnalyticsContent() {
     color: FUNNEL_COLORS[i % FUNNEL_COLORS.length],
   }));
 
+  const exportAnalytics = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const periodLabel = dateRange.period === 'custom' ? `${dateRange.from}_${dateRange.to}` : dateRange.period;
+    const rows: Record<string, string | number>[] = [];
+
+    if (kpis) {
+      rows.push(
+        { section: 'KPI', key: 'Total Earnings', value: kpis.totalEarnings ?? 0 },
+        { section: 'KPI', key: 'Pending Earnings', value: kpis.pendingEarnings ?? 0 },
+        { section: 'KPI', key: 'Campaigns Completed', value: kpis.campaignsCompleted ?? 0 },
+        { section: 'KPI', key: 'Application Success Rate', value: kpis.applicationSuccessRate ?? 0 },
+      );
+    }
+
+    (earnings?.monthlyEarningsTrend ?? []).forEach((row) => {
+      rows.push({ section: 'Monthly Earnings', key: row.month, value: row.earnings });
+    });
+
+    (earnings?.applicationFunnel ?? []).forEach((row) => {
+      rows.push({ section: 'Application Funnel', key: row.status, value: row.count });
+    });
+
+    (topBrands?.topBrands ?? []).forEach((brand) => {
+      rows.push({
+        section: 'Top Brands',
+        key: brand.brandName,
+        value: brand.earnings,
+      });
+    });
+
+    if (rows.length === 0) {
+      toast.error('No analytics data to export for this period');
+      return;
+    }
+
+    downloadCsv(`creator-analytics-${periodLabel}-${stamp}.csv`, rows);
+    toast.success('Export complete');
+  };
+
   return (
     <div className="pb-8">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Creator Analytics</h1>
           <p className="text-slate-500 text-sm mt-1">Earnings, applications, and brand partnerships</p>
         </div>
-        <PeriodSelector value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={exportAnalytics}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 bg-white"
+          >
+            <Download size={15} />
+            Export CSV
+          </button>
+          <PeriodSelector value={dateRange} onChange={setDateRange} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

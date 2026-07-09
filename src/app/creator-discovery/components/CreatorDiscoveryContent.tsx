@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
 import { brandApi } from '@/src/lib/api';
 import { extractList, extractMeta, mapCreatorCard, type CreatorCardRow } from '@/src/lib/mappers';
-import { Search, SlidersHorizontal, Users, TrendingUp, Star, MessageSquare, UserPlus, ChevronDown, X, MapPin, Globe, DollarSign, Filter, Plus } from 'lucide-react';
+import { Search, SlidersHorizontal, Users, Star, MessageSquare, UserPlus, ChevronDown, X, MapPin, Globe, Plus } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 
 type Creator = CreatorCardRow;
@@ -50,7 +50,7 @@ export default function CreatorDiscoveryContent() {
   const [selectedEngagement, setSelectedEngagement] = useState(0);
   const [selectedPrice, setSelectedPrice] = useState(0);
   const [sortBy, setSortBy] = useState<'match' | 'followers' | 'engagement' | 'price_low' | 'price_high'>('match');
-  const [showFilters, setShowFilters] = useState(true);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [invitedCreators, setInvitedCreators] = useState<Set<string>>(new Set());
   const [totalCreators, setTotalCreators] = useState(0);
   const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
@@ -73,6 +73,13 @@ export default function CreatorDiscoveryContent() {
     setLoading(true);
     try {
       const followerRange = followerRanges[selectedFollowers];
+      const sortMap = {
+        match: undefined,
+        followers: 'followers',
+        engagement: 'engagement',
+        price_low: undefined,
+        price_high: undefined,
+      } as const;
       const res = await brandApi.getCreators({
         search: search || undefined,
         niche: selectedNiche !== 'All Niches' ? selectedNiche : undefined,
@@ -81,6 +88,8 @@ export default function CreatorDiscoveryContent() {
         language: selectedLanguage !== 'All Languages' ? selectedLanguage : undefined,
         followersMin: followerRange.min || undefined,
         followersMax: followerRange.max === Infinity ? undefined : followerRange.max,
+        engagementMin: engagementRanges[selectedEngagement].min || undefined,
+        sort: sortMap[sortBy],
         limit: 50,
       });
       const rawList = extractList<Record<string, unknown>>(res);
@@ -91,7 +100,7 @@ export default function CreatorDiscoveryContent() {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedNiche, selectedPlatform, selectedLocation, selectedLanguage, selectedFollowers]);
+  }, [search, selectedNiche, selectedPlatform, selectedLocation, selectedLanguage, selectedFollowers, selectedEngagement, sortBy]);
 
   useEffect(() => {
     const timer = setTimeout(() => loadCreators(), 300);
@@ -130,15 +139,15 @@ export default function CreatorDiscoveryContent() {
     toast.success(`Invite sent to ${creator.name}!`);
   };
 
-  const activeFilterCount = [
-    selectedNiche !== 'All Niches',
-    selectedPlatform !== 'All Platforms',
-    selectedLocation !== 'All Locations',
-    selectedLanguage !== 'All Languages',
-    selectedFollowers > 0,
-    selectedEngagement > 0,
-    selectedPrice > 0,
-  ].filter(Boolean).length;
+  const activeFilters = [
+    selectedPlatform !== 'All Platforms' && selectedPlatform,
+    selectedNiche !== 'All Niches' && selectedNiche,
+    selectedLocation !== 'All Locations' && selectedLocation,
+    selectedLanguage !== 'All Languages' && selectedLanguage,
+    selectedFollowers > 0 && followerRanges[selectedFollowers].label,
+    selectedEngagement > 0 && engagementRanges[selectedEngagement].label,
+    selectedPrice > 0 && priceRanges[selectedPrice].label,
+  ].filter(Boolean) as string[];
 
   const clearAll = () => {
     setSelectedNiche('All Niches');
@@ -165,31 +174,23 @@ export default function CreatorDiscoveryContent() {
         </span>
       </div>
 
-      {/* Search + Sort */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1">
+      {/* Search + sort bar */}
+      <div className="flex items-center gap-3 mb-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search creators by name, handle, or niche..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 bg-white"
+            className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 bg-white"
           />
         </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${showFilters ? 'bg-violet-50 border-violet-200 text-violet-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-        >
-          <SlidersHorizontal size={15} />
-          Filters
-          {activeFilterCount > 0 && <span className="bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">{activeFilterCount}</span>}
-        </button>
         <div className="relative">
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value as typeof sortBy)}
-            className="appearance-none pl-3 pr-8 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-700"
+            className="appearance-none pl-3 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-slate-700"
           >
             <option value="match">Best Match</option>
             <option value="followers">Most Followers</option>
@@ -201,96 +202,115 @@ export default function CreatorDiscoveryContent() {
         </div>
       </div>
 
+      {/* Primary filters — same layout as campaign discovery */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 shadow-sm">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[140px] flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Platform</label>
+            <select
+              value={selectedPlatform}
+              onChange={e => setSelectedPlatform(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            >
+              {platforms.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="min-w-[140px] flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Followers</label>
+            <select
+              value={selectedFollowers}
+              onChange={e => setSelectedFollowers(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            >
+              {followerRanges.map((r, i) => <option key={r.label} value={i}>{r.label}</option>)}
+            </select>
+          </div>
+          <div className="min-w-[140px] flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Location</label>
+            <select
+              value={selectedLocation}
+              onChange={e => setSelectedLocation(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            >
+              {locations.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowMoreFilters(v => !v)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all whitespace-nowrap ${showMoreFilters ? 'bg-violet-50 border-violet-200 text-violet-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+          >
+            <SlidersHorizontal size={15} />
+            More Filters
+            {activeFilters.length > 3 && (
+              <span className="bg-violet-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                {activeFilters.length - 3}
+              </span>
+            )}
+            {showMoreFilters ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />}
+          </button>
+        </div>
+
+        {showMoreFilters && (
+          <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Niche</label>
+              <select value={selectedNiche} onChange={e => setSelectedNiche(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white">
+                {niches.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Language</label>
+              <select value={selectedLanguage} onChange={e => setSelectedLanguage(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white">
+                {languages.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Engagement Rate</label>
+              <select value={selectedEngagement} onChange={e => setSelectedEngagement(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white">
+                {engagementRanges.map((r, i) => <option key={r.label} value={i}>{r.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Price per Post</label>
+              <select value={selectedPrice} onChange={e => setSelectedPrice(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white">
+                {priceRanges.map((r, i) => <option key={r.label} value={i}>{r.label}</option>)}
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Active filter chips */}
-      {activeFilterCount > 0 && (
+      {activeFilters.length > 0 && (
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <span className="text-xs text-slate-500">Active filters:</span>
-          {selectedNiche !== 'All Niches' && <span className="inline-flex items-center gap-1 bg-violet-50 text-violet-700 text-xs font-medium px-2.5 py-1 rounded-full border border-violet-200">{selectedNiche} <button onClick={() => setSelectedNiche('All Niches')}><X size={11} /></button></span>}
-          {selectedPlatform !== 'All Platforms' && <span className="inline-flex items-center gap-1 bg-violet-50 text-violet-700 text-xs font-medium px-2.5 py-1 rounded-full border border-violet-200">{selectedPlatform} <button onClick={() => setSelectedPlatform('All Platforms')}><X size={11} /></button></span>}
-          {selectedLocation !== 'All Locations' && <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full border border-blue-200"><MapPin size={10} />{selectedLocation} <button onClick={() => setSelectedLocation('All Locations')}><X size={11} /></button></span>}
-          {selectedLanguage !== 'All Languages' && <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full border border-blue-200"><Globe size={10} />{selectedLanguage} <button onClick={() => setSelectedLanguage('All Languages')}><X size={11} /></button></span>}
+          {activeFilters.map(f => (
+            <span key={`chip-${f}`} className="inline-flex items-center gap-1 bg-violet-50 text-violet-700 text-xs font-medium px-2.5 py-1 rounded-full border border-violet-200">
+              {f}
+              <button onClick={() => {
+                if (f === selectedPlatform) setSelectedPlatform('All Platforms');
+                if (f === selectedNiche) setSelectedNiche('All Niches');
+                if (f === selectedLocation) setSelectedLocation('All Locations');
+                if (f === selectedLanguage) setSelectedLanguage('All Languages');
+                if (f === followerRanges[selectedFollowers].label) setSelectedFollowers(0);
+                if (f === engagementRanges[selectedEngagement].label) setSelectedEngagement(0);
+                if (f === priceRanges[selectedPrice].label) setSelectedPrice(0);
+              }}><X size={11} /></button>
+            </span>
+          ))}
           <button onClick={clearAll} className="text-xs text-slate-500 hover:text-slate-700 underline">Clear all</button>
         </div>
       )}
 
-      <div className="flex gap-6">
-        {/* Filter Sidebar */}
-        {showFilters && (
-          <div className="w-56 flex-shrink-0 space-y-4">
-            {/* Platform */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Platform</h3>
-              <div className="space-y-1">
-                {platforms.map(p => (
-                  <button key={p} onClick={() => setSelectedPlatform(p)} className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedPlatform === p ? 'bg-violet-50 text-violet-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>{p}</button>
-                ))}
-              </div>
-            </div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-slate-500 font-medium">
+          {loading ? 'Loading creators…' : `${filtered.length} creators found`}
+        </p>
+      </div>
 
-            {/* Niche */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Niche</h3>
-              <div className="space-y-1">
-                {niches.map(n => (
-                  <button key={n} onClick={() => setSelectedNiche(n)} className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedNiche === n ? 'bg-violet-50 text-violet-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>{n}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Location */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><MapPin size={12} />Locality</h3>
-              <div className="space-y-1">
-                {locations.map(l => (
-                  <button key={l} onClick={() => setSelectedLocation(l)} className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedLocation === l ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>{l}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Language */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Globe size={12} />Language</h3>
-              <div className="space-y-1">
-                {languages.map(l => (
-                  <button key={l} onClick={() => setSelectedLanguage(l)} className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedLanguage === l ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>{l}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Followers */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Users size={12} />Followers</h3>
-              <div className="space-y-1">
-                {followerRanges.map((r, i) => (
-                  <button key={i} onClick={() => setSelectedFollowers(i)} className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedFollowers === i ? 'bg-violet-50 text-violet-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>{r.label}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Engagement Rate */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><TrendingUp size={12} />Engagement Rate</h3>
-              <div className="space-y-1">
-                {engagementRanges.map((r, i) => (
-                  <button key={i} onClick={() => setSelectedEngagement(i)} className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedEngagement === i ? 'bg-violet-50 text-violet-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>{r.label}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Price Range */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><DollarSign size={12} />Price per Post</h3>
-              <div className="space-y-1">
-                {priceRanges.map((r, i) => (
-                  <button key={i} onClick={() => setSelectedPrice(i)} className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedPrice === i ? 'bg-violet-50 text-violet-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>{r.label}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Creator Grid */}
-        <div className="flex-1">
+      {/* Creator Grid */}
+      <div>
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-xl border border-slate-200">
               <Users size={40} className="text-slate-300 mb-3" />
@@ -396,7 +416,6 @@ export default function CreatorDiscoveryContent() {
               })}
             </div>
           )}
-        </div>
       </div>
 
       {showCampaignPrompt && (

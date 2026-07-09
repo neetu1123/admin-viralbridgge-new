@@ -5,9 +5,10 @@ import { toast } from 'sonner';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { Users, Building2, DollarSign, Lock, Loader2, Briefcase, ShieldCheck, TrendingUp } from 'lucide-react';
+import { Users, Building2, DollarSign, Lock, Loader2, Briefcase, ShieldCheck, TrendingUp, Download } from 'lucide-react';
 import { analyticsApi, type AnalyticsRangeParams } from '@/src/lib/api';
 import PeriodSelector, { formatCurrency, formatPercent, type AnalyticsDateRange } from '@/src/components/analytics/PeriodSelector';
+import { downloadCsv } from '@/src/lib/exportCsv';
 
 function toApiParams(range: AnalyticsDateRange): AnalyticsRangeParams | undefined {
   if (range.period === 'custom') {
@@ -81,14 +82,64 @@ export default function AdminAnalyticsContent() {
   const campaignStats = campaigns?.campaignAnalytics;
   const kycStats = kyc?.kycAnalytics;
 
+  const exportAnalytics = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const periodLabel = dateRange.period === 'custom' ? `${dateRange.from}_${dateRange.to}` : dateRange.period;
+    const rows: Record<string, string | number>[] = [];
+
+    if (kpis) {
+      rows.push(
+        { section: 'KPI', key: 'Total Creators', value: kpis.totalCreators ?? 0 },
+        { section: 'KPI', key: 'Total Brands', value: kpis.totalBrands ?? 0 },
+        { section: 'KPI', key: 'Platform Revenue', value: kpis.platformRevenue ?? 0 },
+        { section: 'KPI', key: 'Escrow Volume', value: kpis.escrowVolume ?? 0 },
+      );
+    }
+
+    (users?.userGrowth ?? []).forEach((row) => {
+      rows.push({ section: 'User Growth', key: `${row.month} creators`, value: row.creators });
+      rows.push({ section: 'User Growth', key: `${row.month} brands`, value: row.brands });
+    });
+
+    (revenue?.revenueGrowth ?? []).forEach((row) => {
+      rows.push({ section: 'Revenue Growth', key: row.month, value: row.revenue });
+    });
+
+    (campaigns?.campaignGrowth ?? []).forEach((row) => {
+      rows.push({ section: 'Campaign Growth', key: row.month, value: row.count });
+    });
+
+    (platforms?.platformDistribution ?? []).forEach((row) => {
+      rows.push({ section: 'Platform Distribution', key: row.name, value: row.value });
+    });
+
+    if (rows.length === 0) {
+      toast.error('No analytics data to export for this period');
+      return;
+    }
+
+    downloadCsv(`admin-analytics-${periodLabel}-${stamp}.csv`, rows);
+    toast.success('Export complete');
+  };
+
   return (
     <div className="pb-8">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Platform Analytics</h1>
           <p className="text-slate-500 text-sm mt-1">Users, revenue, campaigns, and platform distribution</p>
         </div>
-        <PeriodSelector value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={exportAnalytics}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 bg-white"
+          >
+            <Download size={15} />
+            Export CSV
+          </button>
+          <PeriodSelector value={dateRange} onChange={setDateRange} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

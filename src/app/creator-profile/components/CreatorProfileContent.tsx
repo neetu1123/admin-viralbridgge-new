@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { creatorApi } from '@/src/lib/api';
+import { creatorApi, kycApi } from '@/src/lib/api';
 import { Camera, Save, Plus, X, Star, TrendingUp, Users, Briefcase } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 import ProfileCompletionBanner from '@/src/components/ProfileCompletionBanner';
@@ -33,11 +33,15 @@ export default function CreatorProfileContent() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [followersCount, setFollowersCount] = useState(0);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [kycVerified, setKycVerified] = useState(false);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
-      const profile = (await creatorApi.getProfile()) as Record<string, unknown>;
+      const [profile, kyc] = await Promise.all([
+        creatorApi.getProfile() as Promise<Record<string, unknown>>,
+        kycApi.getStatus().catch(() => null),
+      ]);
       const user = (profile.user as Record<string, unknown>) ?? {};
       const social = (profile.social_links as Record<string, string>) ?? {};
       setName(String(profile.full_name || user.name || ''));
@@ -53,10 +57,15 @@ export default function CreatorProfileContent() {
       setSelectedNiches(profile.niche ? [String(profile.niche)] : []);
       setMediaKitUrl(String(profile.media_kit ?? ''));
       setPhotoUrl(profile.photo ? String(profile.photo) : profile.profile_photo ? String(profile.profile_photo) : null);
-      setFollowersCount(Number(profile.followers_count ?? 0));
-      const portfolio = Array.isArray(profile.portfolio) ? profile.portfolio : [];
+      setFollowersCount(Number(profile.followers ?? profile.followers_count ?? 0));
+      const portfolioRaw = profile.portfolio;
+      const portfolioArr = Array.isArray(portfolioRaw)
+        ? portfolioRaw
+        : typeof portfolioRaw === 'string' && portfolioRaw.trim()
+          ? [{ id: 'p0', title: 'Portfolio', platform: 'Instagram', views: '—', engagement: '—', url: portfolioRaw }]
+          : [];
       setPortfolioItems(
-        portfolio.map((item: Record<string, unknown>, i: number) => ({
+        portfolioArr.map((item: Record<string, unknown>, i: number) => ({
           id: String(item.id ?? `p${i}`),
           title: String(item.title ?? 'Portfolio item'),
           platform: String(item.platform ?? 'Instagram'),
@@ -65,6 +74,8 @@ export default function CreatorProfileContent() {
           url: String(item.url ?? ''),
         })),
       );
+      const kycStatus = kyc && typeof kyc === 'object' ? String((kyc as Record<string, unknown>).status ?? '') : '';
+      setKycVerified(kycStatus === 'APPROVED' || kycStatus === 'VERIFIED');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load profile');
     } finally {
@@ -78,6 +89,8 @@ export default function CreatorProfileContent() {
 
   const profileCompletion = creatorProfileCompletion({
     name,
+    email,
+    phone,
     bio,
     photo: photoUrl,
     niche: selectedNiches[0],
@@ -88,6 +101,7 @@ export default function CreatorProfileContent() {
     followers: followersCount,
     mediaKit: mediaKitUrl,
     portfolioCount: portfolioItems.length,
+    kycVerified,
   });
 
   const saveProfile = async () => {

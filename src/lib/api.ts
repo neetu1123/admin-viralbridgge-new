@@ -293,10 +293,18 @@ export const adminApi = {
     subject: string;
     title: string;
     message: string;
-    audience?: 'all' | 'creators' | 'brands' | 'admins';
+    audience?: 'everyone' | 'all' | 'creators' | 'brands' | 'admins';
     sendInApp?: boolean;
     ctaLabel?: string;
     ctaUrl?: string;
+    filters?: {
+      state?: string;
+      city?: string;
+      language?: string;
+      followersMin?: number;
+      followersMax?: number;
+      brandId?: string;
+    };
   }) =>
     apiFetch<{ sent: number; failed: number; inApp: number; total: number; audience: string; errors?: string[] }>(
       '/admin/broadcast',
