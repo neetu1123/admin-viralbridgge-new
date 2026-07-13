@@ -59,11 +59,17 @@ export default function CreatorProfileContent() {
       setPhotoUrl(profile.photo ? String(profile.photo) : profile.profile_photo ? String(profile.profile_photo) : null);
       setFollowersCount(Number(profile.followers ?? profile.followers_count ?? 0));
       const portfolioRaw = profile.portfolio;
-      const portfolioArr = Array.isArray(portfolioRaw)
-        ? portfolioRaw
-        : typeof portfolioRaw === 'string' && portfolioRaw.trim()
-          ? [{ id: 'p0', title: 'Portfolio', platform: 'Instagram', views: '—', engagement: '—', url: portfolioRaw }]
-          : [];
+      let portfolioArr: unknown[] = [];
+      if (Array.isArray(portfolioRaw)) {
+        portfolioArr = portfolioRaw;
+      } else if (typeof portfolioRaw === 'string' && portfolioRaw.trim()) {
+        try {
+          const parsed = JSON.parse(portfolioRaw);
+          portfolioArr = Array.isArray(parsed) ? parsed : [{ id: 'p0', title: 'Portfolio', platform: 'Instagram', views: '—', engagement: '—', url: portfolioRaw }];
+        } catch {
+          portfolioArr = [{ id: 'p0', title: 'Portfolio', platform: 'Instagram', views: '—', engagement: '—', url: portfolioRaw }];
+        }
+      }
       setPortfolioItems(
         portfolioArr.map((item: Record<string, unknown>, i: number) => ({
           id: String(item.id ?? `p${i}`),
@@ -118,10 +124,12 @@ export default function CreatorProfileContent() {
         youtube,
         tiktok,
         mediaKit: mediaKitUrl,
-        portfolio: portfolioItems,
+        portfolio: portfolioItems.length > 0 ? JSON.stringify(portfolioItems) : undefined,
+        followers: followersCount || undefined,
         languages: ['English'],
       });
       toast.success('Profile saved successfully!');
+      await loadProfile();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to save profile');
     } finally {
@@ -397,10 +405,11 @@ export default function CreatorProfileContent() {
           </div>
 
           <button
-            onClick={() => toast.success('Profile saved successfully!')}
-            className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-3 rounded-xl text-sm transition-all"
+            onClick={saveProfile}
+            disabled={saving || loading}
+            className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-3 rounded-xl text-sm transition-all disabled:opacity-70"
           >
-            <Save size={15} /> Save All Changes
+            <Save size={15} /> {saving ? 'Saving...' : 'Save All Changes'}
           </button>
         </div>
       </div>
