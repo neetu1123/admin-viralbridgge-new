@@ -11,6 +11,27 @@ import { creatorProfileCompletion } from '@/src/lib/profileCompletion';
 
 const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing', 'Lifestyle', 'Parenting', 'Education', 'Music & Entertainment'];
 
+type PortfolioItem = {
+  id: string;
+  title: string;
+  platform: string;
+  views: string;
+  engagement: string;
+  url: string;
+};
+
+function toPortfolioItem(item: unknown, index: number): PortfolioItem {
+  const row = item && typeof item === 'object' ? (item as Record<string, unknown>) : {};
+  return {
+    id: String(row.id ?? `p${index}`),
+    title: String(row.title ?? 'Portfolio item'),
+    platform: String(row.platform ?? 'Instagram'),
+    views: String(row.views ?? '—'),
+    engagement: String(row.engagement ?? '—'),
+    url: String(row.url ?? ''),
+  };
+}
+
 export default function CreatorProfileContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -27,9 +48,7 @@ export default function CreatorProfileContent() {
   const [tiktok, setTiktok] = useState('');
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [mediaKitUrl, setMediaKitUrl] = useState('');
-  const [portfolioItems, setPortfolioItems] = useState<
-    Array<{ id: string; title: string; platform: string; views: string; engagement: string; url: string }>
-  >([]);
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [followersCount, setFollowersCount] = useState(0);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -70,16 +89,7 @@ export default function CreatorProfileContent() {
           portfolioArr = [{ id: 'p0', title: 'Portfolio', platform: 'Instagram', views: '—', engagement: '—', url: portfolioRaw }];
         }
       }
-      setPortfolioItems(
-        portfolioArr.map((item: Record<string, unknown>, i: number) => ({
-          id: String(item.id ?? `p${i}`),
-          title: String(item.title ?? 'Portfolio item'),
-          platform: String(item.platform ?? 'Instagram'),
-          views: String(item.views ?? '—'),
-          engagement: String(item.engagement ?? '—'),
-          url: String(item.url ?? ''),
-        })),
-      );
+      setPortfolioItems(portfolioArr.map(toPortfolioItem));
       const kycStatus = kyc && typeof kyc === 'object' ? String((kyc as Record<string, unknown>).status ?? '') : '';
       setKycVerified(kycStatus === 'APPROVED' || kycStatus === 'VERIFIED');
     } catch (error) {
