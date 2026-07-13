@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { Users, Building2, DollarSign, Lock, Loader2, Briefcase, ShieldCheck, TrendingUp, Download } from 'lucide-react';
+import { Users, Building2, DollarSign, Lock, Loader2, Briefcase, ShieldCheck, TrendingUp, Download, BarChart3, Search } from 'lucide-react';
 import { analyticsApi, type AnalyticsRangeParams } from '@/src/lib/api';
 import PeriodSelector, { formatCurrency, formatPercent, type AnalyticsDateRange } from '@/src/components/analytics/PeriodSelector';
 import { downloadCsv } from '@/src/lib/exportCsv';
@@ -27,6 +28,10 @@ export default function AdminAnalyticsContent() {
   const [campaigns, setCampaigns] = useState<Awaited<ReturnType<typeof analyticsApi.adminCampaigns>> | null>(null);
   const [kyc, setKyc] = useState<Awaited<ReturnType<typeof analyticsApi.adminKyc>> | null>(null);
   const [platforms, setPlatforms] = useState<Awaited<ReturnType<typeof analyticsApi.adminPlatforms>> | null>(null);
+  const [userList, setUserList] = useState<Awaited<ReturnType<typeof analyticsApi.adminUserList>> | null>(null);
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | 'CREATOR' | 'BRAND'>('ALL');
+  const [userPage, setUserPage] = useState(1);
 
   const apiParams = useMemo(() => toApiParams(dateRange), [dateRange]);
 
@@ -59,9 +64,27 @@ export default function AdminAnalyticsContent() {
     }
   }, [dateRange]);
 
+  const loadUserList = useCallback(async () => {
+    try {
+      const res = await analyticsApi.adminUserList({
+        page: userPage,
+        limit: 10,
+        search: userSearch.trim() || undefined,
+        role: userRoleFilter === 'ALL' ? undefined : userRoleFilter,
+      });
+      setUserList(res);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load user list');
+    }
+  }, [userPage, userSearch, userRoleFilter]);
+
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    loadUserList();
+  }, [loadUserList]);
 
   if (loading && apiParams) {
     return (
@@ -303,6 +326,101 @@ export default function AdminAnalyticsContent() {
               <Legend />
             </PieChart>
           </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+            <BarChart3 size={15} /> User Analytics
+          </h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="search"
+                placeholder="Search users..."
+                value={userSearch}
+                onChange={(e) => { setUserSearch(e.target.value); setUserPage(1); }}
+                className="pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+              />
+            </div>
+            <select
+              value={userRoleFilter}
+              onChange={(e) => { setUserRoleFilter(e.target.value as 'ALL' | 'CREATOR' | 'BRAND'); setUserPage(1); }}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            >
+              <option value="ALL">All roles</option>
+              <option value="CREATOR">Creators</option>
+              <option value="BRAND">Brands</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-100 text-left text-slate-500">
+                <th className="py-2 pr-3 font-medium">User</th>
+                <th className="py-2 pr-3 font-medium">Role</th>
+                <th className="py-2 pr-3 font-medium">Campaigns</th>
+                <th className="py-2 pr-3 font-medium">Wallet</th>
+                <th className="py-2 pr-3 font-medium">Earnings</th>
+                <th className="py-2 pr-3 font-medium">Status</th>
+                <th className="py-2 font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(userList?.data ?? []).map((row) => (
+                <tr key={row.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                  <td className="py-3 pr-3">
+                    <p className="font-medium text-slate-800">{row.name}</p>
+                    <p className="text-xs text-slate-500">{row.email}</p>
+                  </td>
+                  <td className="py-3 pr-3"><span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700">{row.role}</span></td>
+                  <td className="py-3 pr-3">{row.campaignCount}</td>
+                  <td className="py-3 pr-3">{formatCurrency(row.walletBalance)}</td>
+                  <td className="py-3 pr-3">{formatCurrency(row.totalEarnings)}</td>
+                  <td className="py-3 pr-3">{row.status}</td>
+                  <td className="py-3">
+                    <Link
+                      href={`/admin/analytics/users/${row.id}`}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-800"
+                    >
+                      <BarChart3 size={13} /> Analytics
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {(userList?.data ?? []).length === 0 && (
+            <p className="text-sm text-slate-400 py-8 text-center">No users found.</p>
+          )}
+        </div>
+
+        {(userList?.totalPages ?? 0) > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+            <p className="text-xs text-slate-500">Page {userList?.page} of {userList?.totalPages}</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={userPage <= 1}
+                onClick={() => setUserPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                disabled={userPage >= (userList?.totalPages ?? 1)}
+                onClick={() => setUserPage((p) => p + 1)}
+                className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

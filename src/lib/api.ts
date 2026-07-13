@@ -176,13 +176,42 @@ export const adminApi = {
     }>>(`/admin/escrows${toQuery({ status })}`),
 
   getSettings: () =>
-    apiFetch<{ aiMatchingEnabled: boolean; platformFeePercent?: number; updatedAt?: string }>('/admin/settings'),
+    apiFetch<{
+      aiMatchingEnabled: boolean;
+      platformFeePercent?: number;
+      reengagementEnabled?: boolean;
+      reengagementInactivePeriod?: string;
+      reengagementEmailFrequencyDays?: number;
+      updatedAt?: string;
+    }>('/admin/settings'),
 
-  patchSettings: (body: { aiMatchingEnabled?: boolean; platformFeePercent?: number }) =>
-    apiFetch<{ aiMatchingEnabled: boolean; platformFeePercent?: number; updatedAt?: string }>('/admin/settings', {
+  patchSettings: (body: {
+    aiMatchingEnabled?: boolean;
+    platformFeePercent?: number;
+    reengagementEnabled?: boolean;
+    reengagementInactivePeriod?: string;
+    reengagementEmailFrequencyDays?: number;
+  }) =>
+    apiFetch<{
+      aiMatchingEnabled: boolean;
+      platformFeePercent?: number;
+      reengagementEnabled?: boolean;
+      reengagementInactivePeriod?: string;
+      reengagementEmailFrequencyDays?: number;
+      updatedAt?: string;
+    }>('/admin/settings', {
       method: 'PATCH',
       body: JSON.stringify(body),
     }),
+
+  getReEngagementAnalytics: () =>
+    apiFetch<{
+      emailsSent: number;
+      emailsOpened: number;
+      usersReturned: number;
+      openRate: number;
+      returnRate: number;
+    }>('/admin/re-engagement/analytics'),
 
   getMatches: () =>
     apiFetch<{
@@ -874,6 +903,94 @@ export const analyticsApi = {
       platformDistribution: { name: string; value: number; color: string }[];
       topCategories: { name: string; count: number; color: string }[];
     }>(`/analytics/admin/platforms${analyticsQuery(params)}`),
+
+  adminUserList: (params?: { page?: number; limit?: number; search?: string; role?: string; from?: string; to?: string }) =>
+    apiFetch<{
+      data: Array<{
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        status: string;
+        campaignCount: number;
+        walletBalance: number;
+        totalEarnings: number;
+        lastActive: string | null;
+        joinedAt: string;
+      }>;
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/admin/analytics/users${toQuery(params ?? {})}`),
+
+  adminUserDetail: (userId: string) =>
+    apiFetch<{
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        joinedAt: string;
+        verificationStatus: string;
+        status: string;
+      };
+      campaignSummary: { created: number; active: number; completed: number; successRate: number };
+      walletSummary: {
+        availableBalance: number;
+        lockedBalance: number;
+        lifetimeEarnings: number;
+        pendingBalance: number;
+      };
+      activitySummary: {
+        lastLogin: string | null;
+        lastActive: string | null;
+        lastCampaign: string | null;
+        lastMessage: string | null;
+        profileCompletion: number;
+      };
+      roleSpecific: Record<string, unknown> | null;
+    }>(`/admin/analytics/users/${userId}`),
+
+  adminUserWallet: (userId: string, params?: { from?: string; to?: string }) =>
+    apiFetch<{
+      availableBalance: number;
+      lockedBalance: number;
+      lifetimeEarnings: number;
+      withdrawnAmount: number;
+      pendingWithdrawals: number;
+      transactions: Array<{ id: string; type: string; amount: number; status: string; createdAt: string }>;
+    }>(`/admin/analytics/users/${userId}/wallet${toQuery(params ?? {})}`),
+
+  adminUserActivity: (userId: string, params?: { from?: string; to?: string }) =>
+    apiFetch<{
+      lastLogin: string | null;
+      lastActive: string | null;
+      lastCampaign: string | null;
+      lastMessage: string | null;
+      periodTotals: { messages: number; campaigns: number; applications: number };
+      monthlyActivity: Array<{ month: string; campaigns: number; applications: number; messages: number }>;
+    }>(`/admin/analytics/users/${userId}/activity${toQuery(params ?? {})}`),
+
+  adminUserCampaigns: (userId: string, params?: { from?: string; to?: string; limit?: number }) =>
+    apiFetch<Record<string, unknown>>(`/admin/analytics/users/${userId}/campaigns${toQuery(params ?? {})}`),
+};
+
+export const campaignPromptApi = {
+  getStatus: () =>
+    apiFetch<{
+      shouldShow: boolean;
+      reason?: string;
+      campaignCount?: number;
+      testMode?: boolean;
+      showAgainAt?: string;
+    }>('/campaign-prompt/status'),
+
+  recordEvent: (eventType: 'DISPLAYED' | 'CLOSED' | 'CREATE_CLICKED' | 'CAMPAIGN_CREATED', metadata?: Record<string, unknown>) =>
+    apiFetch('/campaign-prompt/event', {
+      method: 'POST',
+      body: JSON.stringify({ eventType, metadata }),
+    }),
 };
 
 // ─── Security APIs (Brand & Creator) ───────────────────────────────────────

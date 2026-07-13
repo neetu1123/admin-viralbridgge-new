@@ -8,18 +8,30 @@ export default function AdminSettingsContent() {
   const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
   const [platformFeePercent, setPlatformFeePercent] = useState(10);
   const [feeInput, setFeeInput] = useState('10');
+  const [reengagementEnabled, setReengagementEnabled] = useState(false);
+  const [inactivePeriod, setInactivePeriod] = useState('7d');
+  const [emailFrequencyDays, setEmailFrequencyDays] = useState(7);
+  const [reengagementStats, setReengagementStats] = useState<{ emailsSent: number; emailsOpened: number; usersReturned: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingFee, setSavingFee] = useState(false);
+  const [savingReengagement, setSavingReengagement] = useState(false);
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await adminApi.getSettings();
+      const [data, stats] = await Promise.all([
+        adminApi.getSettings(),
+        adminApi.getReEngagementAnalytics().catch(() => null),
+      ]);
       setAiMatchingEnabled(data.aiMatchingEnabled);
       const fee = data.platformFeePercent ?? 10;
       setPlatformFeePercent(fee);
       setFeeInput(String(fee));
+      setReengagementEnabled(data.reengagementEnabled ?? false);
+      setInactivePeriod(data.reengagementInactivePeriod ?? '7d');
+      setEmailFrequencyDays(data.reengagementEmailFrequencyDays ?? 7);
+      if (stats) setReengagementStats(stats);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to load settings');
     } finally {
@@ -61,6 +73,25 @@ export default function AdminSettingsContent() {
       toast.error(err instanceof Error ? err.message : 'Failed to update platform fee');
     } finally {
       setSavingFee(false);
+    }
+  };
+
+  const handleSaveReengagement = async () => {
+    setSavingReengagement(true);
+    try {
+      const data = await adminApi.patchSettings({
+        reengagementEnabled,
+        reengagementInactivePeriod: inactivePeriod,
+        reengagementEmailFrequencyDays: emailFrequencyDays,
+      });
+      setReengagementEnabled(data.reengagementEnabled ?? reengagementEnabled);
+      setInactivePeriod(data.reengagementInactivePeriod ?? inactivePeriod);
+      setEmailFrequencyDays(data.reengagementEmailFrequencyDays ?? emailFrequencyDays);
+      toast.success('Inactive user email settings saved');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save re-engagement settings');
+    } finally {
+      setSavingReengagement(false);
     }
   };
 
@@ -144,6 +175,69 @@ export default function AdminSettingsContent() {
               />
             </button>
           </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 lg:col-span-2">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Inactive User Emails</p>
+              <p className="text-xs text-slate-500 mt-0.5">Automatically re-engage inactive brand and creator users</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReengagementEnabled((v) => !v)}
+              className={`relative rounded-full transition-colors flex-shrink-0 ${reengagementEnabled ? 'bg-violet-600' : 'bg-slate-200'}`}
+              style={{ height: '22px', width: '40px' }}
+              aria-label="Toggle inactive user emails"
+            >
+              <span
+                className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${reengagementEnabled ? 'translate-x-5' : 'translate-x-0.5'}`}
+              />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="text-xs text-slate-500 block mb-1">Inactive Period</label>
+              <select
+                value={inactivePeriod}
+                onChange={(e) => setInactivePeriod(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+              >
+                <option value="5m">5 minutes (testing)</option>
+                <option value="7d">7 days</option>
+                <option value="14d">14 days</option>
+                <option value="30d">30 days</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 block mb-1">Email Frequency (days)</label>
+              <input
+                type="number"
+                min={1}
+                max={90}
+                value={emailFrequencyDays}
+                onChange={(e) => setEmailFrequencyDays(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+              />
+            </div>
+          </div>
+
+          {reengagementStats && (
+            <div className="grid grid-cols-3 gap-3 mb-4 text-sm">
+              <div className="bg-slate-50 rounded-lg p-3"><span className="text-slate-500 block text-xs">Sent</span><span className="font-bold">{reengagementStats.emailsSent}</span></div>
+              <div className="bg-slate-50 rounded-lg p-3"><span className="text-slate-500 block text-xs">Opened</span><span className="font-bold">{reengagementStats.emailsOpened}</span></div>
+              <div className="bg-slate-50 rounded-lg p-3"><span className="text-slate-500 block text-xs">Returned</span><span className="font-bold">{reengagementStats.usersReturned}</span></div>
+            </div>
+          )}
+
+          <button
+            onClick={handleSaveReengagement}
+            disabled={savingReengagement}
+            className="text-xs px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-semibold disabled:opacity-50"
+          >
+            {savingReengagement ? 'Saving…' : 'Save Re-engagement Settings'}
+          </button>
         </div>
       </div>
     </div>
