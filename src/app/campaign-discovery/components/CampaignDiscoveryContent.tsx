@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { creatorApi } from '@/src/lib/api';
 import { extractList, mapDiscoveryCampaign, type DiscoveryCampaignRow } from '@/src/lib/mappers';
@@ -43,6 +44,8 @@ const recommendedTabs = [
 ];
 
 export default function CampaignDiscoveryContent() {
+  const searchParams = useSearchParams();
+  const applyCampaignId = searchParams.get('apply');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -119,6 +122,14 @@ export default function CampaignDiscoveryContent() {
     const timer = setTimeout(() => loadCampaigns(), 300);
     return () => clearTimeout(timer);
   }, [loadCampaigns]);
+
+  useEffect(() => {
+    if (!applyCampaignId || loading) return;
+    const target = campaigns.find((c) => c.id === applyCampaignId);
+    if (target && !appliedCampaigns.has(applyCampaignId)) {
+      setApplyTarget(target);
+    }
+  }, [applyCampaignId, loading, campaigns, appliedCampaigns]);
 
   const toggleMultiFilter = (val: string, arr: string[], setArr: (v: string[]) => void) => {
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);

@@ -1,11 +1,13 @@
 'use client';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { brandApi } from '@/src/lib/api';
 import { extractList, extractMeta, mapCreatorCard, type CreatorCardRow } from '@/src/lib/mappers';
 import { Search, SlidersHorizontal, Users, Star, MessageSquare, UserPlus, ChevronDown, X, MapPin, Globe, Plus } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
+import InviteCreatorModal from './InviteCreatorModal';
 
 type Creator = CreatorCardRow;
 
@@ -39,6 +41,8 @@ const priceRanges = [
 ];
 
 export default function CreatorDiscoveryContent() {
+  const searchParams = useSearchParams();
+  const inviteCreatorId = searchParams.get('invite');
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -52,6 +56,7 @@ export default function CreatorDiscoveryContent() {
   const [sortBy, setSortBy] = useState<'match' | 'followers' | 'engagement' | 'price_low' | 'price_high'>('match');
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [invitedCreators, setInvitedCreators] = useState<Set<string>>(new Set());
+  const [inviteModalTarget, setInviteModalTarget] = useState<{ id: string; name?: string } | null>(null);
   const [totalCreators, setTotalCreators] = useState(0);
   const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
 
@@ -107,6 +112,16 @@ export default function CreatorDiscoveryContent() {
     return () => clearTimeout(timer);
   }, [loadCreators]);
 
+  useEffect(() => {
+    if (!inviteCreatorId || loading || invitedCreators.has(inviteCreatorId)) return;
+    const target = creators.find((c) => c.id === inviteCreatorId);
+    if (target) {
+      setInviteModalTarget({ id: target.id, name: target.name });
+      return;
+    }
+    setInviteModalTarget({ id: inviteCreatorId });
+  }, [inviteCreatorId, loading, creators, invitedCreators]);
+
   const filtered = useMemo(() => {
     return creators.filter(c => {
       const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.handle.toLowerCase().includes(search.toLowerCase()) || c.niche.toLowerCase().includes(search.toLowerCase());
@@ -135,8 +150,11 @@ export default function CreatorDiscoveryContent() {
   }, [creators, search, selectedNiche, selectedPlatform, selectedLocation, selectedLanguage, selectedFollowers, selectedEngagement, selectedPrice, sortBy]);
 
   const handleInvite = (creator: Creator) => {
-    setInvitedCreators(prev => new Set(prev).add(creator.id));
-    toast.success(`Invite sent to ${creator.name}!`);
+    setInviteModalTarget({ id: creator.id, name: creator.name });
+  };
+
+  const handleInviteSuccess = (creatorId: string) => {
+    setInvitedCreators((prev) => new Set(prev).add(creatorId));
   };
 
   const activeFilters = [
@@ -437,6 +455,15 @@ export default function CreatorDiscoveryContent() {
             <Plus size={14} /> Create Campaign
           </Link>
         </div>
+      )}
+
+      {inviteModalTarget && (
+        <InviteCreatorModal
+          creatorId={inviteModalTarget.id}
+          creatorName={inviteModalTarget.name}
+          onClose={() => setInviteModalTarget(null)}
+          onSuccess={() => handleInviteSuccess(inviteModalTarget.id)}
+        />
       )}
     </div>
   );
