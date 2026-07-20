@@ -1,12 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { Plus, Search, ChevronDown, MoreHorizontal, Users, TrendingUp, Eye, Edit, Trash2, PauseCircle, CheckCircle, BarChart3, Zap, MessageSquare, Star, ArrowRight, Sparkles, Trophy, UserCheck, Shield, Activity, Brain, Target, TrendingDown, Award, ShieldCheck, BadgeCheck, AlertTriangle, Flame, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
-import CreateCampaignModal from './CreateCampaignModal';
 import ApplicantDrawer from './ApplicantDrawer';
 import CampaignStatsChart from './CampaignStatsChart';
 import { brandApi, platformApi } from '@/src/lib/api';
@@ -100,7 +99,6 @@ export default function BrandCampaignContent() {
   const [activeTab, setActiveTab] = useState<BrandTab>('campaigns');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showCreate, setShowCreate] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [now, setNow] = useState<number | null>(null);
@@ -110,12 +108,13 @@ export default function BrandCampaignContent() {
   const [expandedCreator, setExpandedCreator] = useState<string | null>(null);
   const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     if (searchParams.get('create') === '1') {
-      setShowCreate(true);
+      router.replace('/brand-campaign-management/create');
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const loadData = React.useCallback(async () => {
     setLoading(true);
@@ -250,13 +249,13 @@ export default function BrandCampaignContent() {
           <h1 className="text-2xl font-bold text-slate-800">Brand Intelligence Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Marketing performance, creator intelligence & reach analytics</p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
+        <Link
+          href="/brand-campaign-management/create"
           className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all duration-150 shadow-sm"
         >
           <Plus size={16} />
           Create Campaign
-        </button>
+        </Link>
       </div>
 
       {/* ROW 1 — Executive Metrics (Big Cards) */}
@@ -336,9 +335,9 @@ export default function BrandCampaignContent() {
               <span className="flex items-center gap-2"><Users size={13} />Approve Applicants</span>
               {totalPending > 0 && <span className="bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">{totalPending}</span>}
             </button>
-            <button onClick={() => setShowCreate(true)} className="w-full flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition-all duration-150 border border-white/20">
+            <Link href="/brand-campaign-management/create" className="w-full flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition-all duration-150 border border-white/20">
               <Plus size={13} />Create Campaign
-            </button>
+            </Link>
             <Link href="/brand-messages" className="w-full flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition-all duration-150 border border-white/20">
               <MessageSquare size={13} />Message Creators
             </Link>
@@ -702,7 +701,7 @@ export default function BrandCampaignContent() {
                 <BarChart3 size={36} className="text-slate-300 mb-3" />
                 <h3 className="text-slate-700 font-semibold mb-1">No campaigns yet</h3>
                 <p className="text-slate-400 text-sm mb-4">Create your first campaign to start finding creators</p>
-                <button onClick={() => setShowCreate(true)} className="bg-violet-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">Create Campaign</button>
+                <Link href="/brand-campaign-management/create" className="bg-violet-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">Create Campaign</Link>
               </div>
             )}
           </div>
@@ -794,7 +793,6 @@ export default function BrandCampaignContent() {
       {loading && campaigns.length === 0 && (
         <div className="text-center py-8 text-slate-500 text-sm">Loading campaigns...</div>
       )}
-      {showCreate && <CreateCampaignModal onClose={() => setShowCreate(false)} onCreated={loadData} />}
       {selectedCampaign && <ApplicantDrawer campaign={selectedCampaign} onClose={() => setSelectedCampaign(null)} />}
     </div>
   );
