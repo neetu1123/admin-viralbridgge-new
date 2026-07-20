@@ -5,6 +5,11 @@
 
 import { useEffect, useState } from 'react';
 import { logout as performLogout } from './auth';
+import {
+  buildMarketingBridgeUrl,
+  markSsoChecked,
+  wasSsoCheckedRecently,
+} from './auth/sso';
 
 export interface AuthUser {
   id: string;
@@ -22,6 +27,17 @@ export function useAuth(requiredRole?: 'admin' | 'brand' | 'creator') {
     const userStr = localStorage.getItem('user');
 
     if (!token || !userStr) {
+      if (
+        typeof window !== 'undefined' &&
+        !window.location.pathname.startsWith('/auth/') &&
+        !window.location.pathname.startsWith('/sign-up-login-screen') &&
+        !wasSsoCheckedRecently()
+      ) {
+        markSsoChecked();
+        const receiveUrl = `${window.location.origin}/auth/receive?next=${encodeURIComponent(window.location.pathname)}`;
+        window.location.href = buildMarketingBridgeUrl(receiveUrl);
+        return;
+      }
       window.location.href = '/sign-up-login-screen';
       return;
     }
