@@ -118,7 +118,7 @@ export default function BrandCampaignNudge() {
 
           <div className="flex flex-col sm:flex-row gap-2 pt-1">
             <Link
-              href="/brand-campaign-management?create=1"
+              href="/brand-campaign-management/create"
               onClick={onCreateClick}
               className="flex-1 inline-flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-3 rounded-xl text-sm transition-colors"
             >

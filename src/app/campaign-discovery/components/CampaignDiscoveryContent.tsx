@@ -128,6 +128,17 @@ export default function CampaignDiscoveryContent() {
     const target = campaigns.find((c) => c.id === applyCampaignId);
     if (target && !appliedCampaigns.has(applyCampaignId)) {
       setApplyTarget(target);
+      return;
+    }
+    if (!target && !appliedCampaigns.has(applyCampaignId)) {
+      creatorApi
+        .getCampaign(applyCampaignId)
+        .then((res) => {
+          setApplyTarget(mapDiscoveryCampaign(res as Record<string, unknown>));
+        })
+        .catch(() => {
+          toast.error('Could not load campaign to apply');
+        });
     }
   }, [applyCampaignId, loading, campaigns, appliedCampaigns]);
 

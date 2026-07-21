@@ -7,7 +7,7 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 
@@ -27,6 +27,7 @@ const creatorNav = [
 
 const brandNav = [
   { label: 'Campaigns', icon: Briefcase, href: '/brand-campaign-management', badge: null },
+  { label: 'Create Campaign', icon: Plus, href: '/brand-campaign-management/create', badge: null },
   { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: '12' },
   { label: 'Review Deliverables', icon: Upload, href: '/brand-deliverables', badge: null },
   { label: 'Creator Discovery', icon: Compass, href: '/creator-discovery', badge: null },
@@ -269,7 +270,9 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto scrollbar-thin">
         <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${collapsed ? 'hidden' : ''}`}>Navigation</p>
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/brand-campaign-management' && pathname.startsWith(`${item.href}/`));
           const Icon = item.icon;
           return (
             <Link
