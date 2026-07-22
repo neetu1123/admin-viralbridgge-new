@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
 import { creatorApi, kycApi } from '@/src/lib/api';
-import { Camera, Save, Plus, X, Star, TrendingUp, Users, Briefcase } from 'lucide-react';
+import { Camera, Save, Star, TrendingUp, Users, Briefcase } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 import ProfileCompletionBanner from '@/src/components/ProfileCompletionBanner';
+import CreatorPortfolioSection from '@/src/components/portfolio/CreatorPortfolioSection';
 import { creatorProfileCompletion } from '@/src/lib/profileCompletion';
 
 
@@ -181,8 +182,6 @@ export default function CreatorProfileContent() {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'U';
-
-  const removePortfolioItem = (id: string) => setPortfolioItems(prev => prev.filter(p => p.id !== id));
 
   const socialLinks = [
     { label: 'Instagram', value: instagram, setter: setInstagram, placeholder: 'https://instagram.com/yourhandle', color: 'text-pink-500', initials: 'IG' },
@@ -367,52 +366,26 @@ export default function CreatorProfileContent() {
             </div>
           </div>
 
-          {/* Portfolio / Media Kit */}
+          {/* Media Kit */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-slate-700">Portfolio & Media Kit</h2>
-              <button
-                onClick={() => toast.success('Add portfolio item')}
-                className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-700 font-medium border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors"
-              >
-                <Plus size={12} /> Add Work
+            <h2 className="text-sm font-semibold text-slate-700 mb-4">Media Kit</h2>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Media Kit URL</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="url"
+                value={mediaKitUrl}
+                onChange={e => setMediaKitUrl(e.target.value)}
+                placeholder="Link to your media kit (PDF, Notion, etc.)"
+                className="flex-1 px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+              />
+              <button onClick={() => toast.success('Media kit uploaded')} className="flex items-center gap-1.5 text-xs text-slate-600 border border-slate-200 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
+                Upload PDF
               </button>
             </div>
-
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Media Kit URL</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={mediaKitUrl}
-                  onChange={e => setMediaKitUrl(e.target.value)}
-                  placeholder="Link to your media kit (PDF, Notion, etc.)"
-                  className="flex-1 px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
-                />
-                <button onClick={() => toast.success('Media kit uploaded')} className="flex items-center gap-1.5 text-xs text-slate-600 border border-slate-200 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
-                  Upload PDF
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              {portfolioItems.map(item => (
-                <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 group">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-700 truncate">{item.title}</p>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-xs text-slate-400">{item.platform}</span>
-                      <span className="text-xs text-slate-500">{item.views} views</span>
-                      <span className="text-xs text-emerald-600">{item.engagement} eng.</span>
-                    </div>
-                  </div>
-                  <button onClick={() => removePortfolioItem(item.id)} className="p-1 rounded hover:bg-red-50 hover:text-red-500 text-slate-400 transition-colors ml-3 opacity-0 group-hover:opacity-100">
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
           </div>
+
+          {/* Portfolio gallery (mock data) */}
+          <CreatorPortfolioSection />
 
           <button
             onClick={saveProfile}

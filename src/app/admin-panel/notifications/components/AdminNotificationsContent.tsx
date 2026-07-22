@@ -3,6 +3,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Loader2, Mail, Send, Bell, AlertCircle, CheckCircle2, Filter } from 'lucide-react';
 import { adminApi, type NotificationItem } from '@/src/lib/api';
+import BroadcastRecipientPanel from '@/src/components/admin/BroadcastRecipientPanel';
+import { MOCK_BROADCAST_RECIPIENTS } from '@/src/lib/mock/broadcastRecipients';
 
 type Tab = 'inbox' | 'broadcast';
 
@@ -44,6 +46,29 @@ export default function AdminNotificationsContent() {
   });
   const [brandOptions, setBrandOptions] = useState<Array<{ id: string; companyName: string }>>([]);
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState<Set<string>>(
+    () => new Set(MOCK_BROADCAST_RECIPIENTS.map((r) => r.id)),
+  );
+
+  const toggleRecipient = (id: string) => {
+    setSelectedRecipientIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllRecipients = (ids: string[], checked: boolean) => {
+    setSelectedRecipientIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => {
+        if (checked) next.add(id);
+        else next.delete(id);
+      });
+      return next;
+    });
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -231,8 +256,8 @@ export default function AdminNotificationsContent() {
       )}
 
       {tab === 'broadcast' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 xl:col-span-1">
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Send size={16} className="text-violet-600" />
               Send Broadcast
@@ -255,6 +280,9 @@ export default function AdminNotificationsContent() {
               <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <Filter size={13} className="text-violet-600" />
                 Target filters (optional — leave as All to include everyone in audience)
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Use the recipient panel to preview inactive users and selected count. Backend targeting unchanged — mock UI only.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -350,13 +378,19 @@ export default function AdminNotificationsContent() {
             </label>
             <button
               onClick={handleBroadcast}
-              disabled={sendingBroadcast || !emailStatus?.configured}
+              disabled={sendingBroadcast || !emailStatus?.configured || selectedRecipientIds.size === 0}
               className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-semibold py-3 rounded-xl text-sm"
             >
               {sendingBroadcast ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              {sendingBroadcast ? 'Sending…' : 'Send Broadcast'}
+              {sendingBroadcast ? 'Sending…' : `Send Broadcast (${selectedRecipientIds.size} selected)`}
             </button>
           </div>
+
+          <BroadcastRecipientPanel
+            selectedIds={selectedRecipientIds}
+            onToggle={toggleRecipient}
+            onToggleAll={toggleAllRecipients}
+          />
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
             <h2 className="text-base font-bold text-slate-800">Test email setup</h2>

@@ -8,6 +8,7 @@ import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import ApplicantDrawer from './ApplicantDrawer';
 import CampaignStatsChart from './CampaignStatsChart';
+import AiRecommendationsSection from '@/src/components/brand/AiRecommendationsSection';
 import { brandApi, platformApi } from '@/src/lib/api';
 import {
   extractList,
@@ -321,6 +322,8 @@ export default function BrandCampaignContent() {
           </div>
         </div>
       </div>
+
+      <AiRecommendationsSection />
 
       {/* ROW 2 — Actions (Quick Actions + Best Campaign Showcase) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">

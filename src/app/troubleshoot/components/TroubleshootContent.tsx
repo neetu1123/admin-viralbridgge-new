@@ -98,7 +98,7 @@ export default function TroubleshootContent() {
               <Mail size={16} className="text-violet-600" /> Email Support
             </a>
             <a
-              href="https://wa.me/919876543210"
+              href="https://wa.me/917303655804"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 hover:border-violet-300"

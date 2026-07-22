@@ -2,15 +2,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
 import { brandApi } from '@/src/lib/api';
-import { Building2, Bell, CreditCard, Shield, Users, ChevronRight, Save, ShieldCheck } from 'lucide-react';
+import { Building2, Bell, CreditCard, Shield, Users, ChevronRight, Save, ShieldCheck, Briefcase } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 import KycVerificationPanel from '@/src/components/KycVerificationPanel';
 import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
 import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
 import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
+import BrandPreviousCampaignsSection from '@/src/components/portfolio/BrandPreviousCampaignsSection';
 
 
-type SettingsTab = 'profile' | 'verification' | 'notifications' | 'billing' | 'team' | 'security';
+type SettingsTab = 'profile' | 'portfolio' | 'verification' | 'notifications' | 'billing' | 'team' | 'security';
 
 export default function BrandSettingsContent() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
@@ -97,6 +98,7 @@ export default function BrandSettingsContent() {
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: 'profile', label: 'Brand Profile', icon: Building2 },
+    { id: 'portfolio', label: 'Previous Campaigns', icon: Briefcase },
     { id: 'verification', label: 'Verification', icon: ShieldCheck },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
@@ -211,6 +213,8 @@ export default function BrandSettingsContent() {
               </div>
             </div>
           )}
+
+          {activeTab === 'portfolio' && <BrandPreviousCampaignsSection />}
 
           {activeTab === 'verification' && <KycVerificationPanel role="brand" />}
 
