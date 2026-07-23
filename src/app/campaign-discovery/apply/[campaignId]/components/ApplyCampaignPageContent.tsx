@@ -115,7 +115,7 @@ export default function ApplyCampaignPageContent({ campaignId }: ApplyCampaignPa
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
               <p className="text-xs text-slate-400 uppercase tracking-wide">Budget</p>
-              <p className="text-lg font-bold text-slate-800">${campaign.budget.toLocaleString()}</p>
+              <p className="text-lg font-bold text-slate-800">₹{campaign.budget.toLocaleString()}</p>
             </div>
             <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
               <p className="text-xs text-slate-400 uppercase tracking-wide">Platform</p>

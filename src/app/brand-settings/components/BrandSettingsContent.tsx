@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { brandApi } from '@/src/lib/api';
 import { Building2, Bell, CreditCard, Shield, Users, ChevronRight, Save, ShieldCheck, Briefcase } from 'lucide-react';
@@ -9,12 +11,19 @@ import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
 import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
 import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
 import BrandPreviousCampaignsSection from '@/src/components/portfolio/BrandPreviousCampaignsSection';
-
+import NotificationToggle from '@/src/components/ui/NotificationToggle';
 
 type SettingsTab = 'profile' | 'portfolio' | 'verification' | 'notifications' | 'billing' | 'team' | 'security';
 
+function tabFromPathname(pathname: string): SettingsTab {
+  const segment = pathname.split('/').pop();
+  const valid: SettingsTab[] = ['profile', 'portfolio', 'verification', 'notifications', 'billing', 'team', 'security'];
+  return valid.includes(segment as SettingsTab) ? (segment as SettingsTab) : 'profile';
+}
+
 export default function BrandSettingsContent() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+  const pathname = usePathname();
+  const activeTab = tabFromPathname(pathname);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [brandName, setBrandName] = useState('');
@@ -123,18 +132,20 @@ export default function BrandSettingsContent() {
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             {tabs.map(tab => {
               const Icon = tab.icon;
+              const href = `/brand-settings/${tab.id}`;
+              const isActive = activeTab === tab.id;
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors border-b border-slate-50 last:border-0 ${activeTab === tab.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}
+                  href={href}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors border-b border-slate-50 last:border-0 ${isActive ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon size={15} className={activeTab === tab.id ? 'text-violet-600' : 'text-slate-400'} />
+                    <Icon size={15} className={isActive ? 'text-violet-600' : 'text-slate-400'} />
                     {tab.label}
                   </div>
-                  <ChevronRight size={13} className={activeTab === tab.id ? 'text-violet-400' : 'text-slate-300'} />
-                </button>
+                  <ChevronRight size={13} className={isActive ? 'text-violet-400' : 'text-slate-300'} />
+                </Link>
               );
             })}
           </div>
@@ -234,13 +245,11 @@ export default function BrandSettingsContent() {
                       <p className="text-sm font-semibold text-slate-800">{item.label}</p>
                       <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
                     </div>
-                    <button
-                      onClick={() => { item.setter(!item.value); toast.success(`${item.label} notifications ${!item.value ? 'enabled' : 'disabled'}`); }}
-                      className={`relative w-10 h-5.5 rounded-full transition-colors flex-shrink-0 ${item.value ? 'bg-violet-600' : 'bg-slate-200'}`}
-                      style={{ height: '22px', width: '40px' }}
-                    >
-                      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${item.value ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                    </button>
+                    <NotificationToggle
+                      checked={item.value}
+                      label={item.label}
+                      onChange={(next) => item.setter(next)}
+                    />
                   </div>
                 ))}
               </div>

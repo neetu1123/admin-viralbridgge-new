@@ -177,7 +177,7 @@ export default function MyApplicationsContent() {
                     <div className="flex items-center gap-3 flex-wrap">
                       <PlatformBadge platform={app.platform} />
                       <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                        <DollarSign size={10} />${app.budget.toLocaleString()}
+                        ₹{app.budget.toLocaleString()}
                       </span>
                       <span className="text-xs text-slate-400">Deadline: {app.deadline}</span>
                       {app.paymentStatus && (
@@ -187,9 +187,10 @@ export default function MyApplicationsContent() {
                         </span>
                       )}
                     </div>
-                    {app.feedback && (
-                      <div className="mt-2 bg-slate-50 rounded-lg p-2.5 border border-slate-100">
-                        <p className="text-xs text-slate-500 italic">&quot;{app.feedback}&quot;</p>
+                    {app.status === 'rejected' && app.feedback && (
+                      <div className="mt-2 bg-red-50 rounded-lg p-2.5 border border-red-100">
+                        <p className="text-xs font-semibold text-red-700 mb-0.5">Rejection reason</p>
+                        <p className="text-xs text-red-800">{app.feedback}</p>
                       </div>
                     )}
                     <div className="flex flex-wrap gap-1.5 mt-2">
@@ -225,7 +226,7 @@ export default function MyApplicationsContent() {
                     </>
                   )}
                   <Link
-                    href="/campaign-discovery"
+                    href={`/my-applications/${app.id}`}
                     className="flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-colors"
                   >
                     <Eye size={12} /> View

@@ -218,12 +218,12 @@ export default function AdminUsersContent() {
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       {user.role === 'creator' ? (
                         <div>
-                          <p className="text-sm font-bold text-emerald-700 tabular-nums">${(user.totalEarnings ?? 0).toLocaleString()}</p>
+                          <p className="text-sm font-bold text-emerald-700 tabular-nums">₹{(user.totalEarnings ?? 0).toLocaleString()}</p>
                           <p className="text-xs text-slate-400">{user.collabs} collabs · {((user.followers ?? 0) / 1000).toFixed(1)}K followers</p>
                         </div>
                       ) : (
                         <div>
-                          <p className="text-sm font-bold text-blue-700 tabular-nums">${(user.totalSpend ?? 0).toLocaleString()}</p>
+                          <p className="text-sm font-bold text-blue-700 tabular-nums">₹{(user.totalSpend ?? 0).toLocaleString()}</p>
                           <p className="text-xs text-slate-400">{user.campaigns} campaigns</p>
                         </div>
                       )}

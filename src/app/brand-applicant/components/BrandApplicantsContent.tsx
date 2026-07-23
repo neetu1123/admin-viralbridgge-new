@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Megaphone } from 'lucide-react';
+import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Megaphone, Eye } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
 import {
   extractList,
@@ -14,6 +14,7 @@ import {
 } from '@/src/lib/mappers';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import StatusBadge from '@/src/components/ui/StatusBadge';
+import RejectApplicationModal from '@/src/components/brand/RejectApplicationModal';
 
 const applicantStatusConfig: Record<string, { label: string; cls: string }> = {
   pending: { label: 'Pending', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
@@ -28,6 +29,7 @@ export default function BrandApplicantsContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [rejectTarget, setRejectTarget] = useState<BrandApplicantRow | null>(null);
 
   const loadApplicants = useCallback(async () => {
     setLoading(true);
@@ -78,11 +80,12 @@ export default function BrandApplicantsContent() {
     appId: string,
     action: 'shortlist' | 'approve' | 'reject',
     name?: string,
+    reason?: string,
   ) => {
     try {
       if (action === 'shortlist') await brandApi.shortlistApplication(appId);
       else if (action === 'approve') await brandApi.approveApplication(appId);
-      else await brandApi.rejectApplication(appId);
+      else await brandApi.rejectApplication(appId, reason ?? 'Not selected for this campaign');
       toast.success(
         action === 'approve'
           ? `${name ?? 'Creator'} approved`
@@ -142,7 +145,7 @@ export default function BrandApplicantsContent() {
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-bold text-slate-800 tabular-nums">${campaign.budget.toLocaleString()}</p>
+                <p className="text-sm font-bold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
                 <p className="text-xs text-slate-400">{campaign.applicants} applicants · {campaign.pending} pending</p>
               </div>
             </div>
@@ -236,7 +239,7 @@ export default function BrandApplicantsContent() {
                         Approve
                       </button>
                       <button
-                        onClick={() => handleApplicantAction(applicant.id, 'reject', applicant.name)}
+                        onClick={() => setRejectTarget(applicant)}
                         className="text-xs font-semibold bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Reject
@@ -244,14 +247,29 @@ export default function BrandApplicantsContent() {
                     </>
                   )}
                   {applicant.status === 'shortlisted' && (
-                    <button
-                      onClick={() => handleApplicantAction(applicant.id, 'approve', applicant.name)}
-                      className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
-                    >
-                      <UserCheck size={12} />
-                      Approve
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setRejectTarget(applicant)}
+                        className="text-xs font-semibold bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        onClick={() => handleApplicantAction(applicant.id, 'approve', applicant.name)}
+                        className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <UserCheck size={12} />
+                        Approve
+                      </button>
+                    </>
                   )}
+                  <Link
+                    href={`/brand-applicant/${applicant.id}`}
+                    className="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <Eye size={12} />
+                    View
+                  </Link>
                   {applicant.status === 'approved' && (
                     <Link
                       href="/brand-messages"
@@ -283,6 +301,16 @@ export default function BrandApplicantsContent() {
           )}
         </div>
       </div>
+
+      <RejectApplicationModal
+        open={!!rejectTarget}
+        creatorName={rejectTarget?.name}
+        onClose={() => setRejectTarget(null)}
+        onConfirm={async (reason) => {
+          if (!rejectTarget) return;
+          await handleApplicantAction(rejectTarget.id, 'reject', rejectTarget.name, reason);
+        }}
+      />
     </div>
   );
 }

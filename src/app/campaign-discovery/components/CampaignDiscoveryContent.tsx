@@ -18,10 +18,10 @@ const brandSizes = ['Startup', 'D2C', 'Enterprise'];
 
 const budgetRanges = [
   { label: 'Any Budget', min: 0, max: Infinity },
-  { label: 'Under $500', min: 0, max: 500 },
-  { label: '$500 – $1,500', min: 500, max: 1500 },
-  { label: '$1,500 – $5,000', min: 1500, max: 5000 },
-  { label: '$5,000+', min: 5000, max: Infinity },
+  { label: 'Under ₹5K', min: 0, max: 5000 },
+  { label: '₹5K – ₹15K', min: 5000, max: 15000 },
+  { label: '₹15K – ₹50K', min: 15000, max: 50000 },
+  { label: '₹50K+', min: 50000, max: Infinity },
 ];
 
 const followerRequirements = [
@@ -35,6 +35,7 @@ const followerRequirements = [
 type Campaign = DiscoveryCampaignRow;
 
 const recommendedTabs = [
+  { id: 'all', label: 'All', icon: '📋' },
   { id: 'recommended', label: 'Recommended', icon: '⭐' },
   { id: 'trending', label: 'Trending', icon: '🔥' },
   { id: 'high_budget', label: 'High Budget', icon: '💰' },
@@ -63,7 +64,7 @@ export default function CampaignDiscoveryContent() {
   const [applyTarget, setApplyTarget] = useState<Campaign | null>(null);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'budget_high' | 'budget_low' | 'applicants_low' | 'match'>('match');
-  const [activeRecommendedTab, setActiveRecommendedTab] = useState('recommended');
+  const [activeRecommendedTab, setActiveRecommendedTab] = useState('all');
   const [aiMatchingEnabled, setAiMatchingEnabled] = useState(true);
 
   const loadCampaigns = useCallback(async () => {
@@ -151,11 +152,21 @@ export default function CampaignDiscoveryContent() {
     const followerMin = followerRequirements[selectedFollowers].min;
     return campaigns.filter(c => {
       const matchSearch = c.title.toLowerCase().includes(search.toLowerCase()) || c.brand.toLowerCase().includes(search.toLowerCase());
-      const matchPlatform = selectedPlatform === 'All Platforms' || c.platform === selectedPlatform;
-      const matchNiche = selectedNiche === 'All Niches' || c.niche === selectedNiche;
+      const matchPlatform =
+        selectedPlatform === 'All Platforms' ||
+        c.platform.toLowerCase() === selectedPlatform.toLowerCase();
+      const matchNiche =
+        selectedNiche === 'All Niches' ||
+        c.niche.toLowerCase() === selectedNiche.toLowerCase() ||
+        c.niche === 'General';
       const matchBudget = c.budget >= budgetRange.min && c.budget <= budgetRange.max;
-      const matchLocality = selectedLocality === 'All Locations' || c.locality === selectedLocality;
-      const matchLanguage = selectedLanguage === 'All Languages' || c.language === selectedLanguage;
+      const matchLocality =
+        selectedLocality === 'All Locations' ||
+        c.locality.toLowerCase() === selectedLocality.toLowerCase() ||
+        c.locality === 'Global';
+      const matchLanguage =
+        selectedLanguage === 'All Languages' ||
+        c.language.toLowerCase() === selectedLanguage.toLowerCase();
       const matchFollowers = c.followersMin >= followerMin;
       const matchDeliverables = selectedDeliverables.length === 0 || selectedDeliverables.some(d => c.deliverables.some(del => del.toLowerCase().includes(d.toLowerCase())));
       const matchPayment = selectedPaymentTypes.length === 0 || selectedPaymentTypes.includes(c.paymentType);
@@ -168,11 +179,15 @@ export default function CampaignDiscoveryContent() {
       if (sortBy === 'match') return b.aiMatchScore - a.aiMatchScore;
       return 0;
     });
-  }, [search, selectedPlatform, selectedNiche, selectedBudget, selectedLocality, selectedLanguage, selectedFollowers, selectedDeliverables, selectedPaymentTypes, selectedBrandSizes, sortBy]);
+  }, [campaigns, search, selectedPlatform, selectedNiche, selectedBudget, selectedLocality, selectedLanguage, selectedFollowers, selectedDeliverables, selectedPaymentTypes, selectedBrandSizes, sortBy]);
 
   const recommendedFiltered = useMemo(() => {
-    return campaigns.filter(c => c.category === activeRecommendedTab).sort((a, b) => b.aiMatchScore - a.aiMatchScore);
-  }, [activeRecommendedTab]);
+    const list =
+      activeRecommendedTab === 'all'
+        ? [...campaigns]
+        : campaigns.filter((c) => c.category === activeRecommendedTab);
+    return list.sort((a, b) => b.aiMatchScore - a.aiMatchScore);
+  }, [campaigns, activeRecommendedTab]);
 
   const toggleSave = (id: string) => {
     setSavedCampaigns(prev => {

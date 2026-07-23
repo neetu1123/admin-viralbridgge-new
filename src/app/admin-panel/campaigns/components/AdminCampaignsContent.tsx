@@ -217,7 +217,7 @@ export default function AdminCampaignsContent() {
                     <PlatformBadge platform={campaign.platform} />
                   </td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
-                    <p className="text-sm font-bold text-slate-800 tabular-nums">${campaign.budget.toLocaleString()}</p>
+                    <p className="text-sm font-bold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
                   </td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusConfig[campaign.status]?.cls}`}>

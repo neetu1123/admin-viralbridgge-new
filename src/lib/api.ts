@@ -559,8 +559,10 @@ export const brandApi = {
     apiFetch(`/brand/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCampaign: (id: string) => apiFetch(`/brand/campaigns/${id}`, { method: 'DELETE' }),
   getApplicants: (campaignId: string) => apiFetch(`/brand/campaigns/${campaignId}/applicants`),
+  getApplication: (id: string) => apiFetch(`/brand/applications/${id}`),
   approveApplication: (id: string) => apiFetch(`/brand/applications/${id}/approve`, { method: 'POST' }),
-  rejectApplication: (id: string) => apiFetch(`/brand/applications/${id}/reject`, { method: 'POST' }),
+  rejectApplication: (id: string, reason: string) =>
+    apiFetch(`/brand/applications/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
   shortlistApplication: (id: string) => apiFetch(`/brand/applications/${id}/shortlist`, { method: 'POST' }),
   inviteCreator: (campaignId: string, creatorId: string) =>
     apiFetch(`/brand/campaigns/${campaignId}/invite/${creatorId}`, { method: 'POST' }),
@@ -672,6 +674,8 @@ export const creatorApi = {
   getApplications: (params?: Record<string, string | number | boolean | undefined>) =>
     apiFetch(`/creator/applications${toQuery(params)}`),
   getApplication: (id: string) => apiFetch(`/creator/applications/${id}`),
+  withdrawApplication: (id: string) =>
+    apiFetch(`/creator/applications/${id}`, { method: 'DELETE' }),
   getDeliverables: () => apiFetch('/creator/deliverables'),
   submitDeliverable: (id: string, data: { mediaUrl: string; thumbnailUrl?: string; notes?: string }) =>
     apiFetch(`/creator/deliverables/${id}/submit`, { method: 'POST', body: JSON.stringify(data) }),

@@ -294,7 +294,7 @@ export default function BrandWalletContent() {
                       <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div className={`h-full rounded-full ${pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-amber-500' : 'bg-violet-500'}`} style={{ width: `${pct}%` }} />
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">${c.spend.toLocaleString()} / ${c.budget.toLocaleString()}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">₹{c.spend.toLocaleString()} / ₹{c.budget.toLocaleString()}</p>
                     </div>
                   );
                 })}
@@ -437,7 +437,7 @@ export default function BrandWalletContent() {
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${inv.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
                     {inv.status === 'paid' ? 'Paid' : 'Pending'}
                   </span>
-                  <p className="text-sm font-bold text-slate-800 tabular-nums">${inv.amount.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-slate-800 tabular-nums">₹{inv.amount.toLocaleString()}</p>
                   <button onClick={() => toast.success('Invoice downloaded')} className="text-xs text-violet-600 hover:text-violet-700 font-semibold">Download</button>
                 </div>
               </div>

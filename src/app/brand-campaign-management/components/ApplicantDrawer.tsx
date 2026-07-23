@@ -103,7 +103,7 @@ export default function ApplicantDrawer({ campaign, onClose }: ApplicantDrawerPr
       if (decision === 'accepted') {
         await brandApi.approveApplication(appId);
       } else {
-        await brandApi.rejectApplication(appId);
+        await brandApi.rejectApplication(appId, 'Not selected for this campaign');
       }
       setAppStatuses((prev) => ({ ...prev, [appId]: decision }));
       const name = applicants.find((a) => a.id === appId)?.name;

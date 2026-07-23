@@ -65,7 +65,7 @@ export default function CreatorProfileContent() {
       const user = (profile.user as Record<string, unknown>) ?? {};
       const social = (profile.social_links as Record<string, string>) ?? {};
       setName(String(profile.full_name || user.name || ''));
-      setHandle(social.instagram ? `@${social.instagram.split('/').pop()}` : '');
+      setHandle(String(social.handle ?? (social.instagram ? `@${String(social.instagram).split('/').pop()}` : '')));
       setBio(String(profile.bio ?? ''));
       setLocation(String(profile.locality ?? ''));
       setEmail(String(profile.contact_email || user.email || ''));
@@ -73,8 +73,16 @@ export default function CreatorProfileContent() {
       setInstagram(String(social.instagram ?? ''));
       setYoutube(String(social.youtube ?? ''));
       setTiktok(String(social.tiktok ?? ''));
-      setWebsite('');
-      setSelectedNiches(profile.niche ? [String(profile.niche)] : []);
+      setTwitter(String(social.twitter ?? ''));
+      setWebsite(String(social.website ?? ''));
+      const nicheRaw = social.niches;
+      if (Array.isArray(nicheRaw) && nicheRaw.length > 0) {
+        setSelectedNiches(nicheRaw.map(String).slice(0, 5));
+      } else if (profile.niche) {
+        setSelectedNiches(String(profile.niche).split(',').map((n) => n.trim()).filter(Boolean).slice(0, 5));
+      } else {
+        setSelectedNiches([]);
+      }
       setMediaKitUrl(String(profile.media_kit ?? ''));
       setPhotoUrl(profile.photo ? String(profile.photo) : profile.profile_photo ? String(profile.profile_photo) : null);
       setFollowersCount(Number(profile.followers ?? profile.followers_count ?? 0));
@@ -128,12 +136,16 @@ export default function CreatorProfileContent() {
         fullName: name,
         bio,
         niche: selectedNiches[0] || 'General',
+        niches: selectedNiches,
         locality: location,
         contactEmail: email,
         phone,
         instagram,
         youtube,
         tiktok,
+        twitter,
+        website,
+        handle: handle.replace(/^@/, ''),
         mediaKit: mediaKitUrl,
         portfolio: portfolioItems.length > 0 ? JSON.stringify(portfolioItems) : undefined,
         followers: followersCount || undefined,

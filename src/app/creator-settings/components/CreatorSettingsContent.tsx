@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { User, Bell, CreditCard, Shield, ChevronRight, Save, ShieldCheck, Users, Loader2 } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
@@ -12,8 +14,23 @@ import { creatorApi, securityApi } from '@/src/lib/api';
 
 type SettingsTab = 'account' | 'verification' | 'notifications' | 'payouts' | 'team' | 'security';
 
+const DEACTIVATE_REASONS = [
+  'Taking a break from creator work',
+  'Switching to another platform',
+  'Privacy concerns',
+  'Not getting enough campaign opportunities',
+  'Other',
+];
+
+function tabFromPathname(pathname: string): SettingsTab {
+  const segment = pathname.split('/').pop();
+  const valid: SettingsTab[] = ['account', 'verification', 'notifications', 'payouts', 'team', 'security'];
+  return valid.includes(segment as SettingsTab) ? (segment as SettingsTab) : 'account';
+}
+
 export default function CreatorSettingsContent() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('account');
+  const pathname = usePathname();
+  const activeTab = tabFromPathname(pathname);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -21,6 +38,8 @@ export default function CreatorSettingsContent() {
   const [language, setLanguage] = useState('English');
   const [timezone, setTimezone] = useState('IST (UTC+5:30)');
   const [deactivatePassword, setDeactivatePassword] = useState('');
+  const [deactivateReason, setDeactivateReason] = useState(DEACTIVATE_REASONS[0]);
+  const [deactivateDetails, setDeactivateDetails] = useState('');
   const [notifCampaigns, setNotifCampaigns] = useState(true);
   const [notifPayments, setNotifPayments] = useState(true);
   const [notifMessages, setNotifMessages] = useState(true);
@@ -94,7 +113,12 @@ export default function CreatorSettingsContent() {
       toast.error('Enter your password to deactivate');
       return;
     }
-    if (!confirm('This will deactivate your account. Type OK to continue.')) return;
+    const reasonText = deactivateReason === 'Other' ? deactivateDetails.trim() : deactivateReason;
+    if (!reasonText) {
+      toast.error('Please tell us why you are deactivating');
+      return;
+    }
+    if (!confirm('This will deactivate your account. Continue?')) return;
     try {
       await securityApi.deactivateAccount(deactivatePassword, 'DELETE');
       toast.success('Account deactivated');
@@ -137,18 +161,20 @@ export default function CreatorSettingsContent() {
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             {tabs.map(tab => {
               const Icon = tab.icon;
+              const href = `/creator-settings/${tab.id}`;
+              const isActive = activeTab === tab.id;
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors border-b border-slate-50 last:border-0 ${activeTab === tab.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}
+                  href={href}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors border-b border-slate-50 last:border-0 ${isActive ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon size={15} className={activeTab === tab.id ? 'text-violet-600' : 'text-slate-400'} />
+                    <Icon size={15} className={isActive ? 'text-violet-600' : 'text-slate-400'} />
                     {tab.label}
                   </div>
-                  <ChevronRight size={13} className={activeTab === tab.id ? 'text-violet-400' : 'text-slate-300'} />
-                </button>
+                  <ChevronRight size={13} className={isActive ? 'text-violet-400' : 'text-slate-300'} />
+                </Link>
               );
             })}
           </div>
@@ -191,14 +217,41 @@ export default function CreatorSettingsContent() {
                   </div>
                 </div>
                 <div className="pt-2 border-t border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Danger Zone</p>
-                  <input
-                    type="password"
-                    placeholder="Current password"
-                    value={deactivatePassword}
-                    onChange={e => setDeactivatePassword(e.target.value)}
-                    className="w-full max-w-sm px-3 py-2 border border-red-200 rounded-lg text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-red-200"
-                  />
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Deactivate Account</p>
+                  <p className="text-xs text-slate-500 mb-3">Tell us why you are leaving the platform. You can reactivate later by contacting support.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Reason</label>
+                      <select
+                        value={deactivateReason}
+                        onChange={(e) => setDeactivateReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                      >
+                        {DEACTIVATE_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Current Password</label>
+                      <input
+                        type="password"
+                        placeholder="Enter password to confirm"
+                        value={deactivatePassword}
+                        onChange={e => setDeactivatePassword(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                      />
+                    </div>
+                  </div>
+                  {deactivateReason === 'Other' && (
+                    <textarea
+                      value={deactivateDetails}
+                      onChange={(e) => setDeactivateDetails(e.target.value)}
+                      rows={3}
+                      placeholder="Please share more details..."
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-violet-500/30 resize-none"
+                    />
+                  )}
                   <button onClick={handleDeactivate} className="text-xs text-red-600 hover:text-red-700 font-medium border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
                     Deactivate Account
                   </button>

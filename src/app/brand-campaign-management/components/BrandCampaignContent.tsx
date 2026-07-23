@@ -204,7 +204,7 @@ export default function BrandCampaignContent() {
     try {
       if (action === 'shortlist') await brandApi.shortlistApplication(appId);
       else if (action === 'approve') await brandApi.approveApplication(appId);
-      else await brandApi.rejectApplication(appId);
+      else await brandApi.rejectApplication(appId, 'Not selected for this campaign');
       toast.success(
         action === 'approve'
           ? `${name ?? 'Creator'} approved`
@@ -283,7 +283,7 @@ export default function BrandCampaignContent() {
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Cost / Engagement</p>
             <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center"><Target size={15} className="text-blue-600" /></div>
           </div>
-          <p className="text-3xl font-black text-slate-800 tabular-nums mb-1">${costPerEngagement}</p>
+          <p className="text-3xl font-black text-slate-800 tabular-nums mb-1">₹{costPerEngagement}</p>
           <div className="flex items-center gap-1.5">
             <TrendingDown size={13} className="text-emerald-500" />
             <p className="text-emerald-600 text-xs font-medium">↓ 12% vs industry avg</p>
@@ -656,7 +656,7 @@ export default function BrandCampaignContent() {
                         <td className="px-5 py-3.5 whitespace-nowrap"><PlatformBadge platform={campaign.platform} /></td>
                         <td className="px-5 py-3.5 whitespace-nowrap"><StatusBadge status={campaign.status} /></td>
                         <td className="px-5 py-3.5">
-                          <p className="text-sm font-semibold text-slate-800 tabular-nums">${campaign.budget.toLocaleString()}</p>
+                          <p className="text-sm font-semibold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${spendPct >= 90 ? 'bg-red-500' : spendPct >= 60 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${spendPct}%` }} /></div>
                             <span className="text-xs text-slate-400 tabular-nums">{spendPct}%</span>

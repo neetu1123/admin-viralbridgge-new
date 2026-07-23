@@ -1,10 +1,5 @@
-import AppLayout from '@/src/components/AppLayout';
-import BrandSettingsContent from './components/BrandSettingsContent';
+import { redirect } from 'next/navigation';
 
-export default function BrandSettingsPage() {
-  return (
-    <AppLayout role="brand">
-      <BrandSettingsContent />
-    </AppLayout>
-  );
+export default function BrandSettingsIndexPage() {
+  redirect('/brand-settings/profile');
 }

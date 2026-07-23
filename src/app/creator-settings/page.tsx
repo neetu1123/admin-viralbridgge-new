@@ -1,10 +1,5 @@
-import AppLayout from '@/src/components/AppLayout';
-import CreatorSettingsContent from './components/CreatorSettingsContent';
+import { redirect } from 'next/navigation';
 
-export default function CreatorSettingsPage() {
-  return (
-    <AppLayout role="creator">
-      <CreatorSettingsContent />
-    </AppLayout>
-  );
+export default function CreatorSettingsIndexPage() {
+  redirect('/creator-settings/account');
 }

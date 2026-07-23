@@ -202,7 +202,7 @@ export default function AdminTransactionsContent() {
                       )}
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
-                      <span className="text-sm font-bold text-slate-800 tabular-nums">${txn.amount.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-slate-800 tabular-nums">₹{txn.amount.toLocaleString()}</span>
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusConfig[txn.paymentStatus]?.cls}`}>

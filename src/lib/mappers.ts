@@ -202,7 +202,7 @@ export function mapDiscoveryCampaign(
   const matchReason =
     apiReasons[0] ??
     (aiMatchScore > 0
-      ? `Campaign budget $${budget.toLocaleString()} — ${String(raw.platform ?? 'social')} content`
+      ? `Campaign budget ₹${budget.toLocaleString()} — ${String(raw.platform ?? 'social')} content`
       : '');
 
   return {
@@ -350,7 +350,7 @@ export function mapCreatorApplication(raw: Record<string, unknown>): CreatorAppl
     deadline: String(campaign.deadline ?? '').slice(0, 10),
     paymentStatus: status === 'approved' ? 'in_escrow' : undefined,
     paymentAmount: Number(raw.proposed_price ?? campaign.budget) || undefined,
-    feedback: status === 'rejected' ? String(raw.message ?? '') : undefined,
+    feedback: status === 'rejected' ? String(raw.rejection_reason ?? raw.rejectionReason ?? '') : undefined,
   };
 }
 

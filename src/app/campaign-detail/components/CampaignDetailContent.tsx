@@ -296,7 +296,7 @@ export default function CampaignDetailContent() {
                               <span className={`flex items-center gap-1 text-xs font-medium ${applicant.engagementRate >= 4 ? 'text-emerald-700' : 'text-amber-700'}`}><TrendingUp size={11} />{applicant.engagementRate}%</span>
                               <span className="flex items-center gap-1 text-xs text-slate-600"><Star size={11} className="text-amber-400 fill-amber-400" />{applicant.rating}</span>
                               {applicant.proposedPrice && (
-                                <span className={`text-xs font-semibold tabular-nums ${applicant.proposedPrice > campaign.budget ? 'text-red-600' : 'text-emerald-700'}`}>${applicant.proposedPrice.toLocaleString()}</span>
+                                <span className={`text-xs font-semibold tabular-nums ${applicant.proposedPrice > campaign.budget ? 'text-red-600' : 'text-emerald-700'}`}>₹{applicant.proposedPrice.toLocaleString()}</span>
                               )}
                             </div>
                             <p className="text-xs text-slate-500 italic bg-slate-50 rounded-lg p-2.5 mb-3 line-clamp-2">&ldquo;{applicant.message}&rdquo;</p>
