@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Search, ChevronDown, ArrowUpRight, ArrowDownLeft, Lock, RefreshCw, TrendingUp, Loader2, Unlock, RotateCcw } from 'lucide-react';
 import { adminApi } from '@/src/lib/api';
@@ -11,8 +11,12 @@ interface AdminTransaction {
   type: 'brand_to_escrow' | 'escrow_to_creator' | 'withdrawal' | 'refund' | 'credit';
   from: string; to: string; amount: number;
   paymentStatus: string;
-  date: string; campaignId?: string; campaignTitle?: string;
+  date: string;
+  createdAt: string;
+  campaignId?: string; campaignTitle?: string;
 }
+
+type TransactionSort = 'latest' | 'highest' | 'lowest';
 
 const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   brand_to_escrow: { label: 'Brand → Escrow', icon: Lock, color: 'text-blue-700 bg-blue-50 border-blue-200' },
@@ -37,6 +41,7 @@ export default function AdminTransactionsContent() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState<TransactionSort>('latest');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -62,19 +67,34 @@ export default function AdminTransactionsContent() {
     return matchSearch && matchType && matchStatus;
   });
 
+  const sorted = useMemo(() => {
+    const list = [...filtered];
+    if (sortBy === 'highest') {
+      return list.sort((a, b) => b.amount - a.amount);
+    }
+    if (sortBy === 'lowest') {
+      return list.sort((a, b) => a.amount - b.amount);
+    }
+    return list.sort((a, b) => {
+      const aTime = a.createdAt ? Date.parse(a.createdAt) : Date.parse(a.date);
+      const bTime = b.createdAt ? Date.parse(b.createdAt) : Date.parse(b.date);
+      return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
+    });
+  }, [filtered, sortBy]);
+
   const totalVolume = adminTransactions.reduce((s, t) => s + t.amount, 0);
   const heldInEscrow = adminTransactions.filter(t => t.paymentStatus === 'held').reduce((s, t) => s + t.amount, 0);
   const disputed = adminTransactions.filter(t => t.paymentStatus === 'disputed').length;
   const pending = adminTransactions.filter(t => t.paymentStatus === 'pending').length;
 
   const handleExport = () => {
-    if (!filtered.length) {
+    if (!sorted.length) {
       toast.error('No transactions to export');
       return;
     }
     downloadCsv(
       `transactions-${new Date().toISOString().slice(0, 10)}.csv`,
-      filtered.map(t => ({
+      sorted.map(t => ({
         id: t.id,
         type: t.type,
         from: t.from,
@@ -113,8 +133,8 @@ export default function AdminTransactionsContent() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total Volume', value: `$${totalVolume.toLocaleString()}`, sub: 'all transactions', color: 'text-violet-700' },
-          { label: 'Held in Escrow', value: `$${heldInEscrow.toLocaleString()}`, sub: 'currently locked', color: 'text-blue-700' },
+          { label: 'Total Volume', value: `₹${totalVolume.toLocaleString()}`, sub: 'all transactions', color: 'text-violet-700' },
+          { label: 'Held in Escrow', value: `₹${heldInEscrow.toLocaleString()}`, sub: 'currently locked', color: 'text-blue-700' },
           { label: 'Disputed', value: disputed, sub: 'require resolution', color: 'text-red-700' },
           { label: 'Pending Withdrawal', value: pending, sub: 'awaiting approval', color: 'text-amber-700' },
         ].map(stat => (
@@ -140,6 +160,18 @@ export default function AdminTransactionsContent() {
             />
           </div>
           <div className="relative">
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as TransactionSort)}
+              className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none text-slate-700"
+            >
+              <option value="latest">Latest transaction</option>
+              <option value="highest">Highest transaction</option>
+              <option value="lowest">Lowest transaction</option>
+            </select>
+            <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          </div>
+          <div className="relative">
             <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none text-slate-700">
               <option value="all">All Types</option>
               <option value="brand_to_escrow">Brand → Escrow</option>
@@ -161,7 +193,7 @@ export default function AdminTransactionsContent() {
             </select>
             <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
-          <span className="text-xs text-slate-400 ml-auto">{filtered.length} transactions</span>
+          <span className="text-xs text-slate-400 ml-auto">{sorted.length} transactions</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -174,7 +206,7 @@ export default function AdminTransactionsContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {filtered.map(txn => {
+              {sorted.map(txn => {
                 const config = typeConfig[txn.type];
                 const TxnIcon = config.icon;
                 return (

@@ -9,6 +9,7 @@ import KycVerificationPanel from '@/src/components/KycVerificationPanel';
 import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
 import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
 import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
+import NotificationToggle from '@/src/components/ui/NotificationToggle';
 import { creatorApi, securityApi } from '@/src/lib/api';
 
 
@@ -281,13 +282,11 @@ export default function CreatorSettingsContent() {
                       <p className="text-sm font-semibold text-slate-800">{item.label}</p>
                       <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
                     </div>
-                    <button
-                      onClick={() => item.setter(!item.value)}
-                      className={`relative rounded-full transition-colors flex-shrink-0 ${item.value ? 'bg-violet-600' : 'bg-slate-200'}`}
-                      style={{ height: '22px', width: '40px' }}
-                    >
-                      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${item.value ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                    </button>
+                    <NotificationToggle
+                      checked={item.value}
+                      label={item.label}
+                      onChange={(next) => item.setter(next)}
+                    />
                   </div>
                 ))}
                 <button onClick={saveNotifications} disabled={saving} className="mt-4 flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-all disabled:opacity-50">

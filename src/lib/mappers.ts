@@ -635,6 +635,7 @@ export interface AdminTransactionRow {
   amount: number;
   paymentStatus: string;
   date: string;
+  createdAt: string;
   campaignTitle?: string;
 }
 
@@ -667,6 +668,7 @@ export function mapAdminTransaction(raw: Record<string, unknown>): AdminTransact
     amount: Number(raw.amount) || 0,
     paymentStatus: status,
     date: String(raw.created_at ?? '').slice(0, 10),
+    createdAt: String(raw.created_at ?? ''),
     campaignTitle: String((raw.metadata as { campaignTitle?: string })?.campaignTitle ?? ''),
   };
 }
