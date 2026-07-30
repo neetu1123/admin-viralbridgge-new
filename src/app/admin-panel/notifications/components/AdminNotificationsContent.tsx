@@ -36,6 +36,8 @@ export default function AdminNotificationsContent() {
     message: '',
     audience: 'everyone' as 'everyone' | 'creators' | 'brands' | 'admins',
     sendInApp: true,
+    sendEmail: true,
+    sendWhatsApp: false,
     ctaLabel: '',
     ctaUrl: '',
     state: 'All States',
@@ -162,11 +164,16 @@ export default function AdminNotificationsContent() {
         message: broadcast.message.trim(),
         audience: broadcast.audience,
         sendInApp: broadcast.sendInApp,
-        ctaLabel: broadcast.ctaLabel.trim() || undefined,
-        ctaUrl: broadcast.ctaUrl.trim() || undefined,
+        ctaLabel: broadcast.sendWhatsApp
+          ? (broadcast.ctaLabel.trim() || 'Message on WhatsApp')
+          : (broadcast.ctaLabel.trim() || undefined),
+        ctaUrl: broadcast.sendWhatsApp
+          ? (broadcast.ctaUrl.trim() || 'https://wa.me/917303655804')
+          : (broadcast.ctaUrl.trim() || undefined),
         filters: hasFilters ? filters : undefined,
       });
-      toast.success(`Broadcast sent: ${result.sent} emails, ${result.inApp} in-app (${result.failed} failed)`);
+      const whatsappNote = broadcast.sendWhatsApp ? ' WhatsApp CTA included in notifications.' : '';
+      toast.success(`Broadcast sent: ${result.sent} emails, ${result.inApp} in-app (${result.failed} failed).${whatsappNote}`);
       if (result.errors?.length) {
         console.warn('Broadcast errors:', result.errors);
       }
@@ -195,7 +202,7 @@ export default function AdminNotificationsContent() {
       <div className="flex gap-2 mb-6">
         {([
           { id: 'inbox' as const, label: 'In-app Inbox', icon: Bell },
-          { id: 'broadcast' as const, label: 'Broadcast Email', icon: Mail },
+          { id: 'broadcast' as const, label: 'Broadcast', icon: Mail },
         ]).map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -375,6 +382,19 @@ export default function AdminNotificationsContent() {
                 onChange={e => setBroadcast(b => ({ ...b, sendInApp: e.target.checked }))}
               />
               Also send as in-app notification
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={broadcast.sendWhatsApp}
+                onChange={e => setBroadcast(b => ({
+                  ...b,
+                  sendWhatsApp: e.target.checked,
+                  ctaUrl: e.target.checked && !b.ctaUrl ? 'https://wa.me/917303655804' : b.ctaUrl,
+                  ctaLabel: e.target.checked && !b.ctaLabel ? 'Message on WhatsApp' : b.ctaLabel,
+                }))}
+              />
+              Include WhatsApp CTA (links recipients to WhatsApp in email & in-app)
             </label>
             <button
               onClick={handleBroadcast}

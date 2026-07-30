@@ -1,13 +1,17 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, MessageSquare, Eye, Clock, CheckCircle, XCircle, Briefcase, DollarSign, Star, AlertTriangle, Upload } from 'lucide-react';
+import { Search, ChevronDown, MessageSquare, Eye, Clock, CheckCircle, XCircle, Briefcase, DollarSign, Star, AlertTriangle, Upload, Mail } from 'lucide-react';
 import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
 import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
-import Link from 'next/link';
 import { creatorApi } from '@/src/lib/api';
 import { extractList, mapCreatorApplication, type CreatorApplicationRow } from '@/src/lib/mappers';
+import { isActiveApplicationStatus } from '@/src/lib/applicationUtils';
+import { getNotificationActionUrl } from '@/src/lib/notificationNavigation';
+import type { NotificationItem } from '@/src/lib/api';
 
 type Application = CreatorApplicationRow;
 
@@ -26,23 +30,34 @@ const paymentStatusConfig: Record<string, { label: string; cls: string }> = {
 };
 
 export default function MyApplicationsContent() {
+  const searchParams = useSearchParams();
   const [applications, setApplications] = useState<Application[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<NotificationItem[]>([]);
   const [stats, setStats] = useState({ approved: 0, pending: 0, completed: 0, totalEarned: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'active');
   const [disputeApp, setDisputeApp] = useState<Application | null>(null);
   const [disputeRefreshKey, setDisputeRefreshKey] = useState(0);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [appsRes, dashRes] = await Promise.all([
+      const [appsRes, dashRes, notifRes] = await Promise.all([
         creatorApi.getApplications({ limit: 100 }),
         creatorApi.getDashboard(),
+        creatorApi.getNotifications({ limit: 20, unread: true }),
       ]);
       const mapped = extractList<Record<string, unknown>>(appsRes).map(mapCreatorApplication);
       setApplications(mapped);
+      const appliedCampaignIds = new Set(mapped.map((a) => a.campaignId));
+      const invites = (notifRes.data ?? []).filter((n) => {
+        const url = getNotificationActionUrl(n);
+        if (!url?.includes('campaign-discovery')) return false;
+        const campaignId = url.split('apply=')[1]?.split('&')[0];
+        return campaignId && !appliedCampaignIds.has(campaignId);
+      });
+      setPendingInvites(invites);
       const dash = dashRes as {
         acceptedApplications?: number;
         pendingApplications?: number;
@@ -65,11 +80,21 @@ export default function MyApplicationsContent() {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status) setStatusFilter(status);
+  }, [searchParams]);
+
   const filtered = applications.filter((a) => {
     const matchSearch =
       a.campaignTitle.toLowerCase().includes(search.toLowerCase()) ||
       a.brand.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'all' || a.status === statusFilter;
+    const matchStatus =
+      statusFilter === 'all'
+        ? true
+        : statusFilter === 'active'
+          ? isActiveApplicationStatus(a.status)
+          : a.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
@@ -79,8 +104,8 @@ export default function MyApplicationsContent() {
 
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">My Applications</h1>
-          <p className="text-slate-500 text-sm mt-1">Track all your campaign applications and their current status</p>
+          <h1 className="text-2xl font-bold text-slate-800">My Campaigns</h1>
+          <p className="text-slate-500 text-sm mt-1">Track your active campaigns, applications, and collaboration status</p>
         </div>
         <Link
           href="/campaign-discovery"
@@ -127,6 +152,7 @@ export default function MyApplicationsContent() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none text-slate-700"
           >
+            <option value="active">Active Campaigns</option>
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
             <option value="shortlisted">Shortlisted</option>
@@ -138,6 +164,35 @@ export default function MyApplicationsContent() {
         </div>
         <span className="text-xs text-slate-400">{filtered.length} applications</span>
       </div>
+
+      {pendingInvites.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {pendingInvites.map((invite) => {
+            const actionUrl = getNotificationActionUrl(invite);
+            if (!actionUrl) return null;
+            return (
+              <div
+                key={invite.id}
+                className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+              >
+                <div className="flex items-start gap-2 min-w-0">
+                  <Mail size={16} className="text-violet-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">{invite.title}</p>
+                    <p className="text-xs text-slate-500">{invite.message}</p>
+                  </div>
+                </div>
+                <Link
+                  href={actionUrl}
+                  className="text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Accept Invitation
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {loading && (
         <div className="text-center py-12 text-slate-500 text-sm">Loading applications...</div>
@@ -224,6 +279,14 @@ export default function MyApplicationsContent() {
                         <AlertTriangle size={12} /> Raise Issue
                       </button>
                     </>
+                  )}
+                  {app.status === 'rejected' && (
+                    <Link
+                      href={`/campaign-discovery/apply/${app.campaignId}`}
+                      className="flex items-center gap-1.5 text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Reapply
+                    </Link>
                   )}
                   <Link
                     href={`/my-applications/${app.id}`}

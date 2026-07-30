@@ -4,16 +4,15 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import {
   CheckCircle2,
-  XCircle,
   RefreshCw,
   Loader2,
   Video,
   Image as ImageIcon,
-  ExternalLink,
   Lock,
 } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
 import { extractList, mapBrandCampaign, type BrandCampaignRow } from '@/src/lib/mappers';
+import { revisionsRemaining } from '@/src/lib/revisionLimits';
 
 type DeliverableRow = {
   id: string;
@@ -84,6 +83,14 @@ export default function BrandDeliverablesContent() {
   const [loadingDel, setLoadingDel] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const [revisionNotes, setRevisionNotes] = useState<Record<string, string>>({});
+  const [brandPlan, setBrandPlan] = useState<string>('growth');
+
+  useEffect(() => {
+    brandApi.getSettings().then((s) => {
+      const settings = s as { plan?: string; subscriptionPlan?: string };
+      setBrandPlan(String(settings.plan ?? settings.subscriptionPlan ?? 'growth'));
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     brandApi
@@ -167,10 +174,15 @@ export default function BrandDeliverablesContent() {
     }
   };
 
-  const revise = async (id: string) => {
+  const revise = async (id: string, version: number) => {
     const notes = revisionNotes[id]?.trim();
     if (!notes) {
       toast.error('Add revision notes');
+      return;
+    }
+    const remaining = revisionsRemaining(brandPlan, version);
+    if (remaining <= 0) {
+      toast.error('No revisions left on your plan for this deliverable');
       return;
     }
     setActionId(id);
@@ -180,19 +192,6 @@ export default function BrandDeliverablesContent() {
       await loadDeliverables();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Request failed');
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  const reject = async (id: string) => {
-    setActionId(id);
-    try {
-      await brandApi.rejectDeliverable(id, revisionNotes[id]);
-      toast.success('Deliverable rejected');
-      await loadDeliverables();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Reject failed');
     } finally {
       setActionId(null);
     }
@@ -270,6 +269,7 @@ export default function BrandDeliverablesContent() {
             const previewUrl = del.fileUrl ?? del.mediaUrl;
             const creatorName = del.creator?.full_name ?? del.creator?.user?.name ?? 'Creator';
             const reviewable = ['SUBMITTED', 'IN_REVIEW'].includes(del.status);
+            const remainingRevisions = revisionsRemaining(brandPlan, del.version ?? 1);
 
             return (
               <div key={del.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -292,9 +292,6 @@ export default function BrandDeliverablesContent() {
                       ) : (
                         <img src={previewUrl} alt={del.title} className="w-full max-h-96 object-contain rounded-xl border" />
                       )}
-                      <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-violet-600 mt-2">
-                        <ExternalLink size={12} /> Open file
-                      </a>
                     </div>
                   ) : (
                     <p className="text-sm text-slate-400 mb-4 flex items-center gap-2">
@@ -324,18 +321,11 @@ export default function BrandDeliverablesContent() {
                           <CheckCircle2 size={16} /> Approve & release payment
                         </button>
                         <button
-                          onClick={() => revise(del.id)}
-                          disabled={actionId === del.id}
+                          onClick={() => revise(del.id, del.version ?? 1)}
+                          disabled={actionId === del.id || remainingRevisions <= 0}
                           className="flex items-center gap-1.5 text-sm font-bold bg-amber-100 hover:bg-amber-200 text-amber-900 px-4 py-2 rounded-xl disabled:opacity-50"
                         >
-                          <RefreshCw size={16} /> Request revision
-                        </button>
-                        <button
-                          onClick={() => reject(del.id)}
-                          disabled={actionId === del.id}
-                          className="flex items-center gap-1.5 text-sm font-bold bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-xl disabled:opacity-50"
-                        >
-                          <XCircle size={16} /> Reject
+                          <RefreshCw size={16} /> Request Review ({remainingRevisions} revision{remainingRevisions === 1 ? '' : 's'} left)
                         </button>
                       </div>
                     </div>

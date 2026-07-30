@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import Modal from '@/src/components/ui/Modal';
 import { brandApi } from '@/src/lib/api';
 import { extractList } from '@/src/lib/mappers';
-
 interface InviteCreatorModalProps {
   creatorId: string;
   creatorName?: string;

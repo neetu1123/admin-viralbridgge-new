@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { TrendingUp, DollarSign, Users, Eye, ArrowUpRight, ArrowDownRight, Download, Loader2 } from 'lucide-react';
 import { downloadCsv } from '@/src/lib/exportCsv';
@@ -15,12 +17,12 @@ const spendData = [
   { month: 'Apr', spend: 9800, reachFactor: 3.5 },
 ];
 
-const campaignPerformanceFallback = [
-  { name: 'Summer Glow', reach: 142000, engagement: 5.2, reachFactor: 2.1, spend: 2400 },
-  { name: 'FitPro App', reach: 380000, engagement: 3.8, reachFactor: 2.9, spend: 7000 },
-  { name: 'TechDrop Q1', reach: 520000, engagement: 4.1, reachFactor: 3.2, spend: 6400 },
-  { name: 'NomadPay', reach: 210000, engagement: 4.9, reachFactor: 2.4, spend: 4000 },
-  { name: 'StyleForward', reach: 95000, engagement: 6.1, reachFactor: 1.8, spend: 0 },
+const campaignPerformanceFallback: Array<{ id: string; name: string; reach: number; engagement: number; reachFactor: number; spend: number }> = [
+  { id: '1', name: 'Summer Glow', reach: 142000, engagement: 5.2, reachFactor: 2.1, spend: 2400 },
+  { id: '2', name: 'FitPro App', reach: 380000, engagement: 3.8, reachFactor: 2.9, spend: 7000 },
+  { id: '3', name: 'TechDrop Q1', reach: 520000, engagement: 4.1, reachFactor: 3.2, spend: 6400 },
+  { id: '4', name: 'NomadPay', reach: 210000, engagement: 4.9, reachFactor: 2.4, spend: 4000 },
+  { id: '5', name: 'StyleForward', reach: 95000, engagement: 6.1, reachFactor: 1.8, spend: 0 },
 ];
 
 const platformData = [
@@ -45,6 +47,7 @@ const kpisFallback = [
 ];
 
 export default function AnalyticsContent() {
+  const router = useRouter();
   const [period, setPeriod] = useState<'30d' | '90d' | '6m' | '1y'>('6m');
   const [loading, setLoading] = useState(true);
   const [kpis, setKpis] = useState(kpisFallback);
@@ -92,13 +95,17 @@ export default function AnalyticsContent() {
       const campaignRows = extractList<Record<string, unknown>>(campaignsRaw);
       if (campaignRows.length) {
         setCampaignPerformance(
-          campaignRows.slice(0, 5).map((c) => ({
-            name: String(c.title ?? 'Campaign').slice(0, 16),
-            reach: Number(c.budget) * 20 || 10000,
-            engagement: 4.5,
-            reachFactor: 2.5,
-            spend: Number(c.budget) || 0,
-          })),
+          campaignRows
+            .filter((c) => String(c.status ?? '').toUpperCase() !== 'COMPLETED')
+            .slice(0, 5)
+            .map((c) => ({
+              id: String(c.id),
+              name: String(c.title ?? 'Campaign').slice(0, 24),
+              reach: Number(c.budget) * 20 || 10000,
+              engagement: 4.5,
+              reachFactor: 2.5,
+              spend: Number(c.budget) || 0,
+            })),
         );
       }
     } catch {
@@ -209,18 +216,47 @@ export default function AnalyticsContent() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-        {/* Campaign Performance */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-slate-700 mb-4">Campaign Performance</h2>
+          <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-700">Top Performing Campaigns</h2>
+              <p className="text-xs text-slate-400">Summary view — open Campaign Analytics for full details</p>
+            </div>
+            <Link
+              href="/analytics/campaigns"
+              className="text-xs font-semibold text-violet-600 hover:text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg bg-violet-50"
+            >
+              View all campaign analytics →
+            </Link>
+          </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={campaignPerformance} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+            <BarChart
+              data={campaignPerformance}
+              margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+              onClick={(state) => {
+                const payload = state?.activePayload?.[0]?.payload as { id?: string } | undefined;
+                if (payload?.id) router.push(`/brand-campaign-management?campaign=${payload.id}`);
+              }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}K`} />
               <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '12px' }} formatter={(v: number) => [`${(v / 1000).toFixed(0)}K`, 'Reach']} />
-              <Bar dataKey="reach" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="reach" fill="#8b5cf6" radius={[4, 4, 0, 0]} cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
+          <div className="mt-4 space-y-2">
+            {campaignPerformance.map((c) => (
+              <Link
+                key={c.id}
+                href={`/brand-campaign-management?campaign=${c.id}`}
+                className="flex items-center justify-between text-xs py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-2 rounded-lg transition-colors"
+              >
+                <span className="font-semibold text-slate-700">{c.name}</span>
+                <span className="text-slate-500">₹{c.spend.toLocaleString()} · {c.engagement}% eng.</span>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Platform Split */}

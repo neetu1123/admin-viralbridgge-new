@@ -10,18 +10,11 @@ import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
 import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
 import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
 import NotificationToggle from '@/src/components/ui/NotificationToggle';
-import { creatorApi, securityApi } from '@/src/lib/api';
+import RequestCloseAccountPanel from '@/src/components/settings/RequestCloseAccountPanel';
+import { creatorApi } from '@/src/lib/api';
 
 
 type SettingsTab = 'account' | 'verification' | 'notifications' | 'payouts' | 'team' | 'security';
-
-const DEACTIVATE_REASONS = [
-  'Taking a break from creator work',
-  'Switching to another platform',
-  'Privacy concerns',
-  'Not getting enough campaign opportunities',
-  'Other',
-];
 
 function tabFromPathname(pathname: string): SettingsTab {
   const segment = pathname.split('/').pop();
@@ -38,9 +31,6 @@ export default function CreatorSettingsContent() {
   const [email, setEmail] = useState('');
   const [language, setLanguage] = useState('English');
   const [timezone, setTimezone] = useState('IST (UTC+5:30)');
-  const [deactivatePassword, setDeactivatePassword] = useState('');
-  const [deactivateReason, setDeactivateReason] = useState(DEACTIVATE_REASONS[0]);
-  const [deactivateDetails, setDeactivateDetails] = useState('');
   const [notifCampaigns, setNotifCampaigns] = useState(true);
   const [notifPayments, setNotifPayments] = useState(true);
   const [notifMessages, setNotifMessages] = useState(true);
@@ -106,28 +96,6 @@ export default function CreatorSettingsContent() {
       toast.error(error instanceof Error ? error.message : 'Failed to save notifications');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleDeactivate = async () => {
-    if (!deactivatePassword) {
-      toast.error('Enter your password to deactivate');
-      return;
-    }
-    const reasonText = deactivateReason === 'Other' ? deactivateDetails.trim() : deactivateReason;
-    if (!reasonText) {
-      toast.error('Please tell us why you are deactivating');
-      return;
-    }
-    if (!confirm('This will deactivate your account. Continue?')) return;
-    try {
-      await securityApi.deactivateAccount(deactivatePassword, 'DELETE');
-      toast.success('Account deactivated');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.replace('/sign-up-login-screen');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Deactivation failed');
     }
   };
 
@@ -217,46 +185,7 @@ export default function CreatorSettingsContent() {
                     </select>
                   </div>
                 </div>
-                <div className="pt-2 border-t border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Deactivate Account</p>
-                  <p className="text-xs text-slate-500 mb-3">Tell us why you are leaving the platform. You can reactivate later by contacting support.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Reason</label>
-                      <select
-                        value={deactivateReason}
-                        onChange={(e) => setDeactivateReason(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
-                      >
-                        {DEACTIVATE_REASONS.map((r) => (
-                          <option key={r} value={r}>{r}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Current Password</label>
-                      <input
-                        type="password"
-                        placeholder="Enter password to confirm"
-                        value={deactivatePassword}
-                        onChange={e => setDeactivatePassword(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30"
-                      />
-                    </div>
-                  </div>
-                  {deactivateReason === 'Other' && (
-                    <textarea
-                      value={deactivateDetails}
-                      onChange={(e) => setDeactivateDetails(e.target.value)}
-                      rows={3}
-                      placeholder="Please share more details..."
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-violet-500/30 resize-none"
-                    />
-                  )}
-                  <button onClick={handleDeactivate} className="text-xs text-red-600 hover:text-red-700 font-medium border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
-                    Deactivate Account
-                  </button>
-                </div>
+                <RequestCloseAccountPanel roleLabel="Creator" />
                 <button onClick={saveAccount} disabled={saving} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-all disabled:opacity-50">
                   <Save size={14} /> {saving ? 'Saving…' : 'Save Changes'}
                 </button>

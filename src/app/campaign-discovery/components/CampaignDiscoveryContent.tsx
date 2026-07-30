@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import { creatorApi } from '@/src/lib/api';
 import { extractList, mapDiscoveryCampaign, type DiscoveryCampaignRow } from '@/src/lib/mappers';
+import { applicationBlocksCampaign } from '@/src/lib/applicationUtils';
 import { Search, SlidersHorizontal, Bookmark, BookmarkCheck, Users, ChevronDown, X, Star, CheckCircle, MapPin, Globe, Brain, ShieldCheck, BadgeCheck, Zap, ArrowUpRight, Sparkles } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import ApplyModal from './ApplyModal';
@@ -103,7 +104,9 @@ export default function CampaignDiscoveryContent() {
         ),
       );
       const appliedIds = new Set(
-        extractList<Record<string, unknown>>(appsRes).map((a) => String(a.campaign_id)),
+        extractList<Record<string, unknown>>(appsRes)
+          .filter((a) => applicationBlocksCampaign(String(a.status ?? '')))
+          .map((a) => String(a.campaign_id)),
       );
       setAppliedCampaigns(appliedIds);
     } catch (error) {
@@ -151,6 +154,7 @@ export default function CampaignDiscoveryContent() {
     const budgetRange = budgetRanges[selectedBudget];
     const followerMin = followerRequirements[selectedFollowers].min;
     return campaigns.filter(c => {
+      if (c.status === 'completed') return false;
       const matchSearch = c.title.toLowerCase().includes(search.toLowerCase()) || c.brand.toLowerCase().includes(search.toLowerCase());
       const matchPlatform =
         selectedPlatform === 'All Platforms' ||

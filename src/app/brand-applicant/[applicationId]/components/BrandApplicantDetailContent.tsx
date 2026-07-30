@@ -80,8 +80,16 @@ export default function BrandApplicantDetailContent({ applicationId }: { applica
         </div>
 
         <p className="text-sm text-slate-600 bg-slate-50 rounded-xl p-4 border border-slate-100 mb-4">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">Application Message</span>
           {applicant.bio || 'No application message provided.'}
         </p>
+
+        {applicant.creatorBio && (
+          <p className="text-sm text-slate-500 bg-white rounded-xl p-4 border border-slate-100 mb-4">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1">Creator Bio</span>
+            {applicant.creatorBio}
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-3 mb-5">
           <PlatformBadge platform={applicant.platform} />

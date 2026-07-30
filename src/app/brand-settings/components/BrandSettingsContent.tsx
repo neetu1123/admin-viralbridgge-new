@@ -10,6 +10,7 @@ import KycVerificationPanel from '@/src/components/KycVerificationPanel';
 import TeamMembersPanel from '@/src/components/team/TeamMembersPanel';
 import AcceptInvitationBanner from '@/src/components/team/AcceptInvitationBanner';
 import SecuritySettingsPanel from '@/src/components/security/SecuritySettingsPanel';
+import RequestCloseAccountPanel from '@/src/components/settings/RequestCloseAccountPanel';
 import BrandPreviousCampaignsSection from '@/src/components/portfolio/BrandPreviousCampaignsSection';
 import NotificationToggle from '@/src/components/ui/NotificationToggle';
 
@@ -296,7 +297,14 @@ export default function BrandSettingsContent() {
 
           {activeTab === 'team' && <TeamMembersPanel orgType="BRAND" />}
 
-          {activeTab === 'security' && <SecuritySettingsPanel />}
+          {activeTab === 'security' && (
+            <div className="space-y-4">
+              <SecuritySettingsPanel />
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <RequestCloseAccountPanel roleLabel="Brand" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

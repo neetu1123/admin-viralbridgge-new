@@ -99,7 +99,7 @@ export default function BrandCampaignContent() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<BrandTab>('campaigns');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('active');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [now, setNow] = useState<number | null>(null);
@@ -116,6 +116,17 @@ export default function BrandCampaignContent() {
       router.replace('/brand-campaign-management/create');
     }
   }, [searchParams, router]);
+
+  useEffect(() => {
+    const campaignId = searchParams.get('campaign');
+    if (!campaignId || loading || campaigns.length === 0) return;
+    const match = campaigns.find((c) => c.id === campaignId);
+    if (match) {
+      setActiveTab('campaigns');
+      setSelectedCampaign(match);
+      setSearch(match.title);
+    }
+  }, [searchParams, loading, campaigns]);
 
   const loadData = React.useCallback(async () => {
     setLoading(true);
@@ -181,7 +192,12 @@ export default function BrandCampaignContent() {
 
   const filtered = campaigns.filter(c => {
     const matchSearch = c.title.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'all' || c.status === statusFilter;
+    const matchStatus =
+      statusFilter === 'all'
+        ? c.status !== 'completed'
+        : statusFilter === 'active'
+          ? c.status === 'active' || c.status === 'in_progress'
+          : c.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
@@ -229,9 +245,16 @@ export default function BrandCampaignContent() {
     }
   };
 
-  const handleStatusChange = (campaignId: string, newStatus: string) => {
-    toast.success(`Campaign status updated to ${newStatus}`);
-    setOpenMenuId(null);
+  const handleStatusChange = async (campaignId: string, newStatus: string) => {
+    try {
+      const apiStatus = newStatus === 'completed' ? 'COMPLETED' : newStatus.toUpperCase();
+      await brandApi.updateCampaign(campaignId, { status: apiStatus });
+      toast.success(`Campaign marked as ${newStatus}`);
+      setOpenMenuId(null);
+      await loadData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update campaign status');
+    }
   };
 
   // Business KPI metrics
@@ -473,7 +496,7 @@ export default function BrandCampaignContent() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-5 bg-slate-100 rounded-xl p-1 w-fit">
-        {([['campaigns', 'Campaigns'], ['applicants', 'Applicants']] as [BrandTab, string][]).map(([tab, label]) => (
+        {([['campaigns', 'My Campaigns'], ['applicants', 'Applicants']] as [BrandTab, string][]).map(([tab, label]) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -621,8 +644,8 @@ export default function BrandCampaignContent() {
                 </div>
                 <div className="relative">
                   <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none text-slate-700">
+                    <option value="active">Active Campaigns</option>
                     <option value="all">All Statuses</option>
-                    <option value="active">Active</option>
                     <option value="draft">Draft</option>
                     <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>

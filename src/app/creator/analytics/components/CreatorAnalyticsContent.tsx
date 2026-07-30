@@ -2,13 +2,16 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { DollarSign, TrendingUp, Briefcase, Target, Loader2, MessageSquare, Mail, Eye, Download } from 'lucide-react';
-import { analyticsApi, type AnalyticsRangeParams } from '@/src/lib/api';
+import { analyticsApi, creatorApi, type AnalyticsRangeParams, type NotificationItem } from '@/src/lib/api';
 import PeriodSelector, { formatCurrency, formatPercent, type AnalyticsDateRange } from '@/src/components/analytics/PeriodSelector';
 import { downloadCsv } from '@/src/lib/exportCsv';
+import { extractList, mapCreatorApplication, type CreatorApplicationRow } from '@/src/lib/mappers';
+import { getNotificationActionUrl } from '@/src/lib/notificationNavigation';
 
 const FUNNEL_COLORS = ['#f59e0b', '#8b5cf6', '#10b981', '#ef4444', '#3b82f6'];
 
@@ -21,12 +24,15 @@ function toApiParams(range: AnalyticsDateRange): AnalyticsRangeParams | undefine
 }
 
 export default function CreatorAnalyticsContent() {
+  const router = useRouter();
   const [dateRange, setDateRange] = useState<AnalyticsDateRange>({ period: '30d' });
   const [loading, setLoading] = useState(true);
+  const [funnelFilter, setFunnelFilter] = useState<string | null>(null);
   const [dashboard, setDashboard] = useState<Awaited<ReturnType<typeof analyticsApi.creatorDashboard>> | null>(null);
   const [earnings, setEarnings] = useState<Awaited<ReturnType<typeof analyticsApi.creatorEarnings>> | null>(null);
   const [profile, setProfile] = useState<Awaited<ReturnType<typeof analyticsApi.creatorProfilePerformance>> | null>(null);
   const [topBrands, setTopBrands] = useState<Awaited<ReturnType<typeof analyticsApi.creatorTopBrands>> | null>(null);
+  const [pendingByCampaign, setPendingByCampaign] = useState<CreatorApplicationRow[]>([]);
 
   const apiParams = useMemo(() => toApiParams(dateRange), [dateRange]);
 
@@ -38,16 +44,26 @@ export default function CreatorAnalyticsContent() {
     setLoading(true);
     try {
       const params = toApiParams(dateRange);
-      const [dash, earn, perf, brands] = await Promise.all([
+      const [dash, earn, perf, brands, appsRes] = await Promise.all([
         analyticsApi.creatorDashboard(params),
         analyticsApi.creatorEarnings(params),
         analyticsApi.creatorProfilePerformance(params),
         analyticsApi.creatorTopBrands(params),
+        creatorApi.getApplications({ limit: 100 }),
       ]);
       setDashboard(dash);
       setEarnings(earn);
       setProfile(perf);
       setTopBrands(brands);
+      const apps = extractList<Record<string, unknown>>(appsRes).map(mapCreatorApplication);
+      setPendingByCampaign(
+        apps.filter(
+          (a) =>
+            a.status === 'approved' &&
+            a.paymentStatus !== 'released' &&
+            (a.paymentAmount ?? a.budget) > 0,
+        ),
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load analytics');
     } finally {
@@ -68,9 +84,14 @@ export default function CreatorAnalyticsContent() {
   }
 
   const kpis = dashboard?.kpis;
+  const pendingFromApproved = pendingByCampaign.reduce(
+    (sum, a) => sum + (a.paymentAmount ?? a.budget ?? 0),
+    0,
+  );
+  const pendingEarningsValue = pendingFromApproved > 0 ? pendingFromApproved : (kpis?.pendingEarnings ?? 0);
   const kpiCards = [
     { label: 'Total Earnings', value: formatCurrency(kpis?.totalEarnings ?? 0), icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Pending Earnings', value: formatCurrency(kpis?.pendingEarnings ?? 0), icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Pending Earnings', value: formatCurrency(pendingEarningsValue), icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50' },
     { label: 'Campaigns Completed', value: String(kpis?.campaignsCompleted ?? 0), icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
     { label: 'Application Success Rate', value: formatPercent(kpis?.applicationSuccessRate ?? 0), icon: Target, color: 'text-blue-600', bg: 'bg-blue-50' },
   ];
@@ -120,6 +141,26 @@ export default function CreatorAnalyticsContent() {
     toast.success('Export complete');
   };
 
+  const funnelData = earnings?.applicationFunnel ?? [];
+
+  const handleFunnelClick = (status: string) => {
+    setFunnelFilter(status);
+    router.push(`/my-applications?status=${encodeURIComponent(status.toLowerCase())}`);
+  };
+
+  const profileMetrics = [
+    { label: 'Profile Views', value: profile?.metrics.profileViews ?? 0, icon: Eye, filter: null },
+    { label: 'Invitations Received', value: profile?.metrics.invitationsReceived ?? 0, icon: Mail, filter: 'invites' },
+    { label: 'Messages Received', value: profile?.metrics.messagesReceived ?? 0, icon: MessageSquare, filter: 'messages' },
+    { label: 'Campaign Offers', value: profile?.metrics.campaignOffers ?? 0, icon: Briefcase, filter: 'offers' },
+  ];
+
+  const profileChartData = profileMetrics.map((m) => ({
+    name: m.label.replace(' Received', ''),
+    count: m.value,
+    filter: m.filter,
+  }));
+
   return (
     <div className="pb-8">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
@@ -154,6 +195,40 @@ export default function CreatorAnalyticsContent() {
         ))}
       </div>
 
+      {pendingByCampaign.length > 0 && (
+        <div className="bg-white rounded-xl border border-amber-200 shadow-sm p-5 mb-6">
+          <h2 className="text-sm font-semibold text-slate-800 mb-1">Pending Earnings by Campaign</h2>
+          <p className="text-xs text-slate-400 mb-4">
+            Earnings from approved applications awaiting deliverable approval and payment release
+          </p>
+          <div className="space-y-2">
+            {pendingByCampaign.map((app) => (
+              <div
+                key={app.id}
+                className="flex items-center justify-between gap-3 py-2 border-b border-slate-50 last:border-0"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{app.campaignTitle}</p>
+                  <p className="text-xs text-slate-500">{app.brand}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-sm font-bold text-amber-700 tabular-nums">
+                    {formatCurrency(app.paymentAmount ?? app.budget ?? 0)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/my-applications/${app.id}`)}
+                    className="text-xs font-semibold text-violet-600 hover:text-violet-800"
+                  >
+                    View campaign →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
         <h2 className="text-sm font-semibold text-slate-800 mb-4">Monthly Earnings Trend</h2>
         <ResponsiveContainer width="100%" height={260}>
@@ -169,16 +244,29 @@ export default function CreatorAnalyticsContent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-slate-800 mb-4">Application Funnel</h2>
+          <h2 className="text-sm font-semibold text-slate-800 mb-1">Application Funnel</h2>
+          <p className="text-xs text-slate-400 mb-4">Click a bar to view matching applications</p>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={earnings?.applicationFunnel ?? []}>
+            <BarChart data={funnelData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="status" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="count"
+                fill="#8b5cf6"
+                radius={[4, 4, 0, 0]}
+                cursor="pointer"
+                onClick={(data) => {
+                  const payload = data as { status?: string };
+                  if (payload?.status) handleFunnelClick(payload.status);
+                }}
+              />
             </BarChart>
           </ResponsiveContainer>
+          {funnelFilter && (
+            <p className="text-xs text-violet-600 mt-2">Filtered by: {funnelFilter}</p>
+          )}
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
@@ -203,21 +291,37 @@ export default function CreatorAnalyticsContent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-slate-800 mb-4">Profile Performance</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Profile Views', value: profile?.metrics.profileViews ?? 0, icon: Eye, note: 'Not tracked yet' },
-              { label: 'Invitations Received', value: profile?.metrics.invitationsReceived ?? 0, icon: Mail },
-              { label: 'Messages Received', value: profile?.metrics.messagesReceived ?? 0, icon: MessageSquare },
-              { label: 'Campaign Offers', value: profile?.metrics.campaignOffers ?? 0, icon: Briefcase },
-            ].map((m) => (
-              <div key={m.label} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                <div className="flex items-center gap-2 mb-2">
+          <h2 className="text-sm font-semibold text-slate-800 mb-1">Profile Performance</h2>
+          <p className="text-xs text-slate-400 mb-4">Click a bar for related details</p>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={profileChartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+              <Tooltip />
+              <Bar
+                dataKey="count"
+                fill="#6366f1"
+                radius={[4, 4, 0, 0]}
+                cursor="pointer"
+                onClick={(data) => {
+                  const payload = data as { filter?: string | null };
+                  if (payload?.filter === 'messages') router.push('/messaging-inbox');
+                  else if (payload?.filter === 'invites') router.push('/creator-notifications');
+                  else if (payload?.filter === 'offers') router.push('/my-applications');
+                  else router.push('/creator-profile');
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {profileMetrics.map((m) => (
+              <div key={m.label} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <div className="flex items-center gap-2 mb-1">
                   <m.icon size={14} className="text-violet-600" />
                   <p className="text-xs font-semibold text-slate-500">{m.label}</p>
                 </div>
-                <p className="text-xl font-bold text-slate-800">{m.value}</p>
-                {'note' in m && m.note && <p className="text-[10px] text-slate-400 mt-1">{m.note}</p>}
+                <p className="text-lg font-bold text-slate-800">{m.value}</p>
               </div>
             ))}
           </div>

@@ -105,12 +105,12 @@ export default function TroubleshootContent() {
             >
               <MessageCircle size={16} className="text-emerald-600" /> WhatsApp Support
             </a>
-            <button
-              type="button"
-              className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 hover:border-violet-300 text-left"
+            <a
+              href="mailto:support@viralbridge.io?subject=Callback%20Request"
+              className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 hover:border-violet-300"
             >
               <Phone size={16} className="text-blue-600" /> Request a Call Back
-            </button>
+            </a>
             <span className="flex items-center gap-2 bg-white border border-dashed border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-400">
               Live chat — coming soon
             </span>

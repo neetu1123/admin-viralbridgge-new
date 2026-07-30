@@ -130,6 +130,20 @@ export default function CreatorProfileContent() {
   });
 
   const saveProfile = async () => {
+    const handleClean = handle.trim();
+    if (handleClean && !/^@?[a-zA-Z0-9._-]{2,30}$/.test(handleClean.replace(/^@/, ''))) {
+      toast.error('Handle must be 2–30 characters (letters, numbers, . _ -). @ is allowed.');
+      return;
+    }
+    if (website.trim()) {
+      try {
+        const url = website.trim().startsWith('http') ? website.trim() : `https://${website.trim()}`;
+        new URL(url);
+      } catch {
+        toast.error('Please enter a valid website URL (e.g. https://yoursite.com)');
+        return;
+      }
+    }
     setSaving(true);
     try {
       await creatorApi.updateProfile({

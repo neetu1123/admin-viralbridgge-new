@@ -17,24 +17,27 @@ interface SidebarProps {
 
 const creatorNav = [
   { label: 'Discover Campaigns', icon: Search, href: '/campaign-discovery', badge: null },
-  { label: 'My Applications', icon: FileText, href: '/my-applications', badge: '3' },
+  { label: 'My Campaigns', icon: FileText, href: '/my-applications', badge: null },
   { label: 'My Deliverables', icon: Upload, href: '/creator-deliverables', badge: null },
-  { label: 'Messages', icon: MessageSquare, href: '/messaging-inbox', badge: '5' },
+  { label: 'Messages', icon: MessageSquare, href: '/messaging-inbox', badge: null },
   { label: 'Wallet', icon: Wallet, href: '/wallet-payments', badge: null },
   { label: 'Analytics', icon: BarChart3, href: '/creator/analytics', badge: null },
+  { label: 'Disputes', icon: Scale, href: '/creator-disputes', badge: null },
   { label: 'My Profile', icon: User, href: '/creator-profile', badge: null },
 ];
 
 const brandNav = [
-  { label: 'Campaigns', icon: Briefcase, href: '/brand-campaign-management', badge: null },
+  { label: 'My Campaigns', icon: Briefcase, href: '/brand-campaign-management', badge: null },
   { label: 'Create Campaign', icon: Plus, href: '/brand-campaign-management/create', badge: null },
-  { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: '12' },
+  { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: null },
   { label: 'Review Deliverables', icon: Upload, href: '/brand-deliverables', badge: null },
   { label: 'Creator Discovery', icon: Compass, href: '/creator-discovery', badge: null },
   { label: 'My Creators', icon: BookOpen, href: '/my-creators', badge: null },
-  { label: 'Messages', icon: MessageSquare, href: '/brand-messages', badge: '2' },
+  { label: 'Messages', icon: MessageSquare, href: '/brand-messages', badge: null },
   { label: 'Wallet & Spend', icon: CreditCard, href: '/brand-wallet', badge: null },
   { label: 'Analytics', icon: BarChart3, href: '/analytics', badge: null },
+  { label: 'Campaign Analytics', icon: BarChart3, href: '/analytics/campaigns', badge: null },
+  { label: 'Disputes', icon: Scale, href: '/brand-disputes', badge: null },
 ];
 
 interface AdminNavSection {

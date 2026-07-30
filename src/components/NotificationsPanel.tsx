@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Bell, Briefcase, DollarSign, MessageSquare, ShieldCheck, AlertCircle, Check, Loader2 } from 'lucide-react';
+import { Bell, Briefcase, DollarSign, MessageSquare, ShieldCheck, AlertCircle, Check, Loader2, ArrowRight } from 'lucide-react';
 import type { NotificationItem } from '@/src/lib/api';
 import { getNotificationSocket } from '@/src/lib/socket';
 import { useNotifications, type NotificationApi } from '@/src/hooks/useNotifications';
+import { getNotificationActionLabel, getNotificationActionUrl } from '@/src/lib/notificationNavigation';
 
 const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   CAMPAIGN: { icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
@@ -36,6 +38,7 @@ interface NotificationsPanelProps {
 }
 
 export default function NotificationsPanel({ api, subtitle }: NotificationsPanelProps) {
+  const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const { items, unreadCount, loading, load, markRead, markAllRead } = useNotifications(api);
 
@@ -60,6 +63,13 @@ export default function NotificationsPanel({ api, subtitle }: NotificationsPanel
     } catch {
       toast.error('Failed to mark as read');
     }
+  };
+
+  const handleAction = async (notif: NotificationItem) => {
+    const url = getNotificationActionUrl(notif);
+    if (!url) return;
+    if (!notif.is_read) await handleMarkRead(notif.id);
+    router.push(url);
   };
 
   return (
@@ -113,6 +123,8 @@ export default function NotificationsPanel({ api, subtitle }: NotificationsPanel
           {displayed.map((notif) => {
             const config = typeConfig[notif.type] ?? typeConfig.SYSTEM;
             const Icon = config.icon;
+            const actionUrl = getNotificationActionUrl(notif);
+            const actionLabel = getNotificationActionLabel(notif);
             return (
               <div
                 key={notif.id}
@@ -135,14 +147,26 @@ export default function NotificationsPanel({ api, subtitle }: NotificationsPanel
                       <span className="text-xs text-slate-400 whitespace-nowrap">{formatTime(notif.created_at)}</span>
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed mb-2">{notif.message}</p>
-                    {!notif.is_read && (
-                      <button
-                        onClick={() => handleMarkRead(notif.id)}
-                        className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                      >
-                        Mark read
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {actionUrl && (
+                        <button
+                          type="button"
+                          onClick={() => handleAction(notif)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-800 transition-colors"
+                        >
+                          {actionLabel}
+                          <ArrowRight size={12} />
+                        </button>
+                      )}
+                      {!notif.is_read && (
+                        <button
+                          onClick={() => handleMarkRead(notif.id)}
+                          className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          Mark read
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

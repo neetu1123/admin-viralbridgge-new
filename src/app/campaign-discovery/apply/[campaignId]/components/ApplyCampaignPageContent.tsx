@@ -7,6 +7,7 @@ import { toast, Toaster } from 'sonner';
 import { ArrowLeft, Calendar, CheckCircle, Globe, Users } from 'lucide-react';
 import { creatorApi } from '@/src/lib/api';
 import { extractList, mapDiscoveryCampaign } from '@/src/lib/mappers';
+import { applicationBlocksCampaign } from '@/src/lib/applicationUtils';
 import ApplyCampaignForm from '../../../components/ApplyCampaignForm';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 
@@ -34,7 +35,9 @@ export default function ApplyCampaignPageContent({ campaignId }: ApplyCampaignPa
       setCampaign(mapped);
 
       const appliedIds = new Set(
-        extractList<Record<string, unknown>>(appsRes).map((a) => String(a.campaign_id)),
+        extractList<Record<string, unknown>>(appsRes)
+          .filter((a) => applicationBlocksCampaign(String(a.status ?? '')))
+          .map((a) => String(a.campaign_id)),
       );
       setAlreadyApplied(appliedIds.has(campaignId));
     } catch (err) {

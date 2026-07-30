@@ -101,6 +101,7 @@ export function mapBrandCampaign(raw: Record<string, unknown>): BrandCampaignRow
 
 export interface BrandApplicantRow {
   id: string;
+  creatorId: string;
   name: string;
   handle: string;
   avatar: string;
@@ -112,7 +113,9 @@ export interface BrandApplicantRow {
   campaignId: string;
   appliedAt: string;
   status: 'pending' | 'approved' | 'rejected' | 'shortlisted';
+  /** Campaign/application message submitted with the application (not creator bio). */
   bio: string;
+  creatorBio: string;
   pastCollabs: number;
   avgROI: string;
 }
@@ -140,7 +143,9 @@ export function mapBrandApplicant(
     campaignId: String(raw.campaign_id ?? campaign?.id ?? ''),
     appliedAt: String(raw.created_at ?? '').slice(0, 10),
     status: mapApplicantUiStatus(String(raw.status ?? '')),
-    bio: String(creator.bio ?? raw.message ?? ''),
+    creatorId: String(creator.id ?? raw.creator_id ?? ''),
+    bio: String(raw.message ?? ''),
+    creatorBio: String(creator.bio ?? ''),
     pastCollabs: 0,
     avgROI: '—',
   };
@@ -162,7 +167,7 @@ export interface DiscoveryCampaignRow {
   deliverables: string[];
   engagementMin: number;
   followersMin: number;
-  status: 'active' | 'in_progress';
+  status: 'active' | 'in_progress' | 'completed';
   featured: boolean;
   locality: string;
   language: string;
@@ -221,7 +226,12 @@ export function mapDiscoveryCampaign(
     deliverables: Array.isArray(raw.deliverables) ? (raw.deliverables as string[]) : [],
     engagementMin: 3,
     followersMin: 5000,
-    status: 'active',
+    status: (() => {
+      const s = mapCampaignStatus(String(raw.status ?? ''));
+      if (s === 'completed') return 'completed' as const;
+      if (s === 'active') return 'active' as const;
+      return 'in_progress' as const;
+    })(),
     featured: budget >= 2000,
     locality: String(raw.locality ?? 'Global'),
     language: langs[0] ?? 'English',
