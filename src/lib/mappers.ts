@@ -826,3 +826,76 @@ export function mapCreatorCard(raw: Record<string, unknown>): CreatorCardRow {
     verified: Boolean(user.is_verified),
   };
 }
+
+export interface BrandCreatorProfileDetail extends CreatorCardRow {
+  email: string;
+  phone: string;
+  website: string;
+  instagram: string;
+  youtube: string;
+  tiktok: string;
+  twitter: string;
+  mediaKit: string;
+  photoUrl: string;
+  languages: string[];
+  niches: string[];
+  portfolio: Array<{ id: string; title: string; platform: string; url: string }>;
+}
+
+export function mapBrandCreatorProfileDetail(raw: Record<string, unknown>): BrandCreatorProfileDetail {
+  const base = mapCreatorCard(raw);
+  const user = (raw.user as Record<string, unknown>) ?? {};
+  const social = (raw.social_links as Record<string, string>) ?? {};
+  const langs = Array.isArray(raw.languages) ? (raw.languages as string[]) : ['English'];
+  const nicheRaw = social.niches ?? raw.niche;
+  let niches: string[] = [];
+  if (Array.isArray(nicheRaw)) niches = nicheRaw.map(String);
+  else if (nicheRaw) niches = String(nicheRaw).split(',').map((n) => n.trim()).filter(Boolean);
+
+  let portfolio: BrandCreatorProfileDetail['portfolio'] = [];
+  const portfolioRaw = raw.portfolio;
+  if (Array.isArray(portfolioRaw)) {
+    portfolio = portfolioRaw.map((item, i) => {
+      const row = item as Record<string, unknown>;
+      return {
+        id: String(row.id ?? `p${i}`),
+        title: String(row.title ?? 'Portfolio item'),
+        platform: String(row.platform ?? 'Instagram'),
+        url: String(row.url ?? ''),
+      };
+    });
+  } else if (typeof portfolioRaw === 'string' && portfolioRaw.trim()) {
+    try {
+      const parsed = JSON.parse(portfolioRaw);
+      if (Array.isArray(parsed)) {
+        portfolio = parsed.map((item, i) => {
+          const row = item as Record<string, unknown>;
+          return {
+            id: String(row.id ?? `p${i}`),
+            title: String(row.title ?? 'Portfolio item'),
+            platform: String(row.platform ?? 'Instagram'),
+            url: String(row.url ?? ''),
+          };
+        });
+      }
+    } catch {
+      /* ignore invalid portfolio json */
+    }
+  }
+
+  return {
+    ...base,
+    email: String(raw.contact_email ?? user.email ?? ''),
+    phone: String(raw.phone ?? ''),
+    website: String(social.website ?? ''),
+    instagram: String(social.instagram ?? ''),
+    youtube: String(social.youtube ?? ''),
+    tiktok: String(social.tiktok ?? ''),
+    twitter: String(social.twitter ?? ''),
+    mediaKit: String(raw.media_kit ?? ''),
+    photoUrl: String(raw.photo ?? raw.profile_photo ?? ''),
+    languages: langs,
+    niches: niches.length > 0 ? niches : [base.niche],
+    portfolio,
+  };
+}

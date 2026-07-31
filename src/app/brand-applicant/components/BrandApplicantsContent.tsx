@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Megaphone, Eye } from 'lucide-react';
+import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Megaphone, Eye, User } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
 import {
   extractList,
@@ -268,8 +268,17 @@ export default function BrandApplicantsContent() {
                     className="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                   >
                     <Eye size={12} />
-                    View
+                    View Application
                   </Link>
+                  {applicant.creatorId && (
+                    <Link
+                      href={`/brand-creator-profile/${applicant.creatorId}?applicationId=${applicant.id}`}
+                      className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                    >
+                      <User size={12} />
+                      View Profile
+                    </Link>
+                  )}
                   {applicant.status === 'approved' && (
                     <Link
                       href="/brand-messages"

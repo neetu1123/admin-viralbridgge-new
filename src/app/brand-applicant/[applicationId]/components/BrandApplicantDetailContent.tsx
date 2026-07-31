@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
-import { ArrowLeft, Loader2, MessageSquare, UserCheck } from 'lucide-react';
+import { ArrowLeft, Loader2, MessageSquare, UserCheck, User } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
 import { mapBrandApplicant } from '@/src/lib/mappers';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
@@ -98,6 +98,14 @@ export default function BrandApplicantDetailContent({ applicationId }: { applica
         </div>
 
         <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-100">
+          {applicant.creatorId && (
+            <Link
+              href={`/brand-creator-profile/${applicant.creatorId}?applicationId=${applicant.id}`}
+              className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-2 rounded-lg flex items-center gap-1"
+            >
+              <User size={12} /> View Profile
+            </Link>
+          )}
           {['pending', 'shortlisted'].includes(applicant.status) && (
             <>
               <button onClick={() => handleAction('shortlist')} className="text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200 px-3 py-2 rounded-lg">Shortlist</button>
