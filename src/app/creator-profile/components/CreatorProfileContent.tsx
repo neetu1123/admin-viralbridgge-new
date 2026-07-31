@@ -21,6 +21,12 @@ type PortfolioItem = {
   url: string;
 };
 
+function formatHandleForDisplay(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+}
+
 function toPortfolioItem(item: unknown, index: number): PortfolioItem {
   const row = item && typeof item === 'object' ? (item as Record<string, unknown>) : {};
   return {
@@ -65,7 +71,8 @@ export default function CreatorProfileContent() {
       const user = (profile.user as Record<string, unknown>) ?? {};
       const social = (profile.social_links as Record<string, string>) ?? {};
       setName(String(profile.full_name || user.name || ''));
-      setHandle(String(social.handle ?? (social.instagram ? `@${String(social.instagram).split('/').pop()}` : '')));
+      const rawHandle = String(profile.handle ?? social.handle ?? (social.instagram ? String(social.instagram).split('/').pop() : ''));
+      setHandle(formatHandleForDisplay(rawHandle));
       setBio(String(profile.bio ?? ''));
       setLocation(String(profile.locality ?? ''));
       setEmail(String(profile.contact_email || user.email || ''));
@@ -166,6 +173,7 @@ export default function CreatorProfileContent() {
         languages: ['English'],
       });
       toast.success('Profile saved successfully!');
+      setHandle(formatHandleForDisplay(handleClean));
       await loadProfile();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to save profile');
@@ -324,7 +332,20 @@ export default function CreatorProfileContent() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Handle / Username</label>
-                <input type="text" value={handle} onChange={e => setHandle(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
+                <input
+                  type="text"
+                  value={handle}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) {
+                      setHandle('');
+                      return;
+                    }
+                    setHandle(val.startsWith('@') ? val : `@${val}`);
+                  }}
+                  placeholder="@yourhandle"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Location</label>

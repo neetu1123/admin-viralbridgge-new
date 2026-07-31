@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowLeft, BarChart3, Eye, Loader2, TrendingUp, Users } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
@@ -52,6 +52,8 @@ function mapCampaignRow(raw: Record<string, unknown>): CampaignAnalyticsRow {
 
 export default function BrandCampaignAnalyticsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedId = searchParams.get('campaign');
   const [loading, setLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<CampaignAnalyticsRow[]>([]);
 
@@ -75,6 +77,11 @@ export default function BrandCampaignAnalyticsContent() {
     load();
   }, [load]);
 
+  const selectedCampaign = useMemo(
+    () => campaigns.find((c) => c.id === selectedId) ?? null,
+    [campaigns, selectedId],
+  );
+
   const chartData = campaigns.slice(0, 8).map((c) => ({
     id: c.id,
     name: c.name.length > 14 ? `${c.name.slice(0, 14)}…` : c.name,
@@ -88,6 +95,10 @@ export default function BrandCampaignAnalyticsContent() {
       ? (campaigns.reduce((s, c) => s + c.reachFactor, 0) / campaigns.length).toFixed(1)
       : '0';
 
+  const openCampaignAnalytics = (id: string) => {
+    router.push(`/analytics/campaigns?campaign=${id}`);
+  };
+
   return (
     <div className="pb-8">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
@@ -96,23 +107,51 @@ export default function BrandCampaignAnalyticsContent() {
             href="/analytics"
             className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-700 mb-2"
           >
-            <ArrowLeft size={14} /> Back to Analytics
+            <ArrowLeft size={14} /> Back to Analytics Overview
           </Link>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <BarChart3 className="text-violet-600" size={24} />
             Campaign Analytics
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Top performing campaigns with reach, engagement, and applicant metrics
+            Performance metrics for each campaign — click a campaign to view its analytics
           </p>
         </div>
         <Link
-          href="/brand-campaign-management"
-          className="text-sm font-semibold text-violet-600 hover:text-violet-700 border border-violet-200 px-4 py-2 rounded-lg bg-violet-50"
+          href="/brand-my-campaigns"
+          className="text-sm font-semibold text-slate-600 hover:text-slate-800 border border-slate-200 px-4 py-2 rounded-lg bg-white"
         >
-          Open My Campaigns
+          Manage Campaigns
         </Link>
       </div>
+
+      {selectedCampaign && (
+        <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-5 mb-6 text-white shadow-lg">
+          <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide mb-1">Selected Campaign Analytics</p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-xl font-bold mb-2">{selectedCampaign.name}</h2>
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                <PlatformBadge platform={selectedCampaign.platform} />
+                <StatusBadge status={selectedCampaign.status} />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                <div><p className="text-violet-200 text-xs">Reach</p><p className="font-bold">{(selectedCampaign.reach / 1000).toFixed(0)}K</p></div>
+                <div><p className="text-violet-200 text-xs">Engagement</p><p className="font-bold">{selectedCampaign.engagement.toFixed(1)}%</p></div>
+                <div><p className="text-violet-200 text-xs">Applicants</p><p className="font-bold">{selectedCampaign.applicants}</p></div>
+                <div><p className="text-violet-200 text-xs">Spent</p><p className="font-bold">₹{selectedCampaign.spent.toLocaleString()}</p></div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push('/analytics/campaigns')}
+              className="text-xs font-semibold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg"
+            >
+              Clear selection
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
@@ -149,7 +188,7 @@ export default function BrandCampaignAnalyticsContent() {
         <>
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
             <h2 className="text-sm font-semibold text-slate-800 mb-1">Top Performing Campaigns</h2>
-            <p className="text-xs text-slate-400 mb-4">Click a bar to open campaign details in My Campaigns</p>
+            <p className="text-xs text-slate-400 mb-4">Click a bar to view that campaign&apos;s analytics</p>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -163,7 +202,7 @@ export default function BrandCampaignAnalyticsContent() {
                   cursor="pointer"
                   onClick={(data) => {
                     const payload = data as { id?: string };
-                    if (payload?.id) router.push(`/brand-campaign-management?campaign=${payload.id}`);
+                    if (payload?.id) openCampaignAnalytics(payload.id);
                   }}
                 />
               </BarChart>
@@ -176,7 +215,10 @@ export default function BrandCampaignAnalyticsContent() {
             </div>
             <div className="divide-y divide-slate-50">
               {campaigns.map((c, i) => (
-                <div key={c.id} className="px-5 py-4 hover:bg-slate-50/60 transition-colors">
+                <div
+                  key={c.id}
+                  className={`px-5 py-4 hover:bg-slate-50/60 transition-colors ${selectedId === c.id ? 'bg-violet-50/50 ring-1 ring-inset ring-violet-200' : ''}`}
+                >
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex items-start gap-3 min-w-0 flex-1">
                       <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
@@ -200,12 +242,13 @@ export default function BrandCampaignAnalyticsContent() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <Link
-                        href={`/brand-campaign-management?campaign=${c.id}`}
+                      <button
+                        type="button"
+                        onClick={() => openCampaignAnalytics(c.id)}
                         className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors"
                       >
-                        View in My Campaigns
-                      </Link>
+                        View Analytics
+                      </button>
                     </div>
                   </div>
                 </div>

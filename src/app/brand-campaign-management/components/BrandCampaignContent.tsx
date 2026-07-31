@@ -270,7 +270,7 @@ export default function BrandCampaignContent() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Brand Intelligence Dashboard</h1>
+          <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Marketing performance, creator intelligence & reach analytics</p>
         </div>
         <Link

@@ -27,7 +27,8 @@ const creatorNav = [
 ];
 
 const brandNav = [
-  { label: 'My Campaigns', icon: Briefcase, href: '/brand-campaign-management', badge: null },
+  { label: 'Dashboard', icon: LayoutDashboard, href: '/brand-campaign-management', badge: null },
+  { label: 'My Campaigns', icon: Briefcase, href: '/brand-my-campaigns', badge: null },
   { label: 'Create Campaign', icon: Plus, href: '/brand-campaign-management/create', badge: null },
   { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: null },
   { label: 'Review Deliverables', icon: Upload, href: '/brand-deliverables', badge: null },
