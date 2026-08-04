@@ -194,18 +194,17 @@ export default function MyApplicationsContent() {
         </div>
       )}
 
-      {loading && (
+      {loading ? (
         <div className="text-center py-12 text-slate-500 text-sm">Loading applications...</div>
-      )}
-
-      <div className="space-y-3">
-        {filtered.map((app) => {
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map((app) => {
           const sConfig = statusConfig[app.status];
           const StatusIcon = sConfig.icon;
           return (
             <div
               key={app.id}
-              className={`bg-white rounded-xl border shadow-sm p-5 transition-all hover:shadow-md ${
+              className={`bg-white rounded-xl border shadow-sm p-5 transition-all hover:shadow-md flex flex-col h-full ${
                 app.status === 'approved'
                   ? 'border-emerald-200'
                   : app.status === 'shortlisted'
@@ -213,51 +212,47 @@ export default function MyApplicationsContent() {
                     : 'border-slate-200'
               }`}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className="flex flex-col flex-1 gap-3">
+                <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
                     <span className="text-violet-700 text-xs font-bold">{app.brandAvatar}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <p className="text-sm font-semibold text-slate-800">{app.campaignTitle}</p>
-                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${sConfig.cls}`}>
-                        <StatusIcon size={10} />
-                        {sConfig.label}
-                      </span>
+                      <p className="text-sm font-semibold text-slate-800 line-clamp-2">{app.campaignTitle}</p>
                     </div>
-                    <p className="text-xs text-slate-500 mb-2">
-                      {app.brand} · Applied {app.appliedAt}
-                    </p>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <PlatformBadge platform={app.platform} />
-                      <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                        ₹{app.budget.toLocaleString()}
-                      </span>
-                      <span className="text-xs text-slate-400">Deadline: {app.deadline}</span>
-                      {app.paymentStatus && (
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${paymentStatusConfig[app.paymentStatus]?.cls}`}>
-                          {paymentStatusConfig[app.paymentStatus]?.label}
-                          {app.paymentAmount && ` · ₹${app.paymentAmount.toLocaleString()}`}
-                        </span>
-                      )}
-                    </div>
-                    {app.status === 'rejected' && app.feedback && (
-                      <div className="mt-2 bg-red-50 rounded-lg p-2.5 border border-red-100">
-                        <p className="text-xs font-semibold text-red-700 mb-0.5">Rejection reason</p>
-                        <p className="text-xs text-red-800">{app.feedback}</p>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {app.deliverables.map((d) => (
-                        <span key={d} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                          {d}
-                        </span>
-                      ))}
-                    </div>
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${sConfig.cls}`}>
+                      <StatusIcon size={10} />
+                      {sConfig.label}
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <p className="text-xs text-slate-500">
+                  {app.brand} · Applied {app.appliedAt}
+                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <PlatformBadge platform={app.platform} />
+                  <span className="text-xs font-semibold text-emerald-700">₹{app.budget.toLocaleString()}</span>
+                </div>
+                <p className="text-xs text-slate-400">Deadline: {app.deadline}</p>
+                {app.paymentStatus && (
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${paymentStatusConfig[app.paymentStatus]?.cls}`}>
+                    {paymentStatusConfig[app.paymentStatus]?.label}
+                    {app.paymentAmount && ` · ₹${app.paymentAmount.toLocaleString()}`}
+                  </span>
+                )}
+                {app.status === 'rejected' && app.feedback && (
+                  <div className="bg-red-50 rounded-lg p-2.5 border border-red-100">
+                    <p className="text-xs font-semibold text-red-700 mb-0.5">Rejection reason</p>
+                    <p className="text-xs text-red-800 line-clamp-2">{app.feedback}</p>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {app.deliverables.slice(0, 3).map((d) => (
+                    <span key={d} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{d}</span>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2 pt-2 mt-auto border-t border-slate-100">
                   {app.status === 'approved' && (
                     <>
                       <Link
@@ -300,7 +295,7 @@ export default function MyApplicationsContent() {
           );
         })}
         {!loading && filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-slate-200">
+          <div className="col-span-full flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-slate-200">
             <Briefcase size={36} className="text-slate-300 mb-3" />
             <h3 className="text-slate-700 font-semibold mb-1">No applications found</h3>
             <p className="text-slate-400 text-sm mb-4">Try adjusting your filters or discover new campaigns</p>
@@ -312,7 +307,8 @@ export default function MyApplicationsContent() {
             </Link>
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       <div className="mt-8">
         <MyDisputesPanel role="creator" refreshKey={disputeRefreshKey} />

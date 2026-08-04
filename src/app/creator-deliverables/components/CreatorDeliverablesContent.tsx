@@ -171,12 +171,7 @@ export default function CreatorDeliverablesContent() {
   const isVideo = (url?: string | null) => url && /\.(mp4|webm|mov)(\?|$)/i.test(url);
 
   const toggleCampaign = (id: string) => {
-    setExpandedCampaigns((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    setExpandedCampaigns((prev) => (prev.has(id) ? new Set() : new Set([id])));
   };
 
   const renderUploadZone = (del: DeliverableRow) => (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, X } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
@@ -23,6 +23,9 @@ interface CreateCampaignFormProps {
   cancelLabel?: string;
   submitLabel?: string;
   className?: string;
+  campaignId?: string;
+  initialDeliverables?: string[];
+  defaultValues?: Partial<CampaignForm>;
 }
 
 const platforms = ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn', 'Pinterest', 'Twitch'];
@@ -42,14 +45,26 @@ export default function CreateCampaignForm({
   onSuccess,
   onError,
   cancelLabel = 'Cancel',
-  submitLabel = 'Create Campaign',
+  submitLabel = 'Publish Campaign',
   className = '',
+  campaignId,
+  initialDeliverables = ['1 Feed Post', '2 Stories'],
+  defaultValues,
 }: CreateCampaignFormProps) {
-  const [deliverables, setDeliverables] = useState<string[]>(['1 Feed Post', '2 Stories']);
+  const [deliverables, setDeliverables] = useState<string[]>(initialDeliverables);
   const [newDeliverable, setNewDeliverable] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const isEditing = Boolean(campaignId);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<CampaignForm>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<CampaignForm>({
+    defaultValues: defaultValues ?? {},
+  });
+
+  useEffect(() => {
+    if (defaultValues) reset(defaultValues);
+    setDeliverables(initialDeliverables);
+  }, [defaultValues, initialDeliverables, reset]);
 
   const addDeliverable = () => {
     if (newDeliverable.trim()) {
@@ -58,30 +73,44 @@ export default function CreateCampaignForm({
     }
   };
 
-  const onSubmit = async (data: CampaignForm) => {
-    setIsSubmitting(true);
+  const buildPayload = (data: CampaignForm, status: 'DRAFT' | 'PENDING_APPROVAL') => ({
+    title: data.title,
+    description: data.description,
+    platform: data.platform,
+    budget: Number(data.budget),
+    deadline: data.deadline,
+    deliverables,
+    locality: data.niche,
+    languages: ['English'],
+    status,
+    followers_min: data.followersMin ? Number(data.followersMin) : undefined,
+    engagement_min: data.engagementMin ? Number(data.engagementMin) : undefined,
+  });
+
+  const saveCampaign = async (data: CampaignForm, status: 'DRAFT' | 'PENDING_APPROVAL', asDraft: boolean) => {
+    if (asDraft) setSavingDraft(true);
+    else setIsSubmitting(true);
     try {
-      await brandApi.createCampaign({
-        title: data.title,
-        description: data.description,
-        platform: data.platform,
-        budget: Number(data.budget),
-        deadline: data.deadline,
-        deliverables,
-        locality: data.niche,
-        languages: ['English'],
-        status: 'PENDING_APPROVAL',
-      });
+      const payload = buildPayload(data, status);
+      if (isEditing && campaignId) {
+        await brandApi.updateCampaign(campaignId, payload);
+      } else {
+        await brandApi.createCampaign(payload);
+      }
       onSuccess();
     } catch (error: unknown) {
-      onError(error instanceof Error ? error.message : 'Failed to create campaign');
+      onError(error instanceof Error ? error.message : 'Failed to save campaign');
     } finally {
       setIsSubmitting(false);
+      setSavingDraft(false);
     }
   };
 
+  const onPublish = (data: CampaignForm) => saveCampaign(data, 'PENDING_APPROVAL', false);
+  const onSaveDraft = (data: CampaignForm) => saveCampaign(data, 'DRAFT', true);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 ${className}`}>
+    <form onSubmit={handleSubmit(onPublish)} className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="camp-title">
@@ -189,13 +218,10 @@ export default function CreateCampaignForm({
           <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="camp-desc">
             Campaign Description
           </label>
-          <p className="text-xs text-slate-400 mb-1.5">
-            Describe what you want creators to do and what content you are looking for
-          </p>
           <textarea
             id="camp-desc"
             rows={4}
-            placeholder="We are launching our new product and need authentic creators to showcase it to their audience..."
+            placeholder="We are launching our new product and need authentic creators..."
             className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 resize-none ${errors.description ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
             {...register('description', { required: 'Description is required', minLength: { value: 30, message: 'Add at least 30 characters' } })}
           />
@@ -204,7 +230,6 @@ export default function CreateCampaignForm({
 
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Deliverables</label>
-          <p className="text-xs text-slate-400 mb-2">What content do you expect from creators?</p>
           <div className="flex flex-wrap gap-2 mb-2">
             {deliverables.map((d, i) => (
               <span
@@ -238,7 +263,7 @@ export default function CreateCampaignForm({
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2 border-t border-slate-100">
+      <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-slate-100">
         <button
           type="button"
           onClick={onCancel}
@@ -247,18 +272,19 @@ export default function CreateCampaignForm({
           {cancelLabel}
         </button>
         <button
+          type="button"
+          disabled={savingDraft || isSubmitting}
+          onClick={handleSubmit(onSaveDraft)}
+          className="flex-1 py-2.5 border border-amber-200 bg-amber-50 text-amber-800 font-semibold rounded-lg text-sm hover:bg-amber-100 transition-colors disabled:opacity-70"
+        >
+          {savingDraft ? 'Saving draft...' : isEditing ? 'Update Draft' : 'Save as Draft'}
+        </button>
+        <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || savingDraft}
           className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-all disabled:opacity-70"
         >
-          {isSubmitting ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Creating...</span>
-            </>
-          ) : (
-            submitLabel
-          )}
+          {isSubmitting ? 'Publishing...' : submitLabel}
         </button>
       </div>
     </form>

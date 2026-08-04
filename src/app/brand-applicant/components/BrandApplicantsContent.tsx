@@ -3,17 +3,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Megaphone, Eye, User } from 'lucide-react';
+import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Eye, User } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
 import {
   extractList,
   mapBrandApplicant,
-  mapBrandCampaign,
   type BrandApplicantRow,
-  type BrandCampaignRow,
 } from '@/src/lib/mappers';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
-import StatusBadge from '@/src/components/ui/StatusBadge';
 import RejectApplicationModal from '@/src/components/brand/RejectApplicationModal';
 
 const applicantStatusConfig: Record<string, { label: string; cls: string }> = {
@@ -24,7 +21,6 @@ const applicantStatusConfig: Record<string, { label: string; cls: string }> = {
 };
 
 export default function BrandApplicantsContent() {
-  const [campaigns, setCampaigns] = useState<BrandCampaignRow[]>([]);
   const [applicants, setApplicants] = useState<BrandApplicantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -36,8 +32,6 @@ export default function BrandApplicantsContent() {
     try {
       const campaignsRes = await brandApi.getCampaigns({ limit: 50 });
       const rawCampaigns = extractList<Record<string, unknown>>(campaignsRes);
-      const mappedCampaigns = rawCampaigns.map(mapBrandCampaign);
-      setCampaigns(mappedCampaigns);
 
       const embedded = rawCampaigns.flatMap((campaign) =>
         ((campaign.applications as Record<string, unknown>[]) ?? []).map((application) =>
@@ -65,7 +59,6 @@ export default function BrandApplicantsContent() {
       setApplicants(fetched.flat());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load applicants');
-      setCampaigns([]);
       setApplicants([]);
     } finally {
       setLoading(false);
@@ -122,38 +115,6 @@ export default function BrandApplicantsContent() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Applicants</h1>
         <p className="text-slate-500 text-sm mt-1">Review and manage creator applications across your campaigns</p>
-      </div>
-
-      {/* Campaigns overview — mapped from /brand/campaigns */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-6">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Megaphone size={16} className="text-violet-600" />
-            <h2 className="text-sm font-semibold text-slate-800">Your Campaigns</h2>
-          </div>
-          <span className="text-xs text-slate-400">{campaigns.length} campaigns</span>
-        </div>
-        <div className="divide-y divide-slate-50">
-          {campaigns.map((campaign) => (
-            <div key={campaign.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-800 truncate">{campaign.title}</p>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <PlatformBadge platform={campaign.platform} />
-                  <StatusBadge status={campaign.status} />
-                  <span className="text-xs text-slate-500">{campaign.niche}</span>
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-sm font-bold text-slate-800 tabular-nums">₹{campaign.budget.toLocaleString()}</p>
-                <p className="text-xs text-slate-400">{campaign.applicants} applicants · {campaign.pending} pending</p>
-              </div>
-            </div>
-          ))}
-          {campaigns.length === 0 && (
-            <p className="px-5 py-8 text-sm text-slate-500 text-center">No campaigns yet.</p>
-          )}
-        </div>
       </div>
 
       {/* Applicants list */}
@@ -297,8 +258,7 @@ export default function BrandApplicantsContent() {
               <Users size={36} className="text-slate-300 mb-3" />
               <h3 className="text-slate-700 font-semibold mb-1">No applicants yet</h3>
               <p className="text-slate-400 text-sm text-center max-w-sm">
-                Your {campaigns.length} campaign{campaigns.length !== 1 ? 's are' : ' is'} live, but no creators have applied yet.
-                Share campaigns or invite creators from Creator Discovery.
+                No creators have applied yet. Share campaigns or invite creators from Creator Discovery.
               </p>
               <Link
                 href="/creator-discovery"

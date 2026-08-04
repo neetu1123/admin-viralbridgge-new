@@ -432,7 +432,7 @@ export default function CreatorProfileContent() {
           </div>
 
           {/* Portfolio gallery (mock data) */}
-          <CreatorPortfolioSection />
+          <CreatorPortfolioSection items={portfolioItems} />
 
           <button
             onClick={saveProfile}

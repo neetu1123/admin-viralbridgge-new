@@ -8,6 +8,7 @@ import { extractList } from '@/src/lib/mappers';
 interface InviteCreatorModalProps {
   creatorId: string;
   creatorName?: string;
+  creatorHandle?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -15,9 +16,15 @@ interface InviteCreatorModalProps {
 export default function InviteCreatorModal({
   creatorId,
   creatorName,
+  creatorHandle,
   onClose,
   onSuccess,
 }: InviteCreatorModalProps) {
+  const displayHandle = creatorHandle
+    ? creatorHandle.startsWith('@')
+      ? creatorHandle
+      : `@${creatorHandle}`
+    : null;
   const [campaigns, setCampaigns] = useState<Array<{ id: string; title: string; status?: string }>>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -47,7 +54,8 @@ export default function InviteCreatorModal({
     setSubmitting(true);
     try {
       await brandApi.inviteCreator(selectedCampaignId, creatorId);
-      toast.success(`Invite sent${creatorName ? ` to ${creatorName}` : ''}!`);
+      const label = displayHandle ?? creatorName;
+      toast.success(`Invite sent${label ? ` to ${label}` : ''}!`);
       onSuccess();
       onClose();
     } catch (error) {
@@ -60,8 +68,15 @@ export default function InviteCreatorModal({
   return (
     <Modal open onClose={onClose} title="Invite to Campaign" size="md">
       <div className="space-y-4">
+        {(creatorName || displayHandle) && (
+          <div className="bg-violet-50 border border-violet-100 rounded-lg px-4 py-3">
+            <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-0.5">Inviting creator</p>
+            {creatorName && <p className="text-sm font-semibold text-slate-800">{creatorName}</p>}
+            {displayHandle && <p className="text-sm text-violet-700 font-medium">{displayHandle}</p>}
+          </div>
+        )}
         <p className="text-sm text-slate-600">
-          Choose a campaign to invite{creatorName ? ` ${creatorName}` : ' this creator'} to collaborate on.
+          Choose a campaign to invite{displayHandle ?? creatorName ?? ' this creator'} to collaborate on.
         </p>
 
         {loading ? (

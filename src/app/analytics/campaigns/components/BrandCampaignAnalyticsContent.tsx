@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowLeft, BarChart3, Eye, Loader2, TrendingUp, Users } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
@@ -52,8 +52,6 @@ function mapCampaignRow(raw: Record<string, unknown>): CampaignAnalyticsRow {
 
 export default function BrandCampaignAnalyticsContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedId = searchParams.get('campaign');
   const [loading, setLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<CampaignAnalyticsRow[]>([]);
 
@@ -77,11 +75,6 @@ export default function BrandCampaignAnalyticsContent() {
     load();
   }, [load]);
 
-  const selectedCampaign = useMemo(
-    () => campaigns.find((c) => c.id === selectedId) ?? null,
-    [campaigns, selectedId],
-  );
-
   const chartData = campaigns.slice(0, 8).map((c) => ({
     id: c.id,
     name: c.name.length > 14 ? `${c.name.slice(0, 14)}…` : c.name,
@@ -96,7 +89,7 @@ export default function BrandCampaignAnalyticsContent() {
       : '0';
 
   const openCampaignAnalytics = (id: string) => {
-    router.push(`/analytics/campaigns?campaign=${id}`);
+    router.push(`/analytics/campaigns/${id}`);
   };
 
   return (
@@ -124,34 +117,6 @@ export default function BrandCampaignAnalyticsContent() {
           Manage Campaigns
         </Link>
       </div>
-
-      {selectedCampaign && (
-        <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-5 mb-6 text-white shadow-lg">
-          <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide mb-1">Selected Campaign Analytics</p>
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h2 className="text-xl font-bold mb-2">{selectedCampaign.name}</h2>
-              <div className="flex items-center gap-2 flex-wrap mb-3">
-                <PlatformBadge platform={selectedCampaign.platform} />
-                <StatusBadge status={selectedCampaign.status} />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                <div><p className="text-violet-200 text-xs">Reach</p><p className="font-bold">{(selectedCampaign.reach / 1000).toFixed(0)}K</p></div>
-                <div><p className="text-violet-200 text-xs">Engagement</p><p className="font-bold">{selectedCampaign.engagement.toFixed(1)}%</p></div>
-                <div><p className="text-violet-200 text-xs">Applicants</p><p className="font-bold">{selectedCampaign.applicants}</p></div>
-                <div><p className="text-violet-200 text-xs">Spent</p><p className="font-bold">₹{selectedCampaign.spent.toLocaleString()}</p></div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push('/analytics/campaigns')}
-              className="text-xs font-semibold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg"
-            >
-              Clear selection
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
@@ -217,7 +182,7 @@ export default function BrandCampaignAnalyticsContent() {
               {campaigns.map((c, i) => (
                 <div
                   key={c.id}
-                  className={`px-5 py-4 hover:bg-slate-50/60 transition-colors ${selectedId === c.id ? 'bg-violet-50/50 ring-1 ring-inset ring-violet-200' : ''}`}
+                  className="px-5 py-4 hover:bg-slate-50/60 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -242,13 +207,12 @@ export default function BrandCampaignAnalyticsContent() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => openCampaignAnalytics(c.id)}
+                      <Link
+                        href={`/analytics/campaigns/${c.id}`}
                         className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         View Analytics
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

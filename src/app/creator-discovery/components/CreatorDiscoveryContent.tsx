@@ -43,6 +43,8 @@ const priceRanges = [
 export default function CreatorDiscoveryContent() {
   const searchParams = useSearchParams();
   const inviteCreatorId = searchParams.get('invite');
+  const inviteHandle = searchParams.get('handle');
+  const inviteName = searchParams.get('name');
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -56,7 +58,7 @@ export default function CreatorDiscoveryContent() {
   const [sortBy, setSortBy] = useState<'match' | 'followers' | 'engagement' | 'price_low' | 'price_high'>('match');
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [invitedCreators, setInvitedCreators] = useState<Set<string>>(new Set());
-  const [inviteModalTarget, setInviteModalTarget] = useState<{ id: string; name?: string } | null>(null);
+  const [inviteModalTarget, setInviteModalTarget] = useState<{ id: string; name?: string; handle?: string } | null>(null);
   const [totalCreators, setTotalCreators] = useState(0);
   const [showCampaignPrompt, setShowCampaignPrompt] = useState(false);
 
@@ -116,11 +118,15 @@ export default function CreatorDiscoveryContent() {
     if (!inviteCreatorId || loading || invitedCreators.has(inviteCreatorId)) return;
     const target = creators.find((c) => c.id === inviteCreatorId);
     if (target) {
-      setInviteModalTarget({ id: target.id, name: target.name });
+      setInviteModalTarget({ id: target.id, name: target.name, handle: target.handle });
       return;
     }
-    setInviteModalTarget({ id: inviteCreatorId });
-  }, [inviteCreatorId, loading, creators, invitedCreators]);
+    setInviteModalTarget({
+      id: inviteCreatorId,
+      name: inviteName ?? undefined,
+      handle: inviteHandle ?? undefined,
+    });
+  }, [inviteCreatorId, inviteHandle, inviteName, loading, creators, invitedCreators]);
 
   const filtered = useMemo(() => {
     return creators.filter(c => {
@@ -150,7 +156,7 @@ export default function CreatorDiscoveryContent() {
   }, [creators, search, selectedNiche, selectedPlatform, selectedLocation, selectedLanguage, selectedFollowers, selectedEngagement, selectedPrice, sortBy]);
 
   const handleInvite = (creator: Creator) => {
-    setInviteModalTarget({ id: creator.id, name: creator.name });
+    setInviteModalTarget({ id: creator.id, name: creator.name, handle: creator.handle });
   };
 
   const handleInviteSuccess = (creatorId: string) => {
@@ -461,6 +467,7 @@ export default function CreatorDiscoveryContent() {
         <InviteCreatorModal
           creatorId={inviteModalTarget.id}
           creatorName={inviteModalTarget.name}
+          creatorHandle={inviteModalTarget.handle}
           onClose={() => setInviteModalTarget(null)}
           onSuccess={() => handleInviteSuccess(inviteModalTarget.id)}
         />

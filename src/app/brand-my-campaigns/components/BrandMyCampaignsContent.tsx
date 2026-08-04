@@ -165,11 +165,14 @@ export default function BrandMyCampaignsContent() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <p className="text-sm font-semibold text-slate-800">{campaign.title}</p>
-                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${sConfig.cls}`}>
-                        <StatusIcon size={10} />
-                        {sConfig.label}
-                      </span>
-                      <StatusBadge status={campaign.status} />
+                      {campaign.isDraft ? (
+                        <StatusBadge status="draft" />
+                      ) : (
+                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${sConfig.cls}`}>
+                          <StatusIcon size={10} />
+                          {sConfig.label}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-slate-500 mb-2">
                       {campaign.niche} · Created {campaign.createdAt} · Deadline {campaign.deadline}
@@ -193,8 +196,16 @@ export default function BrandMyCampaignsContent() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                  {campaign.isDraft && (
+                    <Link
+                      href={`/brand-campaign-management/create?edit=${campaign.id}`}
+                      className="text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Edit Draft
+                    </Link>
+                  )}
                   <Link
-                    href={`/analytics/campaigns?campaign=${campaign.id}`}
+                    href={`/analytics/campaigns/${campaign.id}`}
                     className="text-xs font-semibold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 px-3 py-1.5 rounded-lg transition-colors"
                   >
                     Analytics

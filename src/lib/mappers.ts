@@ -42,10 +42,17 @@ export function mapCampaignStatus(
   status: string,
 ): 'active' | 'draft' | 'completed' | 'in_progress' {
   const s = (status || '').toUpperCase();
-  if (s === 'ACTIVE') return 'active';
+  if (s === 'DRAFT') return 'draft';
   if (s === 'COMPLETED') return 'completed';
-  if (s === 'DRAFT' || s === 'PENDING_APPROVAL') return 'draft';
-  return 'in_progress';
+  if (s === 'IN_PROGRESS') return 'in_progress';
+  if (s === 'ACTIVE' || s === 'LIVE' || s === 'OPEN' || s === 'APPROVED' || s === 'PENDING_APPROVAL') {
+    return 'active';
+  }
+  return 'active';
+}
+
+export function isCampaignDraft(raw: Record<string, unknown>): boolean {
+  return String(raw.status ?? '').toUpperCase() === 'DRAFT';
 }
 
 export function mapApplicantUiStatus(
@@ -72,6 +79,7 @@ export interface BrandCampaignRow {
   pending: number;
   deliverables: string[];
   createdAt: string;
+  isDraft: boolean;
 }
 
 export function mapBrandCampaign(raw: Record<string, unknown>): BrandCampaignRow {
@@ -96,6 +104,7 @@ export function mapBrandCampaign(raw: Record<string, unknown>): BrandCampaignRow
     pending,
     deliverables: Array.isArray(raw.deliverables) ? (raw.deliverables as string[]) : [],
     createdAt: String(raw.created_at ?? '').slice(0, 10),
+    isDraft: isCampaignDraft(raw),
   };
 }
 

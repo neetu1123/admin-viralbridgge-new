@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { Scale } from 'lucide-react';
 import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
 import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
+import DisputeContactPanel from '@/src/components/disputes/DisputeContactPanel';
 import Link from 'next/link';
 
 export default function CreatorDisputesContent() {
@@ -32,6 +33,8 @@ export default function CreatorDisputesContent() {
       </div>
 
       <MyDisputesPanel role="creator" refreshKey={refreshKey} />
+
+      <DisputeContactPanel />
 
       <p className="text-xs text-slate-400 mt-6">
         Disputes are also available from{' '}

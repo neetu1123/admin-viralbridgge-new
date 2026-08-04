@@ -235,7 +235,7 @@ export default function AnalyticsContent() {
               margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
               onClick={(state) => {
                 const payload = state?.activePayload?.[0]?.payload as { id?: string } | undefined;
-                if (payload?.id) router.push(`/analytics/campaigns?campaign=${payload.id}`);
+                if (payload?.id) router.push(`/analytics/campaigns/${payload.id}`);
               }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -249,7 +249,7 @@ export default function AnalyticsContent() {
             {campaignPerformance.map((c) => (
               <Link
                 key={c.id}
-                href={`/analytics/campaigns?campaign=${c.id}`}
+                href={`/analytics/campaigns/${c.id}`}
                 className="flex items-center justify-between text-xs py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-2 rounded-lg transition-colors"
               >
                 <span className="font-semibold text-slate-700">{c.name}</span>
