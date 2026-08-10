@@ -20,6 +20,7 @@ const pageTitles: Record<string, string> = {
   '/admin-panel/settings': 'Settings',
   '/admin-panel/roles': 'Admin Roles',
   '/admin-panel/audit-logs': 'Audit Logs',
+  '/crm': 'CRM',
 };
 
 const quickActions = [
@@ -38,7 +39,9 @@ export default function AdminTopNavbar() {
   const [notifCount, setNotifCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const pageTitle = pageTitles[pathname] ?? 'Admin Panel';
+  const pageTitle = pathname.startsWith('/crm/')
+    ? 'Lead Details'
+    : pageTitles[pathname] ?? 'Admin Panel';
 
   const loadUnread = useCallback(async () => {
     try {

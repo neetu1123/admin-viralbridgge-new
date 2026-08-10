@@ -7,7 +7,7 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 
@@ -55,6 +55,7 @@ const adminNavSections: AdminNavSection[] = [
       { label: 'Users', icon: Users, href: '/admin-panel/users', badge: '4', badgeColor: 'violet' },
       { label: 'KYC Verification', icon: ShieldCheck, href: '/admin-panel/kyc', badge: null },
       { label: 'Campaigns', icon: Briefcase, href: '/admin-panel/campaigns', badge: null },
+      { label: 'CRM', icon: Contact, href: '/crm', badge: null },
     ],
   },
   {
