@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
 import {
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/src/lib/useAuth';
 import { crmService, formatLeadDate, getLeadFullName } from '@/src/lib/crm/crmService';
-import type { CrmFilters, CrmLead, CrmLeadInput } from '@/src/lib/crm/types';
+import type { CrmFilters, CrmLead, CrmSummary } from '@/src/lib/crm/types';
 import {
   LEAD_SOURCE_OPTIONS,
   LEAD_STATUS_OPTIONS,
@@ -31,7 +31,6 @@ import {
 } from '@/src/lib/crm/mockData';
 import LeadStatusBadge from '@/src/components/crm/LeadStatusBadge';
 import PriorityBadge from '@/src/components/crm/PriorityBadge';
-import LeadFormDrawer from '@/src/components/crm/LeadFormDrawer';
 import CrmEmptyState from '@/src/components/crm/CrmEmptyState';
 
 const PAGE_SIZE = 8;
@@ -68,23 +67,38 @@ function TableSkeleton() {
 }
 
 export default function CrmDashboardContent() {
-  const { user, loading: authLoading } = useAuth('admin');
+  const { loading: authLoading } = useAuth('admin');
   const [leads, setLeads] = useState<CrmLead[]>([]);
+  const [summary, setSummary] = useState<CrmSummary>({
+    totalLeads: 0,
+    newLeads: 0,
+    qualifiedLeads: 0,
+    convertedLeads: 0,
+    lostLeads: 0,
+    todaysFollowUps: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<CrmFilters>(defaultFilters);
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingLead, setEditingLead] = useState<CrmLead | null>(null);
-  const [saving, setSaving] = useState(false);
 
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
-  const loadLeads = useCallback(() => {
+  const loadLeads = useCallback(async () => {
     setLoading(true);
-    const data = crmService.filterLeads({ ...filters, search: debouncedSearch });
-    setLeads(data);
-    setLoading(false);
+    try {
+      const [data, summaryData] = await Promise.all([
+        crmService.filterLeads({ ...filters, search: debouncedSearch }),
+        crmService.getSummary(),
+      ]);
+      setLeads(data);
+      setSummary(summaryData);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load CRM data');
+      setLeads([]);
+    } finally {
+      setLoading(false);
+    }
   }, [filters, debouncedSearch]);
 
   useEffect(() => {
@@ -95,44 +109,18 @@ export default function CrmDashboardContent() {
     setPage(1);
   }, [debouncedSearch, filters]);
 
-  const summary = useMemo(() => crmService.getSummary(), [leads]);
-
   const totalPages = Math.max(1, Math.ceil(leads.length / PAGE_SIZE));
   const paginatedLeads = leads.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const handleSaveLead = (data: CrmLeadInput) => {
-    setSaving(true);
-    try {
-      if (editingLead) {
-        crmService.updateLead(editingLead.id, data, user?.name);
-        toast.success('Lead updated successfully');
-      } else {
-        crmService.createLead(data, user?.name);
-        toast.success('Lead created successfully');
-      }
-      setDrawerOpen(false);
-      setEditingLead(null);
-      loadLeads();
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = (lead: CrmLead) => {
+  const handleDelete = async (lead: CrmLead) => {
     if (!confirm(`Delete ${getLeadFullName(lead)}? This cannot be undone.`)) return;
-    crmService.deleteLead(lead.id);
-    toast.success('Lead deleted');
-    loadLeads();
-  };
-
-  const openCreate = () => {
-    setEditingLead(null);
-    setDrawerOpen(true);
-  };
-
-  const openEdit = (lead: CrmLead) => {
-    setEditingLead(lead);
-    setDrawerOpen(true);
+    try {
+      await crmService.deleteLead(lead.id);
+      toast.success('Lead deleted');
+      loadLeads();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete lead');
+    }
   };
 
   if (authLoading) {
@@ -161,14 +149,13 @@ export default function CrmDashboardContent() {
           <h1 className="text-2xl font-bold text-slate-800">CRM</h1>
           <p className="text-slate-500 text-sm mt-1">Manage leads, follow-ups, and customer relationships</p>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
+        <Link
+          href="/crm/new"
           className="flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all"
         >
           <Plus size={16} />
           Add New Lead
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
@@ -274,7 +261,7 @@ export default function CrmDashboardContent() {
         {loading ? (
           <TableSkeleton />
         ) : leads.length === 0 ? (
-          <CrmEmptyState onCreateLead={openCreate} />
+          <CrmEmptyState />
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -324,9 +311,9 @@ export default function CrmDashboardContent() {
                             <Link href={`/crm/${lead.id}`} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="View">
                               <Eye size={15} />
                             </Link>
-                            <button type="button" onClick={() => openEdit(lead)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="Edit">
+                            <Link href={`/crm/${lead.id}/edit`} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="Edit">
                               <Pencil size={15} />
-                            </button>
+                            </Link>
                             <button type="button" onClick={() => handleDelete(lead)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500" aria-label="Delete">
                               <Trash2 size={15} />
                             </button>
@@ -366,14 +353,6 @@ export default function CrmDashboardContent() {
           </>
         )}
       </div>
-
-      <LeadFormDrawer
-        open={drawerOpen}
-        onClose={() => { setDrawerOpen(false); setEditingLead(null); }}
-        onSave={handleSaveLead}
-        initialData={editingLead}
-        saving={saving}
-      />
     </div>
   );
 }

@@ -39,9 +39,13 @@ export default function AdminTopNavbar() {
   const [notifCount, setNotifCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const pageTitle = pathname.startsWith('/crm/')
-    ? 'Lead Details'
-    : pageTitles[pathname] ?? 'Admin Panel';
+  const pageTitle = pathname === '/crm/new'
+    ? 'Add New Lead'
+    : pathname.endsWith('/edit')
+      ? 'Edit Lead'
+      : pathname.startsWith('/crm/')
+        ? 'Lead Details'
+        : pageTitles[pathname] ?? 'Admin Panel';
 
   const loadUnread = useCallback(async () => {
     try {

@@ -1,11 +1,8 @@
 import React from 'react';
+import Link from 'next/link';
 import { Users, Plus } from 'lucide-react';
 
-interface CrmEmptyStateProps {
-  onCreateLead: () => void;
-}
-
-export default function CrmEmptyState({ onCreateLead }: CrmEmptyStateProps) {
+export default function CrmEmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 animate-fade-in">
       <div className="w-20 h-20 rounded-2xl bg-violet-50 flex items-center justify-center mb-4">
@@ -15,14 +12,13 @@ export default function CrmEmptyState({ onCreateLead }: CrmEmptyStateProps) {
       <p className="text-sm text-slate-500 text-center max-w-sm mb-6">
         Start building your pipeline by adding your first lead. Track communication, follow-ups, and conversions all in one place.
       </p>
-      <button
-        type="button"
-        onClick={onCreateLead}
+      <Link
+        href="/crm/new"
         className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all"
       >
         <Plus size={16} />
         Create First Lead
-      </button>
+      </Link>
     </div>
   );
 }

@@ -1077,6 +1077,95 @@ export const securityApi = {
     ),
 };
 
+// ─── CRM APIs ─────────────────────────────────────────────────────────────────
+export const crmApi = {
+  getSummary: () =>
+    apiFetch<{
+      totalLeads: number;
+      newLeads: number;
+      qualifiedLeads: number;
+      convertedLeads: number;
+      lostLeads: number;
+      todaysFollowUps: number;
+    }>('/admin/crm/summary'),
+
+  getAssignees: () =>
+    apiFetch<Array<{ id: string; name: string; email: string }>>('/admin/crm/assignees'),
+
+  getLeads: (params?: {
+    search?: string;
+    leadStatus?: string;
+    leadType?: string;
+    priority?: string;
+    assignedToId?: string;
+    source?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sort?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiFetch<{
+      data: import('@/src/lib/crm/types').CrmLead[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/admin/crm/leads${toQuery(params)}`),
+
+  getLead: (id: string) =>
+    apiFetch<import('@/src/lib/crm/types').CrmLead>(`/admin/crm/leads/${id}`),
+
+  createLead: (body: import('@/src/lib/crm/types').CrmLeadInput) =>
+    apiFetch<import('@/src/lib/crm/types').CrmLead>('/admin/crm/leads', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  updateLead: (id: string, body: Partial<import('@/src/lib/crm/types').CrmLeadInput>) =>
+    apiFetch<import('@/src/lib/crm/types').CrmLead>(`/admin/crm/leads/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  deleteLead: (id: string) =>
+    apiFetch<{ success: boolean }>(`/admin/crm/leads/${id}`, { method: 'DELETE' }),
+
+  archiveLead: (id: string) =>
+    apiFetch<import('@/src/lib/crm/types').CrmLead>(`/admin/crm/leads/${id}/archive`, {
+      method: 'PATCH',
+    }),
+
+  addNote: (leadId: string, content: string) =>
+    apiFetch(`/admin/crm/leads/${leadId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+
+  updateNote: (leadId: string, noteId: string, content: string) =>
+    apiFetch(`/admin/crm/leads/${leadId}/notes/${noteId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ content }),
+    }),
+
+  deleteNote: (leadId: string, noteId: string) =>
+    apiFetch(`/admin/crm/leads/${leadId}/notes/${noteId}`, { method: 'DELETE' }),
+
+  addFollowUp: (
+    leadId: string,
+    body: { title: string; date: string; time: string; notes?: string },
+  ) =>
+    apiFetch(`/admin/crm/leads/${leadId}/follow-ups`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  completeFollowUp: (leadId: string, followUpId: string) =>
+    apiFetch(`/admin/crm/leads/${leadId}/follow-ups/${followUpId}/complete`, {
+      method: 'PATCH',
+    }),
+};
+
 // ─── Socket helper (local / dedicated WS host only) ───────────────────────────
 export function getSocketUrl(): string {
   return process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';

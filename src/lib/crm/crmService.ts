@@ -1,7 +1,3 @@
-import {
-  MOCK_ADMIN_USERS,
-  MOCK_LEADS,
-} from './mockData';
 import type {
   CrmFilters,
   CrmFollowUp,
@@ -9,348 +5,182 @@ import type {
   CrmLeadInput,
   CrmNote,
   CrmSummary,
-  FollowUpStatus,
-  LeadPriority,
-  TimelineEvent,
 } from './types';
+import { crmApi } from '@/src/lib/api';
+import { localCrmStore } from './localCrmStore';
 
-const STORAGE_KEY = 'viralbridge_crm_leads';
+let preferLocal = false;
 
-const PRIORITY_ORDER: Record<LeadPriority, number> = {
-  Critical: 4,
-  High: 3,
-  Medium: 2,
-  Low: 1,
-};
-
-function generateId(prefix: string): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
-function loadLeads(): CrmLead[] {
-  if (typeof window === 'undefined') return MOCK_LEADS;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored) as CrmLead[];
-  } catch {
-    /* use defaults */
+function shouldUseLocal(error: unknown): boolean {
+  if (preferLocal) return true;
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (
+      msg.includes('404') ||
+      msg.includes('cannot reach') ||
+      msg.includes('timed out')
+    ) {
+      preferLocal = true;
+      return true;
+    }
   }
-  return MOCK_LEADS;
+  return false;
 }
 
-function saveLeads(leads: CrmLead[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
-}
-
-function resolveFollowUpStatus(date: string, time: string, completed: boolean): FollowUpStatus {
-  if (completed) return 'completed';
-  const now = new Date();
-  const followUp = new Date(`${date}T${time || '00:00'}`);
-  const todayStr = now.toISOString().slice(0, 10);
-  if (date === todayStr) return 'today';
-  if (followUp < now) return 'overdue';
-  return 'upcoming';
-}
-
-function refreshFollowUpStatuses(lead: CrmLead): CrmLead {
-  return {
-    ...lead,
-    followUps: lead.followUps.map((fu) => ({
-      ...fu,
-      status: resolveFollowUpStatus(fu.date, fu.time, fu.status === 'completed'),
-    })),
-  };
-}
-
-function addTimelineEvent(
-  lead: CrmLead,
-  type: TimelineEvent['type'],
-  title: string,
-  description?: string,
-  createdBy?: string,
-): TimelineEvent {
-  return {
-    id: generateId('tl'),
-    type,
-    title,
-    description,
-    createdBy,
-    createdAt: new Date().toISOString(),
-  };
+async function withFallback<T>(apiCall: () => Promise<T>, localCall: () => T | Promise<T>): Promise<T> {
+  if (preferLocal) return localCall() as T;
+  try {
+    return await apiCall();
+  } catch (error) {
+    if (shouldUseLocal(error)) {
+      return localCall() as T;
+    }
+    throw error;
+  }
 }
 
 export const crmService = {
-  getAdminUsers: () => MOCK_ADMIN_USERS,
+  getAdminUsers: () =>
+    withFallback(() => crmApi.getAssignees(), () => localCrmStore.getAdminUsers()),
 
-  getAllLeads: (): CrmLead[] => {
-    return loadLeads().map(refreshFollowUpStatuses);
-  },
+  getSummary: (): Promise<CrmSummary> =>
+    withFallback(() => crmApi.getSummary(), () => localCrmStore.getSummary()),
 
-  getLeadById: (id: string): CrmLead | undefined => {
-    const lead = loadLeads().find((l) => l.id === id);
-    return lead ? refreshFollowUpStatuses(lead) : undefined;
-  },
+  filterLeads: (filters: CrmFilters): Promise<CrmLead[]> =>
+    withFallback(
+      async () => {
+        const res = await crmApi.getLeads({
+          search: filters.search || undefined,
+          leadStatus: filters.leadStatus !== 'all' ? filters.leadStatus : undefined,
+          leadType: filters.leadType !== 'all' ? filters.leadType : undefined,
+          priority: filters.priority !== 'all' ? filters.priority : undefined,
+          assignedToId: filters.assignedToId !== 'all' ? filters.assignedToId : undefined,
+          source: filters.source !== 'all' ? filters.source : undefined,
+          dateFrom: filters.dateFrom || undefined,
+          dateTo: filters.dateTo || undefined,
+          sort: filters.sort,
+          limit: 500,
+        });
+        return res.data;
+      },
+      () => localCrmStore.filterLeads(filters),
+    ),
 
-  getSummary: (): CrmSummary => {
-    const leads = loadLeads();
-    const todayStr = new Date().toISOString().slice(0, 10);
-    return {
-      totalLeads: leads.length,
-      newLeads: leads.filter((l) => l.leadStatus === 'New').length,
-      qualifiedLeads: leads.filter((l) => l.leadStatus === 'Qualified').length,
-      convertedLeads: leads.filter((l) => l.leadStatus === 'Won').length,
-      lostLeads: leads.filter((l) => l.leadStatus === 'Lost').length,
-      todaysFollowUps: leads.filter((l) => l.nextFollowUpDate === todayStr).length,
-    };
-  },
+  getLeadById: (id: string): Promise<CrmLead | undefined> =>
+    withFallback(
+      () => crmApi.getLead(id),
+      () => localCrmStore.getLeadById(id),
+    ).catch(() => undefined),
 
-  filterLeads: (filters: CrmFilters): CrmLead[] => {
-    let leads = loadLeads().map(refreshFollowUpStatuses);
+  createLead: (input: CrmLeadInput, createdBy?: string): Promise<CrmLead> =>
+    withFallback(
+      () => crmApi.createLead(input),
+      () => localCrmStore.createLead(input, createdBy),
+    ),
 
-    if (filters.search.trim()) {
-      const q = filters.search.toLowerCase();
-      leads = leads.filter(
-        (l) =>
-          `${l.firstName} ${l.lastName}`.toLowerCase().includes(q) ||
-          l.company.toLowerCase().includes(q) ||
-          l.phone.includes(q) ||
-          l.email.toLowerCase().includes(q),
-      );
-    }
+  updateLead: (
+    id: string,
+    input: Partial<CrmLeadInput>,
+    updatedBy?: string,
+  ): Promise<CrmLead | null> =>
+    withFallback(
+      async () => {
+        const existing = await crmApi.getLead(id);
+        const merged: CrmLeadInput = {
+          firstName: input.firstName ?? existing.firstName,
+          lastName: input.lastName ?? existing.lastName,
+          profilePhoto: input.profilePhoto ?? existing.profilePhoto,
+          gender: input.gender ?? existing.gender,
+          dateOfBirth: input.dateOfBirth ?? existing.dateOfBirth,
+          email: input.email ?? existing.email,
+          phone: input.phone ?? existing.phone,
+          alternatePhone: input.alternatePhone ?? existing.alternatePhone,
+          whatsapp: input.whatsapp ?? existing.whatsapp,
+          website: input.website ?? existing.website,
+          company: input.company ?? existing.company,
+          jobTitle: input.jobTitle ?? existing.jobTitle,
+          industry: input.industry ?? existing.industry,
+          companySize: input.companySize ?? existing.companySize,
+          gstNumber: input.gstNumber ?? existing.gstNumber,
+          country: input.country ?? existing.country,
+          state: input.state ?? existing.state,
+          city: input.city ?? existing.city,
+          postalCode: input.postalCode ?? existing.postalCode,
+          address: input.address ?? existing.address,
+          leadType: input.leadType ?? existing.leadType,
+          leadSource: input.leadSource ?? existing.leadSource,
+          priority: input.priority ?? existing.priority,
+          leadStatus: input.leadStatus ?? existing.leadStatus,
+          assignedToId: input.assignedToId ?? existing.assignedToId,
+          dealCurrency: input.dealCurrency ?? existing.dealCurrency,
+          dealValue: input.dealValue ?? existing.dealValue,
+          nextFollowUpDate: input.nextFollowUpDate ?? existing.nextFollowUpDate,
+          nextFollowUpTime: input.nextFollowUpTime ?? existing.nextFollowUpTime,
+          description: input.description ?? existing.description,
+          internalNotes: input.internalNotes ?? existing.internalNotes,
+          tags: input.tags ?? existing.tags,
+        };
+        return crmApi.updateLead(id, merged);
+      },
+      () => localCrmStore.updateLead(id, input, updatedBy),
+    ),
 
-    if (filters.leadStatus !== 'all') {
-      leads = leads.filter((l) => l.leadStatus === filters.leadStatus);
-    }
-    if (filters.leadType !== 'all') {
-      leads = leads.filter((l) => l.leadType === filters.leadType);
-    }
-    if (filters.priority !== 'all') {
-      leads = leads.filter((l) => l.priority === filters.priority);
-    }
-    if (filters.assignedToId !== 'all') {
-      leads = leads.filter((l) => l.assignedToId === filters.assignedToId);
-    }
-    if (filters.source !== 'all') {
-      leads = leads.filter((l) => l.leadSource === filters.source);
-    }
-    if (filters.dateFrom) {
-      leads = leads.filter((l) => l.createdAt.slice(0, 10) >= filters.dateFrom);
-    }
-    if (filters.dateTo) {
-      leads = leads.filter((l) => l.createdAt.slice(0, 10) <= filters.dateTo);
-    }
+  deleteLead: (id: string): Promise<boolean> =>
+    withFallback(
+      async () => {
+        await crmApi.deleteLead(id);
+        return true;
+      },
+      () => localCrmStore.deleteLead(id),
+    ),
 
-    switch (filters.sort) {
-      case 'oldest':
-        leads.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-        break;
-      case 'priority':
-        leads.sort((a, b) => PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority]);
-        break;
-      case 'updated':
-        leads.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-        break;
-      default:
-        leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    }
+  archiveLead: (id: string, updatedBy?: string): Promise<CrmLead | null> =>
+    withFallback(
+      () => crmApi.archiveLead(id),
+      () => localCrmStore.archiveLead(id, updatedBy),
+    ),
 
-    return leads;
-  },
+  addNote: (leadId: string, content: string, createdBy: string): Promise<CrmNote | null> =>
+    withFallback(
+      () => crmApi.addNote(leadId, content) as Promise<CrmNote>,
+      () => localCrmStore.addNote(leadId, content, createdBy),
+    ),
 
-  createLead: (input: CrmLeadInput, createdBy?: string): CrmLead => {
-    const leads = loadLeads();
-    const admin = MOCK_ADMIN_USERS.find((a) => a.id === input.assignedToId);
-    const now = new Date().toISOString();
-    const lead: CrmLead = {
-      ...input,
-      id: generateId('lead'),
-      assignedToName: admin?.name,
-      notes: [],
-      followUps: input.nextFollowUpDate
-        ? [
-            {
-              id: generateId('fu'),
-              title: 'Initial follow-up',
-              date: input.nextFollowUpDate,
-              time: input.nextFollowUpTime || '10:00',
-              status: resolveFollowUpStatus(input.nextFollowUpDate, input.nextFollowUpTime || '10:00', false),
-              createdAt: now,
-            },
-          ]
-        : [],
-      attachments: [],
-      timeline: [
-        addTimelineEvent(
-          {} as CrmLead,
-          'lead_created',
-          'Lead Created',
-          `${input.firstName} ${input.lastName} from ${input.company}`,
-          createdBy,
-        ),
-      ],
-      createdAt: now,
-      updatedAt: now,
-    };
-    leads.unshift(lead);
-    saveLeads(leads);
-    return lead;
-  },
+  updateNote: (leadId: string, noteId: string, content: string): Promise<boolean> =>
+    withFallback(
+      async () => {
+        await crmApi.updateNote(leadId, noteId, content);
+        return true;
+      },
+      () => localCrmStore.updateNote(leadId, noteId, content),
+    ),
 
-  updateLead: (id: string, input: Partial<CrmLeadInput>, updatedBy?: string): CrmLead | null => {
-    const leads = loadLeads();
-    const index = leads.findIndex((l) => l.id === id);
-    if (index === -1) return null;
-
-    const existing = leads[index];
-    const admin = input.assignedToId
-      ? MOCK_ADMIN_USERS.find((a) => a.id === input.assignedToId)
-      : undefined;
-    const statusChanged = input.leadStatus && input.leadStatus !== existing.leadStatus;
-
-    const updated: CrmLead = {
-      ...existing,
-      ...input,
-      assignedToName: admin?.name ?? existing.assignedToName,
-      updatedAt: new Date().toISOString(),
-      timeline: [
-        ...existing.timeline,
-        ...(statusChanged
-          ? [
-              addTimelineEvent(
-                existing,
-                'status_changed',
-                `Status Changed to ${input.leadStatus}`,
-                `${existing.leadStatus} → ${input.leadStatus}`,
-                updatedBy,
-              ),
-            ]
-          : []),
-        addTimelineEvent(existing, 'lead_updated', 'Lead Updated', undefined, updatedBy),
-      ],
-    };
-
-    leads[index] = updated;
-    saveLeads(leads);
-    return refreshFollowUpStatuses(updated);
-  },
-
-  deleteLead: (id: string): boolean => {
-    const leads = loadLeads();
-    const filtered = leads.filter((l) => l.id !== id);
-    if (filtered.length === leads.length) return false;
-    saveLeads(filtered);
-    return true;
-  },
-
-  archiveLead: (id: string, updatedBy?: string): CrmLead | null => {
-    return crmService.updateLead(id, { leadStatus: 'Inactive' }, updatedBy);
-  },
-
-  addNote: (leadId: string, content: string, createdBy: string): CrmNote | null => {
-    const leads = loadLeads();
-    const index = leads.findIndex((l) => l.id === leadId);
-    if (index === -1) return null;
-
-    const note: CrmNote = {
-      id: generateId('note'),
-      content,
-      createdBy,
-      createdAt: new Date().toISOString(),
-    };
-
-    leads[index] = {
-      ...leads[index],
-      notes: [note, ...leads[index].notes],
-      updatedAt: new Date().toISOString(),
-      timeline: [
-        ...leads[index].timeline,
-        addTimelineEvent(leads[index], 'note_added', 'Note Added', content.slice(0, 80), createdBy),
-      ],
-    };
-    saveLeads(leads);
-    return note;
-  },
-
-  updateNote: (leadId: string, noteId: string, content: string): boolean => {
-    const leads = loadLeads();
-    const index = leads.findIndex((l) => l.id === leadId);
-    if (index === -1) return false;
-
-    const noteIndex = leads[index].notes.findIndex((n) => n.id === noteId);
-    if (noteIndex === -1) return false;
-
-    leads[index].notes[noteIndex] = {
-      ...leads[index].notes[noteIndex],
-      content,
-      updatedAt: new Date().toISOString(),
-    };
-    leads[index].updatedAt = new Date().toISOString();
-    saveLeads(leads);
-    return true;
-  },
-
-  deleteNote: (leadId: string, noteId: string): boolean => {
-    const leads = loadLeads();
-    const index = leads.findIndex((l) => l.id === leadId);
-    if (index === -1) return false;
-
-    leads[index].notes = leads[index].notes.filter((n) => n.id !== noteId);
-    leads[index].updatedAt = new Date().toISOString();
-    saveLeads(leads);
-    return true;
-  },
+  deleteNote: (leadId: string, noteId: string): Promise<boolean> =>
+    withFallback(
+      async () => {
+        await crmApi.deleteNote(leadId, noteId);
+        return true;
+      },
+      () => localCrmStore.deleteNote(leadId, noteId),
+    ),
 
   addFollowUp: (
     leadId: string,
     data: { title: string; date: string; time: string; notes?: string },
-  ): CrmFollowUp | null => {
-    const leads = loadLeads();
-    const index = leads.findIndex((l) => l.id === leadId);
-    if (index === -1) return null;
+  ): Promise<CrmFollowUp | null> =>
+    withFallback(
+      () => crmApi.addFollowUp(leadId, data) as Promise<CrmFollowUp>,
+      () => localCrmStore.addFollowUp(leadId, data),
+    ),
 
-    const followUp: CrmFollowUp = {
-      id: generateId('fu'),
-      ...data,
-      status: resolveFollowUpStatus(data.date, data.time, false),
-      createdAt: new Date().toISOString(),
-    };
-
-    leads[index] = {
-      ...leads[index],
-      followUps: [...leads[index].followUps, followUp],
-      nextFollowUpDate: data.date,
-      nextFollowUpTime: data.time,
-      updatedAt: new Date().toISOString(),
-      timeline: [
-        ...leads[index].timeline,
-        addTimelineEvent(leads[index], 'call_scheduled', 'Follow-up Scheduled', data.title),
-      ],
-    };
-    saveLeads(leads);
-    return followUp;
-  },
-
-  completeFollowUp: (leadId: string, followUpId: string): boolean => {
-    const leads = loadLeads();
-    const index = leads.findIndex((l) => l.id === leadId);
-    if (index === -1) return false;
-
-    leads[index].followUps = leads[index].followUps.map((fu) =>
-      fu.id === followUpId ? { ...fu, status: 'completed' as FollowUpStatus } : fu,
-    );
-    leads[index].updatedAt = new Date().toISOString();
-    leads[index].timeline = [
-      ...leads[index].timeline,
-      addTimelineEvent(leads[index], 'follow_up_completed', 'Follow-up Completed'),
-    ];
-    saveLeads(leads);
-    return true;
-  },
-
-  resetToMockData: (): void => {
-    saveLeads(MOCK_LEADS);
-  },
+  completeFollowUp: (leadId: string, followUpId: string): Promise<boolean> =>
+    withFallback(
+      async () => {
+        await crmApi.completeFollowUp(leadId, followUpId);
+        return true;
+      },
+      () => localCrmStore.completeFollowUp(leadId, followUpId),
+    ),
 };
 
 export function getLeadFullName(lead: CrmLead): string {
@@ -372,4 +202,41 @@ export function formatDealValue(currency: string, value?: number): string {
     currency: currency === 'USD' ? 'USD' : 'INR',
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+export function leadToInput(lead: CrmLead): CrmLeadInput {
+  return {
+    firstName: lead.firstName,
+    lastName: lead.lastName,
+    profilePhoto: lead.profilePhoto,
+    gender: lead.gender,
+    dateOfBirth: lead.dateOfBirth,
+    email: lead.email,
+    phone: lead.phone,
+    alternatePhone: lead.alternatePhone,
+    whatsapp: lead.whatsapp,
+    website: lead.website,
+    company: lead.company,
+    jobTitle: lead.jobTitle,
+    industry: lead.industry,
+    companySize: lead.companySize,
+    gstNumber: lead.gstNumber,
+    country: lead.country,
+    state: lead.state,
+    city: lead.city,
+    postalCode: lead.postalCode,
+    address: lead.address,
+    leadType: lead.leadType,
+    leadSource: lead.leadSource,
+    priority: lead.priority,
+    leadStatus: lead.leadStatus,
+    assignedToId: lead.assignedToId,
+    dealCurrency: lead.dealCurrency,
+    dealValue: lead.dealValue,
+    nextFollowUpDate: lead.nextFollowUpDate,
+    nextFollowUpTime: lead.nextFollowUpTime,
+    description: lead.description,
+    internalNotes: lead.internalNotes,
+    tags: lead.tags,
+  };
 }

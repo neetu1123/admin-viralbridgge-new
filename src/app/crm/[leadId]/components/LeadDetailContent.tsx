@@ -28,14 +28,13 @@ import {
   formatLeadDate,
   getLeadFullName,
 } from '@/src/lib/crm/crmService';
-import type { CrmLead, CrmLeadInput } from '@/src/lib/crm/types';
+import type { CrmLead } from '@/src/lib/crm/types';
 import LeadStatusBadge from '@/src/components/crm/LeadStatusBadge';
 import PriorityBadge from '@/src/components/crm/PriorityBadge';
 import Timeline from '@/src/components/crm/Timeline';
 import NotesPanel from '@/src/components/crm/NotesPanel';
 import FollowUpWidget from '@/src/components/crm/FollowUpWidget';
 import ActivityTimeline from '@/src/components/crm/ActivityTimeline';
-import LeadFormDrawer from '@/src/components/crm/LeadFormDrawer';
 
 type TabId = 'overview' | 'timeline' | 'notes' | 'activities' | 'attachments' | 'communication' | 'followups';
 
@@ -59,46 +58,44 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
   const [lead, setLead] = useState<CrmLead | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  const loadLead = useCallback(() => {
+  const loadLead = useCallback(async () => {
     setLoading(true);
-    const data = crmService.getLeadById(leadId);
-    setLead(data ?? null);
-    setLoading(false);
+    try {
+      const data = await crmService.getLeadById(leadId);
+      setLead(data ?? null);
+    } catch {
+      setLead(null);
+    } finally {
+      setLoading(false);
+    }
   }, [leadId]);
 
   useEffect(() => {
     loadLead();
   }, [loadLead]);
 
-  const handleSaveLead = (data: CrmLeadInput) => {
+  const handleArchive = async () => {
     if (!lead) return;
-    setSaving(true);
     try {
-      crmService.updateLead(lead.id, data, user?.name);
-      toast.success('Lead updated');
-      setDrawerOpen(false);
+      await crmService.archiveLead(lead.id, user?.name);
+      toast.success('Lead archived');
       loadLead();
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to archive lead');
     }
   };
 
-  const handleArchive = () => {
-    if (!lead) return;
-    crmService.archiveLead(lead.id, user?.name);
-    toast.success('Lead archived');
-    loadLead();
-  };
-
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!lead) return;
     if (!confirm(`Delete ${getLeadFullName(lead)}?`)) return;
-    crmService.deleteLead(lead.id);
-    toast.success('Lead deleted');
-    router.push('/crm');
+    try {
+      await crmService.deleteLead(lead.id);
+      toast.success('Lead deleted');
+      router.push('/crm');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete lead');
+    }
   };
 
   if (authLoading || loading) {
@@ -171,9 +168,9 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
             <button type="button" onClick={() => toast.info('Convert to Creator — API integration coming soon')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100">
               <UserCheck size={14} /> Convert to Creator
             </button>
-            <button type="button" onClick={() => setDrawerOpen(true)} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">
+            <Link href={`/crm/${lead.id}/edit`} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">
               <Pencil size={14} /> Edit
-            </button>
+            </Link>
             <button type="button" onClick={handleArchive} className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100">
               <Archive size={14} /> Archive
             </button>
@@ -270,20 +267,32 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
         {activeTab === 'notes' && (
           <NotesPanel
             notes={lead.notes}
-            onAdd={(content) => {
-              crmService.addNote(lead.id, content, user?.name ?? 'Admin');
-              toast.success('Note added');
-              loadLead();
+            onAdd={async (content) => {
+              try {
+                await crmService.addNote(lead.id, content, user?.name ?? 'Admin');
+                toast.success('Note added');
+                loadLead();
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Failed to add note');
+              }
             }}
-            onEdit={(noteId, content) => {
-              crmService.updateNote(lead.id, noteId, content);
-              toast.success('Note updated');
-              loadLead();
+            onEdit={async (noteId, content) => {
+              try {
+                await crmService.updateNote(lead.id, noteId, content);
+                toast.success('Note updated');
+                loadLead();
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Failed to update note');
+              }
             }}
-            onDelete={(noteId) => {
-              crmService.deleteNote(lead.id, noteId);
-              toast.success('Note deleted');
-              loadLead();
+            onDelete={async (noteId) => {
+              try {
+                await crmService.deleteNote(lead.id, noteId);
+                toast.success('Note deleted');
+                loadLead();
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Failed to delete note');
+              }
             }}
           />
         )}
@@ -334,28 +343,28 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
           <div className="bg-white border border-slate-200 rounded-xl p-5">
             <FollowUpWidget
               followUps={lead.followUps}
-              onAdd={(data) => {
-                crmService.addFollowUp(lead.id, data);
-                toast.success('Follow-up scheduled');
-                loadLead();
+              onAdd={async (data) => {
+                try {
+                  await crmService.addFollowUp(lead.id, data);
+                  toast.success('Follow-up scheduled');
+                  loadLead();
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : 'Failed to schedule follow-up');
+                }
               }}
-              onComplete={(followUpId) => {
-                crmService.completeFollowUp(lead.id, followUpId);
-                toast.success('Follow-up completed');
-                loadLead();
+              onComplete={async (followUpId) => {
+                try {
+                  await crmService.completeFollowUp(lead.id, followUpId);
+                  toast.success('Follow-up completed');
+                  loadLead();
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : 'Failed to complete follow-up');
+                }
               }}
             />
           </div>
         )}
       </div>
-
-      <LeadFormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onSave={handleSaveLead}
-        initialData={lead}
-        saving={saving}
-      />
     </div>
   );
 }
