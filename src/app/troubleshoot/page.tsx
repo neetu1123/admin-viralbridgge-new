@@ -1,17 +1,12 @@
 'use client';
 
-import AppLayout from '@/src/components/AppLayout';
-import TroubleshootContent from './components/TroubleshootContent';
-import { getCurrentUser } from '@/src/lib/useAuth';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function TroubleshootPage() {
-  const user = getCurrentUser();
-  const roleName = (user?.role ?? 'creator').toLowerCase();
-  const role = roleName.includes('brand') ? 'brand' : 'creator';
-
-  return (
-    <AppLayout role={role}>
-      <TroubleshootContent />
-    </AppLayout>
-  );
+export default function TroubleshootRedirectPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/support');
+  }, [router]);
+  return null;
 }

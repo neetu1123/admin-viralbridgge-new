@@ -1166,6 +1166,104 @@ export const crmApi = {
     }),
 };
 
+// ─── Support APIs ─────────────────────────────────────────────────────────────
+export const supportApi = {
+  getCategories: () =>
+    apiFetch<import('@/src/lib/support/types').SupportCategory[]>('/support/categories'),
+
+  getCategory: (categoryId: string) =>
+    apiFetch<import('@/src/lib/support/types').SupportCategory>(`/support/categories/${categoryId}`),
+
+  getIssue: (issueId: string) =>
+    apiFetch<import('@/src/lib/support/types').SupportIssue & {
+      category: { id: string; name: string; slug: string };
+      subcategory: { id: string; name: string; slug: string };
+    }>(`/support/issues/${issueId}`),
+
+  search: (q: string) =>
+    apiFetch<import('@/src/lib/support/types').SupportSearchResult[]>(`/support/search${toQuery({ q })}`),
+
+  resolve: (body: { issueId: string; campaignId?: string; paymentId?: string }) =>
+    apiFetch<{ resolved: boolean; solution?: string; actionType?: string; actionUrl?: string; requiresCase?: boolean; message?: string }>(
+      '/support/resolve',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
+  createCase: (body: import('@/src/lib/support/types').CreateSupportCaseInput) =>
+    apiFetch<import('@/src/lib/support/types').SupportCase>('/support/cases', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  getCases: () =>
+    apiFetch<import('@/src/lib/support/types').SupportCase[]>('/support/cases'),
+
+  getCase: (caseId: string) =>
+    apiFetch<import('@/src/lib/support/types').SupportCase>(`/support/cases/${caseId}`),
+
+  sendMessage: (caseId: string, message: string) =>
+    apiFetch(`/support/cases/${caseId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
+};
+
+export const adminSupportApi = {
+  getSummary: () =>
+    apiFetch<import('@/src/lib/support/types').SupportSummary>('/admin/support/summary'),
+
+  getCases: (params?: {
+    status?: string;
+    priority?: string;
+    caseType?: string;
+    assignedAdminId?: string;
+    search?: string;
+    tab?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiFetch<{
+      data: import('@/src/lib/support/types').SupportCase[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/admin/support/cases${toQuery(params)}`),
+
+  getCase: (caseId: string) =>
+    apiFetch<import('@/src/lib/support/types').SupportCase>(`/admin/support/cases/${caseId}`),
+
+  updateCase: (caseId: string, body: { status?: string; priority?: string; assignedAdminId?: string }) =>
+    apiFetch(`/admin/support/cases/${caseId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  assign: (caseId: string, adminId: string) =>
+    apiFetch(`/admin/support/cases/${caseId}/assign`, {
+      method: 'POST',
+      body: JSON.stringify({ adminId }),
+    }),
+
+  reply: (caseId: string, message: string) =>
+    apiFetch(`/admin/support/cases/${caseId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
+
+  addNote: (caseId: string, note: string) =>
+    apiFetch(`/admin/support/cases/${caseId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    }),
+
+  resolve: (caseId: string) =>
+    apiFetch(`/admin/support/cases/${caseId}/resolve`, { method: 'POST' }),
+
+  close: (caseId: string) =>
+    apiFetch(`/admin/support/cases/${caseId}/close`, { method: 'POST' }),
+
+  reopen: (caseId: string) =>
+    apiFetch(`/admin/support/cases/${caseId}/reopen`, { method: 'POST' }),
+};
+
 // ─── Socket helper (local / dedicated WS host only) ───────────────────────────
 export function getSocketUrl(): string {
   return process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';

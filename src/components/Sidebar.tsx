@@ -71,6 +71,7 @@ const adminNavSections: AdminNavSection[] = [
     items: [
       { label: 'Flagged Content', icon: Flag, href: '/admin-panel/flagged', badge: '1', badgeColor: 'red' },
       { label: 'Disputes', icon: Scale, href: '/admin-panel/disputes', badge: null as string | null, badgeColor: 'orange' },
+      { label: 'Support', icon: HelpCircle, href: '/admin-panel/support', badge: null },
     ],
   },
   {
@@ -315,7 +316,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
             <Settings size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
             {!collapsed && <span className="text-sm">Settings</span>}
           </Link>
-          <Link href="/troubleshoot" className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Help & Support' : undefined}>
+          <Link href="/support" className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Help & Support' : undefined}>
             <HelpCircle size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
             {!collapsed && <span className="text-sm">Help & Support</span>}
           </Link>

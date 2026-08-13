@@ -20,6 +20,7 @@ const pageTitles: Record<string, string> = {
   '/admin-panel/settings': 'Settings',
   '/admin-panel/roles': 'Admin Roles',
   '/admin-panel/audit-logs': 'Audit Logs',
+  '/admin-panel/support': 'Support Cases',
   '/crm': 'CRM',
 };
 
@@ -45,7 +46,9 @@ export default function AdminTopNavbar() {
       ? 'Edit Lead'
       : pathname.startsWith('/crm/')
         ? 'Lead Details'
-        : pageTitles[pathname] ?? 'Admin Panel';
+        : pathname.startsWith('/admin-panel/support/')
+          ? 'Support Case'
+          : pageTitles[pathname] ?? 'Admin Panel';
 
   const loadUnread = useCallback(async () => {
     try {

@@ -35,7 +35,7 @@ export default function DisputeContactPanel() {
           <span>Request a callback</span>
         </a>
         <a
-          href="/troubleshoot"
+          href="/support"
           className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 hover:border-violet-300 transition-colors"
         >
           <span className="text-violet-600 font-semibold text-xs w-4 text-center">?</span>
