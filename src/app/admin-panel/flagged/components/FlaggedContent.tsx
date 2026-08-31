@@ -58,7 +58,7 @@ export default function FlaggedContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Flagged Content</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Flagged Content</h1>
         <p className="text-slate-500 text-sm mt-1">Review campaigns flagged for policy violations</p>
       </div>
 
@@ -85,7 +85,7 @@ export default function FlaggedContent() {
         <div className="space-y-4">
           {items.map(item => (
             <div key={item.id} className={`bg-white rounded-2xl border-2 p-5 shadow-sm ${item.severity === 'critical' ? 'border-red-300' : 'border-amber-200'}`}>
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${item.severity === 'critical' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>

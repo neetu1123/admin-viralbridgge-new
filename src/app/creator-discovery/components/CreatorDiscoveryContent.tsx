@@ -188,9 +188,9 @@ export default function CreatorDiscoveryContent() {
       <Toaster position="bottom-right" richColors />
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Creator Discovery</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Creator Discovery</h1>
           <p className="text-slate-500 text-sm mt-1">Find and invite the perfect creators for your campaigns</p>
         </div>
         <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg font-medium">
@@ -327,7 +327,7 @@ export default function CreatorDiscoveryContent() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
         <p className="text-sm text-slate-500 font-medium">
           {loading ? 'Loading creators…' : `${filtered.length} creators found`}
         </p>

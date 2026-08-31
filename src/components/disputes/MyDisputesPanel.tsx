@@ -76,7 +76,7 @@ export default function MyDisputesPanel({ role, refreshKey = 0 }: MyDisputesPane
         <div className="divide-y divide-slate-50">
           {disputes.map((d) => (
             <div key={d.id} className="px-5 py-4 hover:bg-slate-50/50 transition-colors">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-800 truncate">{d.campaignTitle}</p>
                   <p className="text-xs text-slate-500 mt-0.5">

@@ -79,9 +79,9 @@ export default function BrandMyCampaignsContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">My Campaigns</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">My Campaigns</h1>
           <p className="text-slate-500 text-sm mt-1">Your running, active, and completed brand campaigns</p>
         </div>
         <Link
@@ -92,7 +92,7 @@ export default function BrandMyCampaignsContent() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: 'Active Campaigns', value: activeCount, color: 'text-emerald-700', icon: CheckCircle },
           { label: 'Pending Applicants', value: pendingApplicants, color: 'text-amber-700', icon: Clock },
@@ -157,7 +157,7 @@ export default function BrandMyCampaignsContent() {
                   : 'border-slate-200'
               }`}
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
                     <Briefcase size={16} className="text-violet-700" />

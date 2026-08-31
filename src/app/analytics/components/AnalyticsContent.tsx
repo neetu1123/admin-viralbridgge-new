@@ -137,9 +137,9 @@ export default function AnalyticsContent() {
         </div>
       )}
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Analytics</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Analytics</h1>
           <p className="text-slate-500 text-sm mt-1">Campaign performance, reach factor insights, and creator analytics</p>
         </div>
         <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export default function AnalyticsContent() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {kpis.map(kpi => (
           <div key={kpi.label} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
@@ -185,7 +185,7 @@ export default function AnalyticsContent() {
 
       {/* Spend + ROI Chart */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-700">Spend vs Reach Factor Trend</h2>
             <p className="text-xs text-slate-400 mt-0.5">Monthly campaign investment and reach multiplier</p>
@@ -278,7 +278,7 @@ export default function AnalyticsContent() {
 
       {/* Top Performing Creators */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
           <h2 className="text-sm font-semibold text-slate-700">Top Performing Creators</h2>
           <span className="text-xs text-slate-400">Ranked by Reach Factor</span>
         </div>

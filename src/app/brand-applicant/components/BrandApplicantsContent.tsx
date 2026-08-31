@@ -113,7 +113,7 @@ export default function BrandApplicantsContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Applicants</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Applicants</h1>
         <p className="text-slate-500 text-sm mt-1">Review and manage creator applications across your campaigns</p>
       </div>
 
@@ -154,7 +154,7 @@ export default function BrandApplicantsContent() {
         <div className="divide-y divide-slate-50">
           {filtered.map((applicant) => (
             <div key={applicant.id} className="px-5 py-4 hover:bg-slate-50/60 transition-colors">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
                     <span className="text-violet-700 text-xs font-bold">{applicant.avatar}</span>

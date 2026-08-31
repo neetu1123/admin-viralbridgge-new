@@ -382,9 +382,9 @@ export default function CampaignDiscoveryContent() {
       <Toaster position="bottom-right" richColors />
 
       {/* Header + Monthly Earnings Snapshot */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Campaign Discovery</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Campaign Discovery</h1>
           <p className="text-slate-500 text-sm mt-1">
             {loading ? 'Loading campaigns...' : `Browse ${campaigns.length} active campaigns — matched to your profile`}
           </p>
@@ -587,7 +587,7 @@ export default function CampaignDiscoveryContent() {
       )}
 
       <div className="flex-1">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <p className="text-sm text-slate-500 font-medium">{filtered.length} campaigns found</p>
           </div>
           {filtered.length === 0 ? (

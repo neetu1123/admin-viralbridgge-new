@@ -80,7 +80,7 @@ export default function DisputesContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Disputes</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Disputes</h1>
         <p className="text-slate-500 text-sm mt-1">Manage creator vs brand disputes and issue resolutions</p>
       </div>
 
@@ -127,7 +127,7 @@ export default function DisputesContent() {
               key={dispute.id}
               className={`bg-white rounded-2xl border p-5 shadow-sm ${status === 'escalated' ? 'border-orange-200 bg-orange-50/20' : status === 'open' ? 'border-red-200' : 'border-slate-200'}`}
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span

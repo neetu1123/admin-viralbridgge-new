@@ -222,7 +222,7 @@ export default function AuditLogsContent() {
       {selectedLog && <DetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Shield size={22} className="text-violet-600" /> Audit Logs
@@ -245,7 +245,7 @@ export default function AuditLogsContent() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <StatCard icon={<Activity size={18} className="text-violet-600" />} label="Total Logs" value={stats.total.toLocaleString()} sub="All time" color="bg-violet-50" />
         <StatCard icon={<Clock size={18} className="text-blue-600" />} label="Today" value={stats.today} sub="Actions today" color="bg-blue-50" />
         <StatCard icon={<Database size={18} className="text-emerald-600" />} label="Top Entity" value={topEntity?.entity ?? '—'} sub={`${topEntity?._count?.entity ?? 0} entries`} color="bg-emerald-50" />

@@ -106,12 +106,12 @@ export default function AdminSettingsContent() {
   return (
     <div className="pb-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Settings</h1>
         <p className="text-slate-500 text-sm mt-1">Platform configuration and admin preferences</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div>
               <p className="text-sm font-semibold text-slate-800">Platform Fee</p>
               <p className="text-xs text-slate-500 mt-0.5">Fee rate applied to all escrow transactions</p>

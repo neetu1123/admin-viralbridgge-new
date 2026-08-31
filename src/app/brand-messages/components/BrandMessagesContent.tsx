@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Check, Info, Star, TrendingUp, Users } from 'lucide-react';
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Check, Info, Star, TrendingUp, Users, ArrowLeft } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import MessageTemplatePicker from '@/src/components/MessageTemplatePicker';
@@ -45,6 +45,7 @@ export default function BrandMessagesContent() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Record<string, Message[]>>(messagesByConv);
   const [showInfo, setShowInfo] = useState(false);
+  const [mobileShowThread, setMobileShowThread] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
@@ -70,16 +71,16 @@ export default function BrandMessagesContent() {
   };
 
   return (
-    <div className="pb-8">
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-slate-800">Messages</h1>
+    <div className="pb-4 sm:pb-8">
+      <div className="mb-4 sm:mb-5">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Messages</h1>
         <p className="text-slate-500 text-sm mt-1">Communicate with your creators across all campaigns</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" style={{ height: '72vh' }}>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-[calc(100dvh-11rem)] sm:h-[72vh]">
         <div className="flex h-full">
           {/* Sidebar */}
-          <div className="w-72 border-r border-slate-100 flex flex-col flex-shrink-0">
+          <div className={`w-full md:w-72 border-r border-slate-100 flex-col flex-shrink-0 ${mobileShowThread ? 'hidden md:flex' : 'flex'}`}>
             <div className="p-3 border-b border-slate-100">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -88,7 +89,7 @@ export default function BrandMessagesContent() {
             </div>
             <div className="flex-1 overflow-y-auto">
               {filteredConvs.map(conv => (
-                <button key={conv.id} onClick={() => setActiveConvId(conv.id)} className={`w-full text-left px-4 py-3.5 border-b border-slate-50 transition-colors hover:bg-slate-50 ${activeConvId === conv.id ? 'bg-violet-50 border-l-2 border-l-violet-500' : ''}`}>
+                <button key={conv.id} onClick={() => { setActiveConvId(conv.id); setMobileShowThread(true); }} className={`w-full text-left px-4 py-3.5 border-b border-slate-50 transition-colors hover:bg-slate-50 ${activeConvId === conv.id ? 'bg-violet-50 border-l-2 border-l-violet-500' : ''}`}>
                   <div className="flex items-start gap-3">
                     <div className="relative flex-shrink-0">
                       <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center">
@@ -115,26 +116,34 @@ export default function BrandMessagesContent() {
 
           {/* Chat area */}
           {activeConv ? (
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className={`flex-1 flex-col min-w-0 ${mobileShowThread ? 'flex' : 'hidden md:flex'}`}>
               {/* Chat header */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
+              <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-3.5 border-b border-slate-100">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setMobileShowThread(false)}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 md:hidden flex-shrink-0"
+                    aria-label="Back to conversations"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+                  <div className="relative flex-shrink-0">
                     <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center">
                       <span className="text-violet-700 text-xs font-bold">{activeConv.avatar}</span>
                     </div>
                     {activeConv.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-800">{activeConv.with}</p>
+                      <p className="text-sm font-semibold text-slate-800 truncate">{activeConv.with}</p>
                       <StatusBadge status={activeConv.status} />
                     </div>
-                    <p className="text-xs text-slate-400">{activeConv.campaign}</p>
+                    <p className="text-xs text-slate-400 truncate">{activeConv.campaign}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <PlatformBadge platform={activeConv.platform} />
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="hidden sm:inline"><PlatformBadge platform={activeConv.platform} /></span>
                   <button onClick={() => setShowInfo(!showInfo)} className={`p-1.5 rounded-lg transition-colors ${showInfo ? 'bg-violet-50 text-violet-600' : 'hover:bg-slate-100 text-slate-500'}`}><Info size={16} /></button>
                   <button className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"><MoreVertical size={16} /></button>
                 </div>
@@ -143,7 +152,7 @@ export default function BrandMessagesContent() {
               <div className="flex flex-1 min-h-0">
                 {/* Messages */}
                 <div className="flex-1 flex flex-col min-w-0">
-                  <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                  <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3">
                     {activeMessages.map(msg => (
                       <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
                         {msg.sender === 'them' && (
@@ -151,7 +160,7 @@ export default function BrandMessagesContent() {
                             <span className="text-violet-700 text-xs font-bold">{activeConv.avatar}</span>
                           </div>
                         )}
-                        <div className={`max-w-xs lg:max-w-sm ${msg.sender === 'me' ? 'items-end' : 'items-start'} flex flex-col`}>
+                        <div className={`max-w-[85%] sm:max-w-xs lg:max-w-sm ${msg.sender === 'me' ? 'items-end' : 'items-start'} flex flex-col`}>
                           {msg.type === 'file' ? (
                             <div className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-sm ${msg.sender === 'me' ? 'bg-violet-600 text-white rounded-br-sm' : 'bg-slate-100 text-slate-800 rounded-bl-sm'}`}>
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${msg.sender === 'me' ? 'bg-white/20' : 'bg-white'}`}>
@@ -176,7 +185,7 @@ export default function BrandMessagesContent() {
                     ))}
                     <div ref={messagesEndRef} />
                   </div>
-                  <div className="px-4 py-3 border-t border-slate-100">
+                  <div className="px-3 sm:px-4 py-3 border-t border-slate-100">
                     <MessageTemplatePicker role="brand" onSelect={(text) => setMessage(text)} />
                     <div className="flex items-center gap-2">
                       <div className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 min-h-[42px]">
@@ -190,8 +199,18 @@ export default function BrandMessagesContent() {
 
                 {/* Creator info panel */}
                 {showInfo && (
-                  <div className="w-64 border-l border-slate-100 p-4 overflow-y-auto flex-shrink-0">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Creator Profile</p>
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Close creator profile"
+                      className="fixed inset-0 z-40 bg-slate-900/30 lg:hidden"
+                      onClick={() => setShowInfo(false)}
+                    />
+                    <div className="fixed inset-y-0 right-0 z-50 w-[min(256px,90vw)] lg:static lg:z-auto lg:w-64 border-l border-slate-100 p-4 overflow-y-auto flex-shrink-0 bg-white shadow-xl lg:shadow-none">
+                    <div className="flex items-center justify-between mb-3 lg:block">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Creator Profile</p>
+                      <button type="button" onClick={() => setShowInfo(false)} className="text-xs text-slate-500 lg:hidden">Close</button>
+                    </div>
                     <div className="flex flex-col items-center mb-4">
                       <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center mb-2">
                         <span className="text-violet-700 text-lg font-bold">{activeConv.avatar}</span>
@@ -214,11 +233,12 @@ export default function BrandMessagesContent() {
                       </div>
                     </div>
                   </div>
+                  </>
                 )}
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="hidden md:flex flex-1 items-center justify-center">
               <div className="text-center">
                 <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3"><Search size={22} className="text-slate-400" /></div>
                 <p className="text-slate-600 font-medium">Select a conversation</p>

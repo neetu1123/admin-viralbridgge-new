@@ -57,13 +57,13 @@ export default function AdminSupportContent() {
       <div className="flex items-center gap-2 mb-6">
         <LifeBuoy className="text-violet-600" size={24} />
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Support Cases</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Support Cases</h1>
           <p className="text-sm text-slate-500">Manage brand and creator support requests</p>
         </div>
       </div>
 
       {summary && (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
           {[
             { label: 'Open Cases', value: summary.openCases, color: 'text-blue-700', bg: 'bg-blue-50' },
             { label: 'High Priority', value: summary.highPriority, color: 'text-red-700', bg: 'bg-red-50' },

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Send, Paperclip, MoreVertical, Video, CheckCheck, Check, Image, FileText, Info, ExternalLink } from 'lucide-react';
+import { Search, Send, Paperclip, MoreVertical, Video, CheckCheck, Check, Image, FileText, Info, ExternalLink, ArrowLeft } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import MessageTemplatePicker from '@/src/components/MessageTemplatePicker';
@@ -61,6 +61,7 @@ export default function MessagingContent() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Record<string, Message[]>>(messagesByConv);
   const [showInfo, setShowInfo] = useState(false);
+  const [mobileShowThread, setMobileShowThread] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
@@ -104,9 +105,9 @@ export default function MessagingContent() {
   };
 
   return (
-    <div className="h-[calc(100vh-48px)] flex rounded-xl border border-slate-200 overflow-hidden bg-white shadow-card">
+    <div className="h-[calc(100dvh-7.5rem)] sm:h-[calc(100vh-48px)] flex rounded-xl border border-slate-200 overflow-hidden bg-white shadow-card">
       {/* Conversation list */}
-      <div className="w-80 flex-shrink-0 border-r border-slate-100 flex flex-col">
+      <div className={`w-full md:w-80 flex-shrink-0 border-r border-slate-100 flex-col ${mobileShowThread ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-slate-100">
           <h2 className="text-base font-semibold text-slate-800 mb-3">Messages</h2>
           <div className="relative">
@@ -125,7 +126,10 @@ export default function MessagingContent() {
           {filteredConvs.map(conv => (
             <button
               key={conv.id}
-              onClick={() => setActiveConvId(conv.id)}
+              onClick={() => {
+                setActiveConvId(conv.id);
+                setMobileShowThread(true);
+              }}
               className={`w-full text-left p-4 hover:bg-slate-50 transition-colors ${activeConvId === conv.id ? 'bg-violet-50 border-r-2 border-r-violet-600' : ''}`}
             >
               <div className="flex items-start gap-3">
@@ -164,11 +168,19 @@ export default function MessagingContent() {
 
       {/* Message thread */}
       {activeConv ? (
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className={`flex-1 flex-col min-w-0 ${mobileShowThread ? 'flex' : 'hidden md:flex'}`}>
           {/* Thread header */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-white">
-            <div className="flex items-center gap-3">
-              <div className="relative">
+          <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-3.5 border-b border-slate-100 bg-white">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setMobileShowThread(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 md:hidden flex-shrink-0"
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div className="relative flex-shrink-0">
                 <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center">
                   <span className="text-violet-700 text-xs font-bold">{activeConv.avatar}</span>
                 </div>
@@ -176,21 +188,21 @@ export default function MessagingContent() {
                   <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
                 )}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-slate-800">{activeConv.with}</p>
-                  <span className={`text-xs ${activeConv.online ? 'text-emerald-600' : 'text-slate-400'}`}>
+                  <p className="text-sm font-semibold text-slate-800 truncate">{activeConv.with}</p>
+                  <span className={`text-xs flex-shrink-0 hidden sm:inline ${activeConv.online ? 'text-emerald-600' : 'text-slate-400'}`}>
                     {activeConv.online ? 'Online' : 'Offline'}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <PlatformBadge platform={activeConv.platform} />
-                  <span className="text-xs text-slate-400 truncate max-w-xs">{activeConv.campaign}</span>
+                  <span className="text-xs text-slate-400 truncate max-w-[10rem] sm:max-w-xs">{activeConv.campaign}</span>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500" title="Start video call">
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button className="hidden sm:inline-flex p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500" title="Start video call">
                 <Video size={16} />
               </button>
               <button
@@ -224,7 +236,7 @@ export default function MessagingContent() {
 
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                    <div className={`max-w-[85%] sm:max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                       {msg.type === 'text' && (
                         <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                           isMe
@@ -263,7 +275,7 @@ export default function MessagingContent() {
           </div>
 
           {/* Input — template-based messaging */}
-          <div className="px-5 py-4 border-t border-slate-100 bg-white">
+          <div className="px-3 sm:px-5 py-3 sm:py-4 border-t border-slate-100 bg-white">
             <MessageTemplatePicker role="creator" onSelect={(text) => setMessage(text)} />
             <div className="flex items-end gap-3">
               <div className="flex-1 border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
@@ -284,7 +296,7 @@ export default function MessagingContent() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-slate-50/30">
+        <div className="hidden md:flex flex-1 items-center justify-center bg-slate-50/30">
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-4">
               <Send size={24} className="text-violet-400" />
@@ -295,11 +307,19 @@ export default function MessagingContent() {
         </div>
       )}
 
-      {/* Campaign info panel */}
+      {/* Campaign info panel — overlay on small screens */}
       {showInfo && activeConv && (
-        <div className="w-72 flex-shrink-0 border-l border-slate-100 bg-white flex flex-col animate-slide-in-right">
-          <div className="px-5 py-4 border-b border-slate-100">
+        <>
+          <button
+            type="button"
+            aria-label="Close campaign details"
+            className="fixed inset-0 z-40 bg-slate-900/30 lg:hidden"
+            onClick={() => setShowInfo(false)}
+          />
+          <div className="fixed inset-y-0 right-0 z-50 w-[min(288px,90vw)] lg:static lg:z-auto lg:w-72 flex-shrink-0 border-l border-slate-100 bg-white flex flex-col animate-slide-in-right shadow-xl lg:shadow-none">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-slate-800">Campaign Details</h3>
+            <button type="button" onClick={() => setShowInfo(false)} className="p-1 rounded hover:bg-slate-100 lg:hidden text-slate-500 text-sm">Close</button>
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-thin p-5 space-y-4">
             <div>
@@ -347,6 +367,7 @@ export default function MessagingContent() {
             </div>
           </div>
         </div>
+        </>
       )}
     </div>
   );

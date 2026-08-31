@@ -71,7 +71,7 @@ export default function SupportHomeContent() {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <LifeBuoy className="text-violet-600" size={24} />
-          <h1 className="text-2xl font-bold text-slate-800">ViralBridge Support</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">ViralBridge Support</h1>
         </div>
         <p className="text-slate-500 text-sm">Hi! What can we help you with today?</p>
       </div>

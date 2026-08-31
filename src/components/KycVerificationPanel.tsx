@@ -155,7 +155,7 @@ export default function KycVerificationPanel({ role }: KycVerificationPanelProps
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <h2 className="text-base font-semibold text-slate-800">Identity Verification</h2>
           <p className="text-xs text-slate-500 mt-1">

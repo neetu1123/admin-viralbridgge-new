@@ -229,9 +229,9 @@ export default function CreatorProfileContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">My Profile</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">My Profile</h1>
           <p className="text-slate-500 text-sm mt-1">Update your creator profile, social links, and media kit</p>
         </div>
         <button
@@ -396,7 +396,7 @@ export default function CreatorProfileContent() {
 
           {/* Niche / Categories */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
               <h2 className="text-sm font-semibold text-slate-700">Niche / Categories</h2>
               <p className="text-xs text-slate-400">Select up to 5</p>
             </div>

@@ -163,9 +163,9 @@ export default function CreatorAnalyticsContent() {
 
   return (
     <div className="pb-8">
-      <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Creator Analytics</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Creator Analytics</h1>
           <p className="text-slate-500 text-sm mt-1">Earnings, applications, and brand partnerships</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -181,7 +181,7 @@ export default function CreatorAnalyticsContent() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {kpiCards.map((kpi) => (
           <div key={kpi.label} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">

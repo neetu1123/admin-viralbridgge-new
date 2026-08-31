@@ -171,9 +171,9 @@ export default function WalletContent() {
       <Toaster position="bottom-right" richColors />
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Wallet & Payments</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Wallet & Payments</h1>
           <p className="text-slate-500 text-sm mt-1">Track your earnings, escrow, and withdrawals</p>
         </div>
         <button
@@ -186,7 +186,7 @@ export default function WalletContent() {
       </div>
 
       {/* Balance cards — 4 cards, 4-col */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-gradient-to-br from-violet-600 to-violet-700 rounded-xl p-5 text-white shadow-card-md col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between mb-3">
             <p className="text-violet-200 text-xs font-medium uppercase tracking-wide">Available Balance</p>
@@ -228,7 +228,7 @@ export default function WalletContent() {
 
       {/* Earnings chart */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-card p-5 mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-700">Earnings History</h2>
             <p className="text-xs text-slate-400 mt-0.5">Monthly earnings — last 6 months</p>
@@ -242,7 +242,7 @@ export default function WalletContent() {
 
       {/* Escrow tracker */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-card p-5 mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
           <h2 className="text-sm font-semibold text-slate-700">Active Escrow</h2>
           <span className="text-xs text-slate-400">{escrowItems.length} campaigns</span>
         </div>

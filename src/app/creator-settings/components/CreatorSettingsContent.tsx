@@ -113,7 +113,7 @@ export default function CreatorSettingsContent() {
       <Toaster position="bottom-right" richColors />
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Settings</h1>
         <p className="text-slate-500 text-sm mt-1">Manage your account, notifications, payout preferences, and security</p>
       </div>
 

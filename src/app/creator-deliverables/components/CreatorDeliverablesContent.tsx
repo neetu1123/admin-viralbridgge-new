@@ -251,7 +251,7 @@ export default function CreatorDeliverablesContent() {
                   onClick={() => toggleCampaign(group.campaignId)}
                   className="w-full text-left p-5 hover:bg-slate-50/80 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
                         <Briefcase size={18} className="text-violet-600" />

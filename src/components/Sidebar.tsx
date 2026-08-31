@@ -7,12 +7,14 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 
 interface SidebarProps {
   role?: 'creator' | 'brand' | 'admin';
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const creatorNav = [
@@ -92,13 +94,30 @@ const badgeColorMap: Record<string, string> = {
   orange: 'bg-orange-100 text-orange-700',
 };
 
-export default function Sidebar({ role = 'creator' }: SidebarProps) {
+function useIsDesktop(breakpoint = 1024) {
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${breakpoint}px)`);
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [breakpoint]);
+
+  return isDesktop;
+}
+
+export default function Sidebar({ role = 'creator', mobileOpen = false, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [disputeBadge, setDisputeBadge] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
   const pathname = usePathname();
+  const isDesktop = useIsDesktop();
+  // On mobile drawer, always show expanded labels
+  const showCollapsed = isDesktop && collapsed;
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -112,6 +131,10 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
     setSigningOut(true);
     void logout();
   }, [signingOut]);
+
+  const handleNavClick = useCallback(() => {
+    if (!isDesktop) onMobileClose?.();
+  }, [isDesktop, onMobileClose]);
 
   const userInitials = currentUser ? initials(currentUser.name) : 'U';
   const displayName = currentUser?.name ?? 'User';
@@ -139,18 +162,34 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
     return pathname.startsWith(href);
   };
 
+  const asideBase = [
+    'flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out',
+    'fixed inset-y-0 left-0 z-50 h-dvh',
+    'lg:static lg:z-auto lg:h-auto lg:min-h-full lg:flex-shrink-0',
+    mobileOpen ? 'translate-x-0' : '-translate-x-full',
+    'lg:translate-x-0',
+  ].join(' ');
+
   if (role === 'admin') {
     return (
       <aside
-        className={`relative flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex-shrink-0 ${collapsed ? 'w-16' : 'w-[280px]'}`}
-        style={{ minHeight: '100vh' }}
+        className={`${asideBase} ${showCollapsed ? 'lg:w-16 w-[min(280px,85vw)]' : 'w-[min(280px,85vw)] lg:w-[280px]'}`}
+        aria-hidden={!isDesktop && !mobileOpen}
       >
         {/* Logo */}
-        <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
+        <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${showCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <AppLogo size={130} />
-          {!collapsed && (
-            <div>
+          {!showCollapsed && (
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <span className="ml-2 text-xs font-medium bg-red-100 text-red-700 px-1.5 py-0.5 rounded-md">Admin</span>
+              <button
+                type="button"
+                onClick={onMobileClose}
+                className="ml-auto p-1.5 rounded-lg hover:bg-slate-100 lg:hidden"
+                aria-label="Close navigation"
+              >
+                <X size={18} className="text-slate-500" />
+              </button>
             </div>
           )}
         </div>
@@ -159,7 +198,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
         <nav className="flex-1 px-2 py-3 overflow-y-auto scrollbar-thin">
           {adminNavSections.map((section) => (
             <div key={section.section} className="mb-1">
-              {!collapsed && (
+              {!showCollapsed && (
                 <button
                   onClick={() => toggleSection(section.section)}
                   className="w-full flex items-center justify-between px-2 py-1.5 mb-0.5 group"
@@ -184,21 +223,22 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
                       <Link
                         key={`admin-nav-${item.label}`}
                         href={item.href}
+                        onClick={handleNavClick}
                         className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg transition-all duration-150 relative ${
                           isActive
                             ? 'bg-violet-600 text-white shadow-sm'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-                        } ${collapsed ? 'justify-center' : ''}`}
-                        title={collapsed ? item.label : undefined}
+                        } ${showCollapsed ? 'justify-center' : ''}`}
+                        title={showCollapsed ? item.label : undefined}
                       >
                         <Icon size={17} className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-700'}`} />
-                        {!collapsed && <span className="text-sm flex-1 font-medium">{item.label}</span>}
-                        {!collapsed && badge && (
+                        {!showCollapsed && <span className="text-sm flex-1 font-medium">{item.label}</span>}
+                        {!showCollapsed && badge && (
                           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${isActive ? 'bg-white/20 text-white' : badgeCls}`}>
                             {badge}
                           </span>
                         )}
-                        {collapsed && badge && (
+                        {showCollapsed && badge && (
                           <span className={`absolute top-1 right-1 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none ${item.badgeColor === 'red' ? 'bg-red-500' : item.badgeColor === 'amber' ? 'bg-amber-500' : item.badgeColor === 'orange' ? 'bg-orange-500' : 'bg-violet-600'}`}>
                             {badge}
                           </span>
@@ -208,14 +248,14 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
                   })}
                 </div>
               )}
-              {!collapsed && <div className="mt-2 mb-1 border-b border-slate-100" />}
+              {!showCollapsed && <div className="mt-2 mb-1 border-b border-slate-100" />}
             </div>
           ))}
         </nav>
 
         {/* User footer */}
-        <div className={`border-t border-slate-100 p-3 ${collapsed ? 'flex justify-center' : ''}`}>
-          {!collapsed ? (
+        <div className={`border-t border-slate-100 p-3 ${showCollapsed ? 'lg:flex lg:justify-center' : ''}`}>
+          {!showCollapsed ? (
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-semibold">{userInitials}</span>
@@ -245,10 +285,10 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
           )}
         </div>
 
-        {/* Collapse toggle */}
+        {/* Collapse toggle — desktop only */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-150 z-10"
+          className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-white border border-slate-200 rounded-full items-center justify-center shadow-sm hover:shadow-md transition-all duration-150 z-10"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight size={12} className="text-slate-500" /> : <ChevronLeft size={12} className="text-slate-500" />}
@@ -257,24 +297,34 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
     );
   }
 
-  // ── Creator / Brand sidebar (unchanged) ──────────────────────────────────
+  // ── Creator / Brand sidebar ──────────────────────────────────
   const navItems = role === 'brand' ? brandNav : creatorNav;
 
   return (
     <aside
-      className={`relative flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}
-      style={{ minHeight: '100vh' }}
+      className={`${asideBase} ${showCollapsed ? 'lg:w-16 w-[min(240px,85vw)]' : 'w-[min(240px,85vw)] lg:w-60'}`}
+      aria-hidden={!isDesktop && !mobileOpen}
     >
-      <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${collapsed ? 'justify-center px-0' : ''}`}>
+      <div className={`flex items-center gap-3 px-4 py-5 border-b border-slate-100 ${showCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
         <AppLogo size={150} />
+        {!showCollapsed && (
+          <button
+            type="button"
+            onClick={onMobileClose}
+            className="ml-auto p-1.5 rounded-lg hover:bg-slate-100 lg:hidden"
+            aria-label="Close navigation"
+          >
+            <X size={18} className="text-slate-500" />
+          </button>
+        )}
       </div>
-      {!collapsed && (
+      {!showCollapsed && (
         <div className="px-4 pt-3 pb-1">
           <span className={`text-xs font-600 px-2 py-0.5 rounded-full font-medium ${roleColor}`}>{roleLabel} Account</span>
         </div>
       )}
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto scrollbar-thin">
-        <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${collapsed ? 'hidden' : ''}`}>Navigation</p>
+        <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${showCollapsed ? 'hidden' : ''}`}>Navigation</p>
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -284,46 +334,47 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
             <Link
               key={`nav-${item.label}`}
               href={item.href}
+              onClick={handleNavClick}
               className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg transition-all duration-150 relative ${
                 isActive ? 'bg-violet-50 text-violet-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-              } ${collapsed ? 'justify-center' : ''}`}
-              title={collapsed ? item.label : undefined}
+              } ${showCollapsed ? 'justify-center' : ''}`}
+              title={showCollapsed ? item.label : undefined}
             >
               <Icon size={18} className={`flex-shrink-0 ${isActive ? 'text-violet-600' : 'text-slate-500 group-hover:text-slate-700'}`} />
-              {!collapsed && <span className="text-sm flex-1">{item.label}</span>}
-              {!collapsed && item.badge && (
+              {!showCollapsed && <span className="text-sm flex-1">{item.label}</span>}
+              {!showCollapsed && item.badge && (
                 <span className="bg-violet-100 text-violet-700 text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{item.badge}</span>
               )}
-              {collapsed && item.badge && (
+              {showCollapsed && item.badge && (
                 <span className="absolute top-1 right-1 bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">{item.badge}</span>
               )}
             </Link>
           );
         })}
         <div className="pt-4">
-          <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${collapsed ? 'hidden' : ''}`}>Other</p>
-          <Link href={role === 'brand' ? '/brand-notifications' : '/creator-notifications'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 relative ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Notifications' : undefined}>
+          <p className={`text-xs font-medium text-slate-400 uppercase tracking-widest mb-2 px-2 ${showCollapsed ? 'hidden' : ''}`}>Other</p>
+          <Link href={role === 'brand' ? '/brand-notifications' : '/creator-notifications'} onClick={handleNavClick} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 relative ${showCollapsed ? 'justify-center' : ''}`} title={showCollapsed ? 'Notifications' : undefined}>
             <Bell size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
-            {!collapsed && <span className="text-sm flex-1">Notifications</span>}
-            {!collapsed && unreadNotifications > 0 && (
+            {!showCollapsed && <span className="text-sm flex-1">Notifications</span>}
+            {!showCollapsed && unreadNotifications > 0 && (
               <span className="bg-violet-100 text-violet-700 text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{unreadNotifications}</span>
             )}
-            {collapsed && unreadNotifications > 0 && (
+            {showCollapsed && unreadNotifications > 0 && (
               <span className="absolute top-1 right-1 bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
             )}
           </Link>
-          <Link href={role === 'brand' ? '/brand-settings' : '/creator-settings'} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Settings' : undefined}>
+          <Link href={role === 'brand' ? '/brand-settings' : '/creator-settings'} onClick={handleNavClick} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${showCollapsed ? 'justify-center' : ''}`} title={showCollapsed ? 'Settings' : undefined}>
             <Settings size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
-            {!collapsed && <span className="text-sm">Settings</span>}
+            {!showCollapsed && <span className="text-sm">Settings</span>}
           </Link>
-          <Link href="/support" className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? 'Help & Support' : undefined}>
+          <Link href="/support" onClick={handleNavClick} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${showCollapsed ? 'justify-center' : ''}`} title={showCollapsed ? 'Help & Support' : undefined}>
             <HelpCircle size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
-            {!collapsed && <span className="text-sm">Help & Support</span>}
+            {!showCollapsed && <span className="text-sm">Help & Support</span>}
           </Link>
         </div>
       </nav>
-      <div className={`border-t border-slate-100 p-3 ${collapsed ? 'flex justify-center' : ''}`}>
-        {!collapsed ? (
+      <div className={`border-t border-slate-100 p-3 ${showCollapsed ? 'lg:flex lg:justify-center' : ''}`}>
+        {!showCollapsed ? (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
               <span className="text-violet-700 text-xs font-semibold">{userInitials}</span>
@@ -354,7 +405,7 @@ export default function Sidebar({ role = 'creator' }: SidebarProps) {
       </div>
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-150 z-10"
+        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-white border border-slate-200 rounded-full items-center justify-center shadow-sm hover:shadow-md transition-all duration-150 z-10"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {collapsed ? <ChevronRight size={12} className="text-slate-500" /> : <ChevronLeft size={12} className="text-slate-500" />}

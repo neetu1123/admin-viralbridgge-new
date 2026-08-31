@@ -259,7 +259,7 @@ export default function SecuritySettingsPanel() {
 
           {/* Active Sessions */}
           <div className="border border-slate-200 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
               <div>
                 <p className="text-sm font-semibold text-slate-800">Active Sessions</p>
                 <p className="text-xs text-slate-400 mt-0.5">

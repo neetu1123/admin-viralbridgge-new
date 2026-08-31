@@ -38,7 +38,7 @@ export default function PortfolioPreviewModal({ item, onClose }: PortfolioPrevie
           <p className="text-sm text-slate-500">{item.brandName}</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
             <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1"><Eye size={13} /> Views</div>
             <p className="font-bold text-slate-800">{item.views}</p>

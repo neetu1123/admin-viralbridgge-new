@@ -111,9 +111,9 @@ export default function AdminUsersContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">User Management</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">User Management</h1>
           <p className="text-slate-500 text-sm mt-1">Manage creators, brands, KYC verification, and account status</p>
         </div>
         <button
@@ -124,7 +124,7 @@ export default function AdminUsersContent() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: 'Total Creators', value: totalCreators, sub: 'registered creators', color: 'text-violet-700', bg: 'bg-violet-50' },
           { label: 'Total Brands', value: totalBrands, sub: 'registered brands', color: 'text-blue-700', bg: 'bg-blue-50' },

@@ -268,9 +268,9 @@ export default function BrandCampaignContent() {
       <Toaster position="bottom-right" richColors />
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Marketing performance, creator intelligence & reach analytics</p>
         </div>
         <Link
@@ -283,7 +283,7 @@ export default function BrandCampaignContent() {
       </div>
 
       {/* ROW 1 — Executive Metrics (Big Cards) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
         {/* Total Reach Factor */}
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
           <div className="flex items-center justify-between mb-3">
@@ -515,7 +515,7 @@ export default function BrandCampaignContent() {
         <>
           {aiMatchingEnabled && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center"><Sparkles size={15} className="text-violet-600" /></div>
                 <div>
@@ -621,7 +621,7 @@ export default function BrandCampaignContent() {
 
           {/* Chart */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
               <div>
                 <h2 className="text-sm font-semibold text-slate-700">Applications Over Time</h2>
                 <p className="text-xs text-slate-400 mt-0.5">Across all active campaigns — last 30 days</p>
@@ -765,7 +765,7 @@ export default function BrandCampaignContent() {
           <div className="divide-y divide-slate-50">
             {filteredApplicants.map(applicant => (
               <div key={applicant.id} className="px-5 py-4 hover:bg-slate-50/60 transition-colors group">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
                       <span className="text-violet-700 text-xs font-bold">{applicant.avatar}</span>

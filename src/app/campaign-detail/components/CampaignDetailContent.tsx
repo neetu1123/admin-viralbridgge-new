@@ -166,7 +166,7 @@ export default function CampaignDetailContent() {
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-slate-800">{campaign.title}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-800">{campaign.title}</h1>
               <StatusBadge status={campaign.status} />
             </div>
             <div className="flex items-center gap-3">
@@ -208,7 +208,7 @@ export default function CampaignDetailContent() {
       {activeTab === 'overview' && (
         <div className="space-y-5">
           {/* KPIs */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Budget Used</p>

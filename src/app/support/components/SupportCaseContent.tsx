@@ -32,7 +32,7 @@ export function SupportCaseListContent() {
         <div className="space-y-3">
           {cases.map((c) => (
             <Link key={c.id} href={`/support/case/${c.id}`} className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-violet-300">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                 <div>
                   <p className="text-xs font-mono text-slate-400">{c.caseNumber}</p>
                   <p className="font-semibold text-slate-800 text-sm mt-0.5">{c.subject}</p>
@@ -90,7 +90,7 @@ export function SupportCaseDetailContent({ caseId }: { caseId: string }) {
       </Link>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4">
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-3">
           <div>
             <p className="text-xs font-mono text-violet-600">{supportCase.caseNumber}</p>
             <h1 className="text-xl font-bold text-slate-800 mt-0.5">{supportCase.subject}</h1>

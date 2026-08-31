@@ -67,9 +67,9 @@ export default function MyCreatorsContent() {
       <Toaster position="bottom-right" richColors />
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">My Creators</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">My Creators</h1>
           <p className="text-slate-500 text-sm mt-1">Manage your creator relationships and collaboration history</p>
         </div>
         <Link href="/creator-discovery" className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all duration-150 shadow-sm">
@@ -79,10 +79,10 @@ export default function MyCreatorsContent() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Creators</p>
-          <p className="text-2xl font-bold text-slate-800">{loading ? '—' : creators.length}</p>
+          <p className="text-xl sm:text-2xl font-bold text-slate-800">{loading ? '—' : creators.length}</p>
           <p className="text-xs text-slate-400 mt-1">{activeCount} currently active</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
@@ -102,7 +102,7 @@ export default function MyCreatorsContent() {
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Collabs</p>
-          <p className="text-2xl font-bold text-slate-800">{creators.reduce((s, c) => s + c.totalCollabs, 0)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-slate-800">{creators.reduce((s, c) => s + c.totalCollabs, 0)}</p>
           <p className="text-xs text-slate-400 mt-1">completed deliverables</p>
         </div>
       </div>

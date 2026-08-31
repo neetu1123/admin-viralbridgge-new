@@ -102,9 +102,9 @@ export default function MyApplicationsContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">My Campaigns</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">My Campaigns</h1>
           <p className="text-slate-500 text-sm mt-1">Track your active campaigns, applications, and collaboration status</p>
         </div>
         <Link
@@ -115,7 +115,7 @@ export default function MyApplicationsContent() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: 'Active Campaigns', value: stats.approved, color: 'text-emerald-700', icon: CheckCircle },
           { label: 'Pending Review', value: stats.pending, color: 'text-amber-700', icon: Clock },

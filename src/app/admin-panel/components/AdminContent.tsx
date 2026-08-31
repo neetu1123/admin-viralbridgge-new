@@ -258,7 +258,7 @@ function ActivityLogModal({ user, onClose }: { user: AdminUser; onClose: () => v
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-slate-800">Activity Log</h3>
             <p className="text-xs text-slate-500">{user.name} · {user.email}</p>
@@ -1056,7 +1056,7 @@ export default function AdminContent() {
                   const isActionable = currentStatus === 'open' || currentStatus === 'escalated';
                   return (
                     <div key={dispute.id} className={`px-5 py-4 hover:bg-slate-50/60 transition-colors ${currentStatus === 'escalated' ? 'bg-orange-50/20' : currentStatus === 'open' ? 'bg-red-50/10' : ''}`}>
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${dispute.priority === 'high' ? 'bg-red-100 text-red-700' : dispute.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
@@ -1125,7 +1125,7 @@ export default function AdminContent() {
                   const currentStatus = match.status;
                   return (
                     <div key={match.id} className={`px-5 py-4 hover:bg-slate-50/60 transition-colors ${currentStatus === 'removed' ? 'opacity-60' : ''}`}>
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <div className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${match.matchScore >= 90 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : match.matchScore >= 75 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
@@ -1179,7 +1179,7 @@ export default function AdminContent() {
           {/* ── ANALYTICS TAB ─────────────────────────────────────────────── */}
           {activeTab === 'analytics' && (
             <div className="p-5 space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {[
                   { label: 'Total Revenue', value: '₹148,200', sub: '+18.4% MoM', color: 'text-violet-700', bg: 'bg-violet-50', icon: <TrendingUp size={15} className="text-violet-500" /> },
                   { label: 'Avg Campaign ROI', value: '3.1x', sub: 'Across all brands', color: 'text-emerald-700', bg: 'bg-emerald-50', icon: <ArrowUpRight size={15} className="text-emerald-500" /> },
@@ -1231,16 +1231,16 @@ export default function AdminContent() {
                     const pct = Math.round((stage.value / maxVal) * 100);
                     const convRate = i > 0 ? Math.round((stage.value / conversionFunnel[i - 1].value) * 100) : 100;
                     return (
-                      <div key={stage.stage} className="flex items-center gap-4">
-                        <div className="w-44 text-right"><p className="text-xs font-medium text-slate-600 truncate">{stage.stage}</p></div>
-                        <div className="flex-1 bg-slate-100 rounded-full h-7 relative overflow-hidden">
+                      <div key={stage.stage} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
+                        <div className="w-full sm:w-44 sm:text-right flex-shrink-0"><p className="text-xs font-medium text-slate-600 truncate">{stage.stage}</p></div>
+                        <div className="flex-1 bg-slate-100 rounded-full h-7 relative overflow-hidden min-w-0">
                           <div className="h-full rounded-full flex items-center px-3 transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: stage.color }}>
                             <span className="text-white text-xs font-bold tabular-nums">{stage.value.toLocaleString()}</span>
                           </div>
                         </div>
                         {i > 0 ? (
-                          <div className="w-16 text-right"><span className={`text-xs font-semibold ${convRate >= 70 ? 'text-emerald-600' : convRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{convRate}%</span></div>
-                        ) : <div className="w-16" />}
+                          <div className="w-16 text-right flex-shrink-0 self-end sm:self-auto"><span className={`text-xs font-semibold ${convRate >= 70 ? 'text-emerald-600' : convRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{convRate}%</span></div>
+                        ) : <div className="hidden sm:block w-16" />}
                       </div>
                     );
                   })}

@@ -74,9 +74,9 @@ export default function NotificationsPanel({ api, subtitle }: NotificationsPanel
 
   return (
     <>
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Notifications</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Notifications</h1>
           <p className="text-slate-500 text-sm mt-1">{subtitle}</p>
         </div>
         {unreadCount > 0 && (

@@ -131,9 +131,9 @@ export default function AdminCampaignsContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Campaign Moderation</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Campaign Moderation</h1>
           <p className="text-slate-500 text-sm mt-1">
             {loading ? 'Loading campaigns...' : 'Review, approve, flag, and manage all platform campaigns'}
           </p>
@@ -146,7 +146,7 @@ export default function AdminCampaignsContent() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: 'Pending Approval', value: pending, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' },
           { label: 'Flagged', value: flagged, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200' },

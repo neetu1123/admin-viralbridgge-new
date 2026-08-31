@@ -120,9 +120,9 @@ export default function AdminTransactionsContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Transaction Management</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Transaction Management</h1>
           <p className="text-slate-500 text-sm mt-1">Monitor all financial flows — escrow, payouts, withdrawals, and disputes</p>
         </div>
         <button onClick={handleExport} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all">
@@ -131,7 +131,7 @@ export default function AdminTransactionsContent() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: 'Total Volume', value: `₹${totalVolume.toLocaleString()}`, sub: 'all transactions', color: 'text-violet-700' },
           { label: 'Held in Escrow', value: `₹${heldInEscrow.toLocaleString()}`, sub: 'currently locked', color: 'text-blue-700' },

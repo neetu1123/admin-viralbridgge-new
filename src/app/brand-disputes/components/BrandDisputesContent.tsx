@@ -15,7 +15,7 @@ export default function BrandDisputesContent() {
   return (
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Scale size={22} className="text-violet-600" />

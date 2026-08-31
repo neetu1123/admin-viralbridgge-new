@@ -101,7 +101,7 @@ export default function AdminSupportCaseContent({ caseId }: { caseId: string }) 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-5">
-            <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-3">
               <div>
                 <p className="text-xs font-mono text-violet-600">{supportCase.caseNumber}</p>
                 <h1 className="text-xl font-bold text-slate-800">{supportCase.subject}</h1>

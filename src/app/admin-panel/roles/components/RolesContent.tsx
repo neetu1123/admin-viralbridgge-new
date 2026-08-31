@@ -261,7 +261,7 @@ function PermissionsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-800">Permissions — {role.name}</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><X size={18} /></button>
         </div>
@@ -417,7 +417,7 @@ export default function RolesContent() {
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm font-medium text-slate-500 mb-1">Total Admins</p>
-                <h3 className="text-2xl font-bold text-slate-800">{admins.length}</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-800">{admins.length}</h3>
               </div>
               <div className="w-12 h-12 rounded-full bg-violet-50 flex items-center justify-center text-violet-600">
                 <Users size={20} />
@@ -427,7 +427,7 @@ export default function RolesContent() {
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm font-medium text-slate-500 mb-1">Active Admins</p>
-                <h3 className="text-2xl font-bold text-slate-800">
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-800">
                   {admins.filter(a => a.status === 'ACTIVE').length}
                 </h3>
               </div>
@@ -439,7 +439,7 @@ export default function RolesContent() {
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm font-medium text-slate-500 mb-1">Configured Roles</p>
-                <h3 className="text-2xl font-bold text-slate-800">{roles.length}</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-800">{roles.length}</h3>
               </div>
               <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                 <ShieldCheck size={20} />

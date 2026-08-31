@@ -156,9 +156,9 @@ export default function BrandWalletContent() {
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Wallet & Budget Intelligence</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Wallet & Budget Intelligence</h1>
           <p className="text-slate-500 text-sm mt-1">Escrow protection, spend forecasting & invoice management</p>
         </div>
         <button
@@ -171,7 +171,7 @@ export default function BrandWalletContent() {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
         <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between mb-3">
             <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide">Available Balance</p>
@@ -251,7 +251,7 @@ export default function BrandWalletContent() {
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
             <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
                 <div>
                   <h2 className="text-sm font-bold text-slate-700">Monthly Spend + Forecast</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Actual spend + AI-predicted next 3 months</p>
