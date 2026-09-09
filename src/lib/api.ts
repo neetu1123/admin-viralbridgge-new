@@ -298,11 +298,17 @@ export const adminApi = {
   getNotifications: (params?: { page?: number; limit?: number; type?: string; unread?: boolean }) =>
     apiFetch<NotificationListResponse>(`/admin/notifications${toQuery(params)}`),
 
+  getBannerNotifications: () =>
+    apiFetch<NotificationBannerResponse>('/admin/notifications/banner'),
+
   getUnreadNotificationCount: () =>
     apiFetch<{ count: number }>('/admin/notifications/unread-count'),
 
   markNotificationRead: (id: string) =>
     apiFetch(`/admin/notifications/${id}/read`, { method: 'PATCH' }),
+
+  dismissNotification: (id: string) =>
+    apiFetch(`/admin/notifications/${id}/dismiss`, { method: 'PATCH' }),
 
   markAllNotificationsRead: () =>
     apiFetch('/admin/notifications/read-all', { method: 'PATCH' }),
@@ -403,6 +409,7 @@ export interface NotificationItem {
   entity_id?: string | null;
   metadata?: Record<string, unknown> | null;
   is_read: boolean;
+  is_dismissed?: boolean;
   created_at: string;
 }
 
@@ -413,6 +420,10 @@ export interface NotificationListResponse {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface NotificationBannerResponse {
+  data: NotificationItem[];
 }
 
 export interface KycRequestApi {
@@ -641,10 +652,14 @@ export const brandApi = {
     apiFetch('/brand/messages/send', { method: 'POST', body: JSON.stringify(data) }),
   getNotifications: (params?: { page?: number; limit?: number; type?: string; unread?: boolean }) =>
     apiFetch<NotificationListResponse>(`/brand/notifications${toQuery(params)}`),
+  getBannerNotifications: () =>
+    apiFetch<NotificationBannerResponse>('/brand/notifications/banner'),
   getUnreadNotificationCount: () =>
     apiFetch<{ count: number }>('/brand/notifications/unread-count'),
   markNotificationRead: (id: string) =>
     apiFetch(`/brand/notifications/${id}/read`, { method: 'PATCH' }),
+  dismissNotification: (id: string) =>
+    apiFetch(`/brand/notifications/${id}/dismiss`, { method: 'PATCH' }),
   markAllNotificationsRead: () =>
     apiFetch('/brand/notifications/read-all', { method: 'PATCH' }),
   getSettings: () => apiFetch('/brand/settings'),
@@ -719,10 +734,14 @@ export const creatorApi = {
     apiFetch('/creator/messages/send', { method: 'POST', body: JSON.stringify(data) }),
   getNotifications: (params?: { page?: number; limit?: number; type?: string; unread?: boolean }) =>
     apiFetch<NotificationListResponse>(`/creator/notifications${toQuery(params)}`),
+  getBannerNotifications: () =>
+    apiFetch<NotificationBannerResponse>('/creator/notifications/banner'),
   getUnreadNotificationCount: () =>
     apiFetch<{ count: number }>('/creator/notifications/unread-count'),
   markNotificationRead: (id: string) =>
     apiFetch(`/creator/notifications/${id}/read`, { method: 'PATCH' }),
+  dismissNotification: (id: string) =>
+    apiFetch(`/creator/notifications/${id}/dismiss`, { method: 'PATCH' }),
   markAllNotificationsRead: () =>
     apiFetch('/creator/notifications/read-all', { method: 'PATCH' }),
   getSettings: () => apiFetch('/creator/settings'),

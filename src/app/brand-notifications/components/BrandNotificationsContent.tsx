@@ -10,6 +10,7 @@ export default function BrandNotificationsContent() {
       <Toaster position="bottom-right" richColors />
       <NotificationsPanel
         api={brandApi}
+        role="brand"
         subtitle="Applicant updates, payment alerts, messages, and platform notifications"
       />
     </div>

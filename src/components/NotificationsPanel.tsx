@@ -7,10 +7,12 @@ import { Bell, Briefcase, DollarSign, MessageSquare, ShieldCheck, AlertCircle, C
 import type { NotificationItem } from '@/src/lib/api';
 import { getNotificationSocket } from '@/src/lib/socket';
 import { useNotifications, type NotificationApi } from '@/src/hooks/useNotifications';
-import { getNotificationActionLabel, getNotificationActionUrl } from '@/src/lib/notificationNavigation';
+import { getNotificationActionLabel, getNotificationActionUrl, type NotificationRole } from '@/src/lib/notificationNavigation';
 
 const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   CAMPAIGN: { icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
+  CAMPAIGN_INVITE: { icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
+  CAMPAIGN_APPLICATION: { icon: Briefcase, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
   APPLICATION: { icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
   PAYMENT: { icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   WITHDRAWAL: { icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -35,9 +37,10 @@ function formatTime(iso: string) {
 interface NotificationsPanelProps {
   api: NotificationApi;
   subtitle: string;
+  role?: NotificationRole;
 }
 
-export default function NotificationsPanel({ api, subtitle }: NotificationsPanelProps) {
+export default function NotificationsPanel({ api, subtitle, role = 'creator' }: NotificationsPanelProps) {
   const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const { items, unreadCount, loading, load, markRead, markAllRead } = useNotifications(api);
@@ -66,7 +69,7 @@ export default function NotificationsPanel({ api, subtitle }: NotificationsPanel
   };
 
   const handleAction = async (notif: NotificationItem) => {
-    const url = getNotificationActionUrl(notif);
+    const url = getNotificationActionUrl(notif, role);
     if (!url) return;
     if (!notif.is_read) await handleMarkRead(notif.id);
     router.push(url);
@@ -123,8 +126,8 @@ export default function NotificationsPanel({ api, subtitle }: NotificationsPanel
           {displayed.map((notif) => {
             const config = typeConfig[notif.type] ?? typeConfig.SYSTEM;
             const Icon = config.icon;
-            const actionUrl = getNotificationActionUrl(notif);
-            const actionLabel = getNotificationActionLabel(notif);
+            const actionUrl = getNotificationActionUrl(notif, role);
+            const actionLabel = getNotificationActionLabel(notif, role);
             return (
               <div
                 key={notif.id}

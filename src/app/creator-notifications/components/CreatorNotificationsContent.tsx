@@ -10,6 +10,7 @@ export default function CreatorNotificationsContent() {
       <Toaster position="bottom-right" richColors />
       <NotificationsPanel
         api={creatorApi}
+        role="creator"
         subtitle="Campaign invites, payment updates, messages, and alerts"
       />
     </div>

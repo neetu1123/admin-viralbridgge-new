@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import BrandCampaignNudge from './BrandCampaignNudge';
 import MobileTopBar from './MobileTopBar';
+import ApproachBanner from './ApproachBanner';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -78,6 +79,7 @@ export default function AppLayout({ children, role = 'creator', topNavbar }: App
       </div>
 
       {role === 'brand' && <BrandCampaignNudge />}
+      {(role === 'brand' || role === 'creator') && <ApproachBanner role={role} />}
     </div>
   );
 }
