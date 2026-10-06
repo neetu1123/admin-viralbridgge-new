@@ -9,8 +9,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'ViralBridgge— Influencer Marketing Marketplace',
-  description: 'ViralBridggeconnects brands with content creators for influencer campaigns — apply, collaborate, and get paid through one integrated platform.',
+  title: 'Viralbridge— Influencer Marketing Marketplace',
+  description: 'Viralbridgeconnects brands with content creators for influencer campaigns — apply, collaborate, and get paid through one integrated platform.',
   icons: {
     icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
   },

@@ -17,7 +17,7 @@ export default function AuthLogoutClient() {
     if (token) {
       try {
         void fetch(
-          `${(process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app').replace(/\/$/, '')}/auth/logout`,
+          `${(process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-Viralbridge-new-three.vercel.app').replace(/\/$/, '')}/auth/logout`,
           {
             method: 'POST',
             headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },

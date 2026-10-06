@@ -118,7 +118,7 @@ export default function Footer() {
         {/* Bottom row */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-sm">
-            © 2026 viralbridgge, Inc. All rights reserved.
+            © 2026 Viralbridge, Inc. All rights reserved.
           </p>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse-soft" />

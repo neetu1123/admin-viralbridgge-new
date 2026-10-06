@@ -91,7 +91,7 @@ export default function AdminNotificationsContent() {
       setEmailStatus({
         configured: false,
         fromEmail: '',
-        hint: 'Email API not available on the deployed backend yet. Redeploy backend-admin-viralbridgge to enable broadcast and test email.',
+        hint: 'Email API not available on the deployed backend yet. Redeploy backend-admin-Viralbridge to enable broadcast and test email.',
       });
     }
   }, []);

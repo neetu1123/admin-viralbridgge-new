@@ -2,7 +2,7 @@
 // All backend calls go through this file. It automatically attaches the JWT
 // token from localStorage and handles 401 (auto-logout) gracefully.
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-Viralbridge-new-three.vercel.app';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -313,6 +313,35 @@ export const adminApi = {
   markAllNotificationsRead: () =>
     apiFetch('/admin/notifications/read-all', { method: 'PATCH' }),
 
+  getDiscoveryListings: (params?: Record<string, string | number | boolean | undefined>) =>
+    apiFetch<{ data: Array<Record<string, unknown>>; pagination?: { total: number; page: number; totalPages: number } }>(
+      `/admin/discovery/listings${toQuery(params)}`,
+    ),
+
+  getDiscoveryAnalytics: () =>
+    apiFetch<{ searches: number; views: number; contacts: number; enquiries: number }>(
+      '/admin/discovery/analytics',
+    ),
+
+  updateDiscoveryListing: (type: string, id: string, body: Record<string, unknown>) =>
+    apiFetch(`/admin/discovery/listings/${type}/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  getFreeListings: (params?: Record<string, string | number | boolean | undefined>) =>
+    apiFetch<{ data: Array<Record<string, unknown>>; pagination?: { total: number } }>(
+      `/admin/listings${toQuery(params)}`,
+    ),
+
+  getFreeListingAnalytics: () =>
+    apiFetch<{ published: number; drafts: number; suspended: number; enquiries: number; openReports: number }>(
+      '/admin/listings/analytics',
+    ),
+
+  getFreeListingReports: () =>
+    apiFetch<Array<Record<string, unknown>>>('/admin/listings/reports'),
+
+  updateFreeListing: (id: string, body: Record<string, unknown>) =>
+    apiFetch(`/admin/listings/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
   getEmailStatus: () =>
     apiFetch<{ configured: boolean; fromEmail: string; appUrl: string; provider: string; hint: string }>(
       '/admin/email/status',
@@ -397,6 +426,26 @@ export const adminApi = {
       '/admin/campaigns/create-with-brand',
       { method: 'POST', body: JSON.stringify(body) },
     ),
+};
+
+export const listingApi = {
+  getMine: () =>
+    apiFetch<{
+      listing: Record<string, unknown> | null;
+      accountType: 'FREE_LISTING' | 'BRAND' | 'CREATOR';
+      permissions: Record<string, boolean>;
+      hasBrandProfile: boolean;
+      hasCreatorProfile: boolean;
+    }>('/listings/me'),
+  create: (type: 'BUSINESS' | 'CREATOR', name?: string) =>
+    apiFetch<Record<string, unknown>>('/listings', { method: 'POST', body: JSON.stringify({ type, name }) }),
+  update: (id: string, body: Record<string, unknown>) =>
+    apiFetch<Record<string, unknown>>(`/listings/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  publish: (id: string) => apiFetch<Record<string, unknown>>(`/listings/${id}/publish`, { method: 'POST' }),
+  unpublish: (id: string) => apiFetch<Record<string, unknown>>(`/listings/${id}/unpublish`, { method: 'POST' }),
+  upgrade: (id: string) => apiFetch<{ listing: Record<string, unknown>; message: string }>(`/listings/${id}/upgrade`, { method: 'POST' }),
+  getEnquiries: () => apiFetch<Array<{ id: string; name: string; email: string; phone?: string | null; message: string; created_at: string }>>('/listings/me/enquiries'),
+  getAnalytics: () => apiFetch<{ views: number; enquiries: number; contacts: number; searches: number }>('/listings/me/analytics'),
 };
 
 export interface NotificationItem {
@@ -1285,5 +1334,5 @@ export const adminSupportApi = {
 
 // ─── Socket helper (local / dedicated WS host only) ───────────────────────────
 export function getSocketUrl(): string {
-  return process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';
+  return process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-Viralbridge-new-three.vercel.app';
 }

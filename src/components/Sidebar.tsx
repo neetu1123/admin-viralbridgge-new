@@ -7,7 +7,7 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X, Store } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 
@@ -26,10 +26,12 @@ const creatorNav = [
   { label: 'Analytics', icon: BarChart3, href: '/creator/analytics', badge: null },
   { label: 'Disputes', icon: Scale, href: '/creator-disputes', badge: null },
   { label: 'My Profile', icon: User, href: '/creator-profile', badge: null },
+  { label: 'My Listing', icon: Store, href: '/my-listing', badge: null },
 ];
 
 const brandNav = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/brand-campaign-management', badge: null },
+  { label: 'My Listing', icon: Store, href: '/my-listing', badge: null },
   { label: 'My Campaigns', icon: Briefcase, href: '/brand-my-campaigns', badge: null },
   { label: 'Create Campaign', icon: Plus, href: '/brand-campaign-management/create', badge: null },
   { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: null },
@@ -73,6 +75,7 @@ const adminNavSections: AdminNavSection[] = [
     items: [
       { label: 'Flagged Content', icon: Flag, href: '/admin-panel/flagged', badge: '1', badgeColor: 'red' },
       { label: 'Disputes', icon: Scale, href: '/admin-panel/disputes', badge: null as string | null, badgeColor: 'orange' },
+      { label: 'Discover Listings', icon: Compass, href: '/admin-panel/discovery', badge: null },
       { label: 'Support', icon: HelpCircle, href: '/admin-panel/support', badge: null },
     ],
   },

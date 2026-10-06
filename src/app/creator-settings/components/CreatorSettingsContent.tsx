@@ -233,7 +233,7 @@ export default function CreatorSettingsContent() {
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Connected Payout Methods</p>
                   <div className="space-y-3">
                     {[
-                      { method: 'PayPal', account: 'sofia@Viralbridgge.io', primary: true },
+                      { method: 'PayPal', account: 'sofia@Viralbridge.io', primary: true },
                       { method: 'Bank Transfer', account: '****4821 (Chase)', primary: false },
                     ].map(pm => (
                       <div key={pm.method} className="flex items-center justify-between">

@@ -25,6 +25,7 @@ const pageTitles: Record<string, string> = {
   '/admin-panel/roles': 'Admin Roles',
   '/admin-panel/audit-logs': 'Audit Logs',
   '/admin-panel/support': 'Support Cases',
+  '/admin-panel/discovery': 'Discover Listings',
   '/crm': 'CRM',
 };
 

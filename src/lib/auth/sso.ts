@@ -7,13 +7,13 @@ export interface SsoUser {
 }
 
 const DEFAULT_MARKETING_ORIGINS = [
-  'https://viralbridgge-new.vercel.app',
+  'https://Viralbridge-new.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
 ];
 
 const DEFAULT_ADMIN_ORIGINS = [
-  'https://admin-viralbridgge-new.vercel.app',
+  'https://admin-Viralbridge-new.vercel.app',
   'http://localhost:3002',
   'http://localhost:3000',
 ];
@@ -78,19 +78,19 @@ export function clearSsoChecked(): void {
 }
 
 export function buildMarketingBridgeUrl(receiveUrl: string): string {
-  const marketingBase = (process.env.NEXT_PUBLIC_MARKETING_URL || 'https://viralbridgge-new.vercel.app').replace(/\/$/, '');
+  const marketingBase = (process.env.NEXT_PUBLIC_MARKETING_URL || 'https://Viralbridge-new.vercel.app').replace(/\/$/, '');
   return `${marketingBase}/auth/bridge?returnUrl=${encodeURIComponent(receiveUrl)}`;
 }
 
 export function buildAdminBridgeUrl(receiveUrl: string): string {
-  const adminBase = (process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin-viralbridgge-new.vercel.app').replace(/\/$/, '');
+  const adminBase = (process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin-Viralbridge-new.vercel.app').replace(/\/$/, '');
   return `${adminBase}/auth/bridge?returnUrl=${encodeURIComponent(receiveUrl)}`;
 }
 
 export function buildMarketingLoginUrl(nextPath = '/'): string {
-  const marketingBase = (process.env.NEXT_PUBLIC_MARKETING_URL || 'https://viralbridgge-new.vercel.app').replace(/\/$/, '');
+  const marketingBase = (process.env.NEXT_PUBLIC_MARKETING_URL || 'https://Viralbridge-new.vercel.app').replace(/\/$/, '');
   const receiveUrl = `${marketingBase}/auth/receive?next=${encodeURIComponent(nextPath)}`;
   const bridgePath = `/auth/bridge?returnUrl=${encodeURIComponent(receiveUrl)}`;
-  const adminBase = (process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin-viralbridgge-new.vercel.app').replace(/\/$/, '');
+  const adminBase = (process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin-Viralbridge-new.vercel.app').replace(/\/$/, '');
   return `${adminBase}/sign-up-login-screen?redirect=${encodeURIComponent(bridgePath)}`;
 }

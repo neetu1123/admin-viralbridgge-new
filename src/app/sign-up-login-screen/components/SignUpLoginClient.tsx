@@ -37,7 +37,7 @@ const demoCredentials = [
 
 const niches = ['Beauty & Skincare', 'Fitness & Wellness', 'Food & Cooking', 'Tech & Gadgets', 'Fashion & Style', 'Travel & Adventure', 'Gaming', 'Finance & Investing', 'Parenting', 'Sustainability'];
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-viralbridgge-new-three.vercel.app';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://backend-admin-Viralbridge-new-three.vercel.app';
 
 export default function SignUpLoginClient() {
   const searchParams = useSearchParams();
@@ -106,7 +106,7 @@ export default function SignUpLoginClient() {
       const result = await authApi.register(data.name, data.email, data.password, role);
       localStorage.setItem('token', result.access_token);
       localStorage.setItem('user', JSON.stringify(result.user));
-      toast.success('Account created! Welcome to Viralbridgge.');
+      toast.success('Account created! Welcome to Viralbridge.');
       window.location.href =
         redirectTo && redirectTo.startsWith('/')
           ? redirectTo
@@ -173,7 +173,7 @@ export default function SignUpLoginClient() {
           {/* Testimonial */}
           <div className="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
             <p className="text-white/90 text-sm italic leading-relaxed mb-3">
-              &ldquo;ViralBridggehelped us run 14 campaigns in Q1 with verified creators. Our ROAS went up 3.2x.&rdquo;
+              &ldquo;Viralbridgehelped us run 14 campaigns in Q1 with verified creators. Our ROAS went up 3.2x.&rdquo;
             </p>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center">
@@ -243,7 +243,7 @@ export default function SignUpLoginClient() {
           {mode === 'login' && (
             <form onSubmit={(e) => { e.preventDefault(); loginForm.handleSubmit(onLogin)(e); }} className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-800 mb-1">Welcome back</h2>
-              <p className="text-slate-500 text-sm mb-5">Sign in to your ViralBridggeaccount</p>
+              <p className="text-slate-500 text-sm mb-5">Sign in to your Viralbridgeaccount</p>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="login-email">

@@ -5,18 +5,18 @@ import { auditApi, AuditLogEntry, AuditLogStats } from '@/src/lib/api';
 
 // ─── Mock fallback ─────────────────────────────────────────────────────────────
 const MOCK_LOGS: AuditLogEntry[] = [
-  { id: '1', admin_id: 'a1', action: 'BAN_USER', entity: 'User', entity_id: 'usr-007', metadata: { banned: true }, created_at: '2026-04-14T14:32:11Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@viralbridgge.io' } },
-  { id: '2', admin_id: 'a2', action: 'APPROVE_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-005', metadata: { status: 'ACTIVE' }, created_at: '2026-04-13T11:18:44Z', admin: { id: 'a2', name: 'Raj Patel', email: 'raj@viralbridgge.io' } },
-  { id: '3', admin_id: 'a3', action: 'REJECT_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-003', metadata: { status: 'REJECTED' }, created_at: '2026-04-13T09:45:22Z', admin: { id: 'a3', name: 'Zara Ahmed', email: 'zara@viralbridgge.io' } },
-  { id: '4', admin_id: 'a1', action: 'UPDATE_USER_ROLE', entity: 'User', entity_id: 'usr-005', metadata: { role_id: 'creator' }, created_at: '2026-04-12T16:20:05Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@viralbridgge.io' } },
-  { id: '5', admin_id: 'a4', action: 'FLAG_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-003', metadata: { reason: 'Fraudulent giveaway' }, created_at: '2026-04-12T14:10:33Z', admin: { id: 'a4', name: 'Tom Chen', email: 'tom@viralbridgge.io' } },
-  { id: '6', admin_id: 'a3', action: 'UNBAN_USER', entity: 'User', entity_id: 'usr-010', metadata: { banned: false }, created_at: '2026-04-11T10:55:18Z', admin: { id: 'a3', name: 'Zara Ahmed', email: 'zara@viralbridgge.io' } },
-  { id: '7', admin_id: 'a2', action: 'BAN_USER', entity: 'User', entity_id: 'usr-004', metadata: { banned: true }, created_at: '2026-04-10T15:30:47Z', admin: { id: 'a2', name: 'Raj Patel', email: 'raj@viralbridgge.io' } },
-  { id: '8', admin_id: 'a1', action: 'APPROVE_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-006', metadata: { status: 'ACTIVE' }, created_at: '2026-04-10T09:12:55Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@viralbridgge.io' } },
-  { id: '9', admin_id: 'a3', action: 'UPDATE_USER_ROLE', entity: 'User', entity_id: 'usr-003', metadata: { role_id: 'brand' }, created_at: '2026-04-09T13:44:22Z', admin: { id: 'a3', name: 'Zara Ahmed', email: 'zara@viralbridgge.io' } },
-  { id: '10', admin_id: 'a4', action: 'FLAG_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-007', metadata: { reason: 'Suspicious activity' }, created_at: '2026-04-08T11:20:10Z', admin: { id: 'a4', name: 'Tom Chen', email: 'tom@viralbridgge.io' } },
-  { id: '11', admin_id: 'a1', action: 'REJECT_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-008', metadata: { status: 'REJECTED' }, created_at: '2026-04-07T09:10:00Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@viralbridgge.io' } },
-  { id: '12', admin_id: 'a2', action: 'BAN_USER', entity: 'User', entity_id: 'usr-001', metadata: { banned: true }, created_at: '2026-04-06T18:05:30Z', admin: { id: 'a2', name: 'Raj Patel', email: 'raj@viralbridgge.io' } },
+  { id: '1', admin_id: 'a1', action: 'BAN_USER', entity: 'User', entity_id: 'usr-007', metadata: { banned: true }, created_at: '2026-04-14T14:32:11Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@Viralbridge.io' } },
+  { id: '2', admin_id: 'a2', action: 'APPROVE_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-005', metadata: { status: 'ACTIVE' }, created_at: '2026-04-13T11:18:44Z', admin: { id: 'a2', name: 'Raj Patel', email: 'raj@Viralbridge.io' } },
+  { id: '3', admin_id: 'a3', action: 'REJECT_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-003', metadata: { status: 'REJECTED' }, created_at: '2026-04-13T09:45:22Z', admin: { id: 'a3', name: 'Zara Ahmed', email: 'zara@Viralbridge.io' } },
+  { id: '4', admin_id: 'a1', action: 'UPDATE_USER_ROLE', entity: 'User', entity_id: 'usr-005', metadata: { role_id: 'creator' }, created_at: '2026-04-12T16:20:05Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@Viralbridge.io' } },
+  { id: '5', admin_id: 'a4', action: 'FLAG_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-003', metadata: { reason: 'Fraudulent giveaway' }, created_at: '2026-04-12T14:10:33Z', admin: { id: 'a4', name: 'Tom Chen', email: 'tom@Viralbridge.io' } },
+  { id: '6', admin_id: 'a3', action: 'UNBAN_USER', entity: 'User', entity_id: 'usr-010', metadata: { banned: false }, created_at: '2026-04-11T10:55:18Z', admin: { id: 'a3', name: 'Zara Ahmed', email: 'zara@Viralbridge.io' } },
+  { id: '7', admin_id: 'a2', action: 'BAN_USER', entity: 'User', entity_id: 'usr-004', metadata: { banned: true }, created_at: '2026-04-10T15:30:47Z', admin: { id: 'a2', name: 'Raj Patel', email: 'raj@Viralbridge.io' } },
+  { id: '8', admin_id: 'a1', action: 'APPROVE_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-006', metadata: { status: 'ACTIVE' }, created_at: '2026-04-10T09:12:55Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@Viralbridge.io' } },
+  { id: '9', admin_id: 'a3', action: 'UPDATE_USER_ROLE', entity: 'User', entity_id: 'usr-003', metadata: { role_id: 'brand' }, created_at: '2026-04-09T13:44:22Z', admin: { id: 'a3', name: 'Zara Ahmed', email: 'zara@Viralbridge.io' } },
+  { id: '10', admin_id: 'a4', action: 'FLAG_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-007', metadata: { reason: 'Suspicious activity' }, created_at: '2026-04-08T11:20:10Z', admin: { id: 'a4', name: 'Tom Chen', email: 'tom@Viralbridge.io' } },
+  { id: '11', admin_id: 'a1', action: 'REJECT_CAMPAIGN', entity: 'Campaign', entity_id: 'camp-008', metadata: { status: 'REJECTED' }, created_at: '2026-04-07T09:10:00Z', admin: { id: 'a1', name: 'Admin User', email: 'admin@Viralbridge.io' } },
+  { id: '12', admin_id: 'a2', action: 'BAN_USER', entity: 'User', entity_id: 'usr-001', metadata: { banned: true }, created_at: '2026-04-06T18:05:30Z', admin: { id: 'a2', name: 'Raj Patel', email: 'raj@Viralbridge.io' } },
 ];
 
 const MOCK_STATS: AuditLogStats = { total: 248, today: 12, byEntity: [{ entity: 'User', _count: { entity: 102 } }, { entity: 'Campaign', _count: { entity: 89 } }, { entity: 'Transaction', _count: { entity: 57 } }] };
