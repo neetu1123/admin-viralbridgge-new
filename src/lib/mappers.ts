@@ -407,6 +407,8 @@ export interface AdminPanelUser {
   collabs?: number;
   followers?: number;
   lastActive: string;
+  featureAccess: 'LIMITED' | 'FULL';
+  accessRequested: boolean;
   activityLog: { date: string; action: string }[];
 }
 
@@ -450,6 +452,8 @@ export function mapAdminUser(raw: Record<string, unknown>): AdminPanelUser | nul
     collabs: Number((creatorProfile?._count as { applications?: number })?.applications ?? 0),
     followers: Number(creatorProfile?.followers ?? 0),
     campaigns: Number((brandProfile?._count as { campaigns?: number })?.campaigns ?? 0),
+    featureAccess: String(raw.feature_access ?? 'FULL').toUpperCase() === 'LIMITED' ? 'LIMITED' : 'FULL',
+    accessRequested: Boolean(raw.access_requested_at),
     activityLog: [{ date: joinedAt, action: 'Account created' }],
   };
 }

@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { logout as performLogout } from './auth';
+import { portalHome } from './featureAccess';
 import {
   buildMarketingBridgeUrl,
   markSsoChecked,
@@ -16,6 +17,8 @@ export interface AuthUser {
   name: string;
   email: string;
   role?: string;
+  feature_access?: 'LIMITED' | 'FULL';
+  access_requested_at?: string | null;
 }
 
 export function useAuth(requiredRole?: 'admin' | 'brand' | 'creator') {
@@ -58,16 +61,7 @@ export function useAuth(requiredRole?: 'admin' | 'brand' | 'creator') {
             ? isAdmin
             : normalizedRequired.includes(userRole);
         if (!roleOk) {
-          const raw = (parsedUser.role || '').toLowerCase();
-          const home =
-            raw === 'brand'
-              ? '/brand-campaign-management'
-              : raw === 'creator'
-                ? '/campaign-discovery'
-                : raw === 'admin' || raw === 'super_admin'
-                  ? '/admin-panel'
-                  : '/sign-up-login-screen';
-          window.location.href = home;
+          window.location.href = portalHome(parsedUser);
           return;
         }
       }

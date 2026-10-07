@@ -101,18 +101,46 @@ function toQuery(params?: Record<string, string | number | boolean | undefined>)
 // ─── Auth APIs ────────────────────────────────────────────────────────────────
 export const authApi = {
   login: (email: string, password: string) =>
-    apiFetch<{ access_token: string; user: { id: string; name: string; email: string; role?: string } }>(
+    apiFetch<{
+      access_token: string;
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role?: string;
+        feature_access?: 'LIMITED' | 'FULL';
+        access_requested_at?: string | null;
+      };
+    }>(
       '/auth/login',
       { method: 'POST', body: JSON.stringify({ email, password }) }
     ),
 
   register: (name: string, email: string, password: string, role: string) =>
-    apiFetch<{ access_token: string; user: { id: string; name: string; email: string } }>(
+    apiFetch<{
+      access_token: string;
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role?: string;
+        feature_access?: 'LIMITED' | 'FULL';
+        access_requested_at?: string | null;
+      };
+    }>(
       '/auth/register',
       { method: 'POST', body: JSON.stringify({ name, email, password, role }) }
     ),
 
-  me: () => apiFetch<{ id: string; name: string; email: string; role?: { name: string } }>('/auth/me'),
+  me: () =>
+    apiFetch<{
+      id: string;
+      name: string;
+      email: string;
+      role?: string | { name: string };
+      feature_access?: 'LIMITED' | 'FULL';
+      access_requested_at?: string | null;
+    }>('/auth/me'),
 
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
 };
@@ -126,6 +154,8 @@ export const adminApi = {
     apiFetch<Array<{
       id: string; name: string; email: string; status: string; is_banned: boolean;
       is_verified: boolean; created_at: string; updated_at: string;
+      feature_access?: string;
+      access_requested_at?: string | null;
       role?: { name: string };
       creator_profile?: { followers: number; _count?: { applications: number } } | null;
       brand_profile?: { company_name: string; _count?: { campaigns: number } } | null;
@@ -137,6 +167,12 @@ export const adminApi = {
   banUser: (id: string) => apiFetch(`/admin/users/${id}/ban`, { method: 'PATCH' }),
 
   unbanUser: (id: string) => apiFetch(`/admin/users/${id}/unban`, { method: 'PATCH' }),
+
+  setFeatureAccess: (id: string, feature_access: 'LIMITED' | 'FULL') =>
+    apiFetch(`/admin/users/${id}/feature-access`, {
+      method: 'PATCH',
+      body: JSON.stringify({ feature_access }),
+    }),
 
   updateUserRole: (id: string, role_id: string) =>
     apiFetch(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role_id }) }),
@@ -433,10 +469,38 @@ export const listingApi = {
     apiFetch<{
       listing: Record<string, unknown> | null;
       accountType: 'FREE_LISTING' | 'BRAND' | 'CREATOR';
+      featureAccess?: 'LIMITED' | 'FULL';
+      accessRequestedAt?: string | null;
       permissions: Record<string, boolean>;
       hasBrandProfile: boolean;
       hasCreatorProfile: boolean;
+      upgradeUrl?: string | null;
     }>('/listings/me'),
+  getSuggestions: (budgetMin?: number, budgetMax?: number) =>
+    apiFetch<{
+      listingReady: boolean;
+      city: string | null;
+      category: string | null;
+      budget: { min: number | null; max: number | null; bands: Array<{ label: string; min: number; max: number | null }> };
+      nearbyCreators: Array<{
+        id: string;
+        name: string;
+        slug: string | null;
+        photo: string | null;
+        niche: string | null;
+        city: string | null;
+        followers: number;
+        rating: number;
+        publicPath: string;
+        estimatedBudget: string;
+      }>;
+      relatedProducts: string[];
+      relatedListings: Array<{ id: string; name: string; slug: string; category: string; city: string; publicPath: string }>;
+    }>(`/listings/me/suggestions${toQuery({ budgetMin, budgetMax })}`),
+  requestAccess: () =>
+    apiFetch<{ status: 'FULL' | 'PENDING'; requestedAt: string | null }>('/listings/me/request-access', {
+      method: 'POST',
+    }),
   create: (type: 'BUSINESS' | 'CREATOR', name?: string) =>
     apiFetch<Record<string, unknown>>('/listings', { method: 'POST', body: JSON.stringify({ type, name }) }),
   update: (id: string, body: Record<string, unknown>) =>

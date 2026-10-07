@@ -6,6 +6,7 @@ import { toast, Toaster } from 'sonner';
 import AppLogo from '@/src/components/ui/AppLogo';
 import { Eye, EyeOff, Copy, Check, ArrowRight, Sparkles, Building2, User, Mail, Lock, Globe, ChevronRight } from 'lucide-react';
 import { authApi } from '@/src/lib/api';
+import { portalHome } from '@/src/lib/featureAccess';
 
 
 type AuthMode = 'login' | 'signup';
@@ -75,18 +76,10 @@ export default function SignUpLoginClient() {
       localStorage.setItem('token', result.access_token);
       localStorage.setItem('user', JSON.stringify(result.user));
       toast.success(`Welcome back, ${result.user.name}!`);
-      // Navigate based on role returned from backend
-      const role = (result.user.role || '').toLowerCase();
       const home =
         redirectTo && redirectTo.startsWith('/')
           ? redirectTo
-          : role === 'brand'
-          ? '/brand-campaign-management'
-          : role === 'creator'
-            ? '/campaign-discovery'
-            : role === 'admin' || role === 'super_admin'
-              ? '/admin-panel'
-              : '/campaign-discovery';
+          : portalHome(result.user);
       window.location.href = home;
     } catch (error: any) {
       toast.error(error.message || 'Invalid email or password');
@@ -110,9 +103,7 @@ export default function SignUpLoginClient() {
       window.location.href =
         redirectTo && redirectTo.startsWith('/')
           ? redirectTo
-          : role === 'brand'
-            ? '/brand-campaign-management'
-            : '/campaign-discovery';
+          : portalHome({ ...result.user, role: result.user.role || role });
     } catch (error: any) {
       toast.error(error.message || 'Signup failed');
       signupForm.setError('email', { message: error.message || 'Signup failed' });

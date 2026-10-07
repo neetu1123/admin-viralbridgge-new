@@ -6,6 +6,9 @@ import Sidebar from './Sidebar';
 import BrandCampaignNudge from './BrandCampaignNudge';
 import MobileTopBar from './MobileTopBar';
 import ApproachBanner from './ApproachBanner';
+import { authApi } from '@/src/lib/api';
+import { getCurrentUser } from '@/src/lib/useAuth';
+import { isLimitedAccess, isLimitedAllowedPath, portalHome } from '@/src/lib/featureAccess';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -19,6 +22,37 @@ export default function AppLayout({ children, role = 'creator', topNavbar }: App
 
   const openMobileNav = useCallback(() => setMobileNavOpen(true), []);
   const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
+
+  const [limited, setLimited] = useState(() => isLimitedAccess(getCurrentUser()));
+
+  useEffect(() => {
+    const stored = getCurrentUser();
+    setLimited(isLimitedAccess(stored));
+    if (role !== 'admin' && stored && isLimitedAccess(stored) && !isLimitedAllowedPath(pathname, role)) {
+      window.location.replace(portalHome(stored));
+      return;
+    }
+
+    void authApi.me()
+      .then((me) => {
+        const roleName = typeof me.role === 'string' ? me.role : me.role?.name;
+        const nextUser = {
+          id: me.id,
+          name: me.name,
+          email: me.email,
+          role: roleName,
+          feature_access: me.feature_access,
+          access_requested_at: me.access_requested_at,
+        };
+        localStorage.setItem('user', JSON.stringify({ ...(stored ?? {}), ...nextUser }));
+        const nextLimited = isLimitedAccess(nextUser);
+        setLimited(nextLimited);
+        if (role !== 'admin' && nextLimited && !isLimitedAllowedPath(pathname, role)) {
+          window.location.replace(portalHome(nextUser));
+        }
+      })
+      .catch(() => undefined);
+  }, [pathname, role]);
 
   // Close drawer on route change
   useEffect(() => {
@@ -78,8 +112,8 @@ export default function AppLayout({ children, role = 'creator', topNavbar }: App
         </main>
       </div>
 
-      {role === 'brand' && <BrandCampaignNudge />}
-      {(role === 'brand' || role === 'creator') && <ApproachBanner role={role} />}
+      {role === 'brand' && !limited && <BrandCampaignNudge />}
+      {(role === 'brand' || role === 'creator') && !limited && <ApproachBanner role={role} />}
     </div>
   );
 }

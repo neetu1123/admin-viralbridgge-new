@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, CheckCircle, Ban, Eye, X, Activity, Loader2 } from 'lucide-react';
+import { Search, ChevronDown, CheckCircle, Ban, Eye, X, Activity, Loader2, Unlock, Lock } from 'lucide-react';
 import { adminApi } from '@/src/lib/api';
 import { mapAdminUsers, type AdminPanelUser } from '@/src/lib/mappers';
 import { downloadCsv } from '@/src/lib/exportCsv';
@@ -58,6 +58,17 @@ export default function AdminUsersContent() {
       loadUsers();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Action failed');
+    }
+  };
+
+  const handleAccess = async (user: AdminPanelUser) => {
+    try {
+      const next = user.featureAccess === 'FULL' ? 'LIMITED' : 'FULL';
+      await adminApi.setFeatureAccess(user.id, next);
+      toast.success(next === 'FULL' ? `${user.name} granted full access` : `${user.name} limited to listing tools`);
+      loadUsers();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Could not update access');
     }
   };
 
@@ -181,7 +192,7 @@ export default function AdminUsersContent() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
-                  {['User', 'Role', 'Status', 'KYC', 'Earnings / Spend', 'Activity', 'Last Active', 'Actions'].map(col => (
+                  {['User', 'Role', 'Status', 'Access', 'KYC', 'Earnings / Spend', 'Activity', 'Last Active', 'Actions'].map(col => (
                     <th key={col} className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{col}</th>
                   ))}
                 </tr>
@@ -208,6 +219,11 @@ export default function AdminUsersContent() {
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusBadge[user.status]?.cls}`}>
                         {statusBadge[user.status]?.label}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${user.featureAccess === 'FULL' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                        {user.featureAccess === 'FULL' ? 'Full' : user.accessRequested ? 'Requested' : 'Limited'}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
@@ -241,6 +257,13 @@ export default function AdminUsersContent() {
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleAccess(user)}
+                          className="p-1.5 rounded-md hover:bg-violet-50 hover:text-violet-700 text-slate-500 transition-colors"
+                          title={user.featureAccess === 'FULL' ? 'Limit to listing tools' : 'Grant full access'}
+                        >
+                          {user.featureAccess === 'FULL' ? <Lock size={14} /> : <Unlock size={14} />}
+                        </button>
                         {user.status !== 'banned' && (
                           <button
                             onClick={() => handleBan(user)}

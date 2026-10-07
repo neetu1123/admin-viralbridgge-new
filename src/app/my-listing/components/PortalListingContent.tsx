@@ -20,7 +20,7 @@ type Listing = {
 
 export default function PortalListingContent() {
   const [listing, setListing] = useState<Listing | null>(null);
-  const [accountType, setAccountType] = useState('FREE_LISTING');
+  const [featureAccess, setFeatureAccess] = useState<'LIMITED' | 'FULL'>('LIMITED');
   const [enquiries, setEnquiries] = useState<Array<{ id: string; name: string; email: string; message: string }>>([]);
   const [analytics, setAnalytics] = useState<{ views: number; enquiries: number } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ export default function PortalListingContent() {
       const mine = await listingApi.getMine();
       const row = mine.listing as Listing | null;
       setListing(row);
-      setAccountType(mine.accountType);
+      setFeatureAccess(mine.featureAccess === 'LIMITED' ? 'LIMITED' : 'FULL');
       if (row) {
         const [stats, leads] = await Promise.all([listingApi.getAnalytics(), listingApi.getEnquiries()]);
         setAnalytics(stats);
@@ -125,12 +125,14 @@ export default function PortalListingContent() {
         )}
       </div>
 
-      {accountType === 'FREE_LISTING' && (
+      {featureAccess !== 'FULL' && (
         <div className="mt-5 border rounded-2xl p-5 bg-slate-50">
           <h3 className="font-semibold">Want campaigns and payments?</h3>
-          <p className="text-sm text-slate-500 mt-1">Upgrade keeps this listing and URL. It does not create a second account.</p>
-          <Link href={listing.type === 'CREATOR' ? '/campaign-discovery' : '/brand-campaign-management'} className="inline-flex mt-3 bg-violet-600 text-white text-sm px-4 py-2 rounded-xl">
-            Explore {listing.type === 'CREATOR' ? 'Creator' : 'Brand'} tools
+          <p className="text-sm text-slate-500 mt-1">
+            Keep this listing and URL. Subscribe or wait for admin approval to unlock the rest of the portal.
+          </p>
+          <Link href="/subscription" className="inline-flex mt-3 bg-violet-600 text-white text-sm px-4 py-2 rounded-xl">
+            Open subscription
           </Link>
         </div>
       )}
