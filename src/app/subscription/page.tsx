@@ -5,7 +5,7 @@ import SubscriptionContent from './components/SubscriptionContent';
 import { useAuth } from '@/src/lib/useAuth';
 
 export default function SubscriptionPage() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth('brand');
   const role = (user?.role || '').toLowerCase();
   const layoutRole = role.includes('brand') ? 'brand' : role.includes('admin') ? 'admin' : 'creator';
 

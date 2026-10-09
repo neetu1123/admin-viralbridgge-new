@@ -27,8 +27,6 @@ const creatorNav = [
   { label: 'Analytics', icon: BarChart3, href: '/creator/analytics', badge: null },
   { label: 'Disputes', icon: Scale, href: '/creator-disputes', badge: null },
   { label: 'My Profile', icon: User, href: '/creator-profile', badge: null },
-  { label: 'My Listing', icon: Store, href: '/my-listing', badge: null },
-  { label: 'Grow my business', icon: Sparkles, href: '/grow-business', badge: null },
 ];
 
 const brandNav = [
@@ -46,13 +44,6 @@ const brandNav = [
   { label: 'Analytics', icon: BarChart3, href: '/analytics', badge: null },
   { label: 'Campaign Analytics', icon: BarChart3, href: '/analytics/campaigns', badge: null },
   { label: 'Disputes', icon: Scale, href: '/brand-disputes', badge: null },
-];
-
-const limitedCreatorNav = [
-  { label: 'Grow my business', icon: Sparkles, href: '/grow-business', badge: null },
-  { label: 'My Listing', icon: Store, href: '/my-listing', badge: null },
-  { label: 'Manage Profile', icon: User, href: '/creator-profile', badge: null },
-  { label: 'Subscription', icon: CreditCard, href: '/subscription', badge: null },
 ];
 
 const limitedBrandNav = [
@@ -323,14 +314,8 @@ export default function Sidebar({ role = 'creator', mobileOpen = false, onMobile
   }
 
   // ── Creator / Brand sidebar ──────────────────────────────────
-  const limited = isLimitedAccess(currentUser ?? getCurrentUser());
-  const navItems = limited
-    ? role === 'brand'
-      ? limitedBrandNav
-      : limitedCreatorNav
-    : role === 'brand'
-      ? brandNav
-      : creatorNav;
+  const limited = role === 'brand' && isLimitedAccess(currentUser ?? getCurrentUser());
+  const navItems = role === 'brand' ? (limited ? limitedBrandNav : brandNav) : creatorNav;
 
   return (
     <aside
@@ -399,7 +384,7 @@ export default function Sidebar({ role = 'creator', mobileOpen = false, onMobile
             <Settings size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
             {!showCollapsed && <span className="text-sm">Settings</span>}
           </Link>
-          {!limited && (
+          {role === 'brand' && !limited && (
             <Link href="/subscription" onClick={handleNavClick} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${showCollapsed ? 'justify-center' : ''}`} title={showCollapsed ? 'Subscription' : undefined}>
               <CreditCard size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
               {!showCollapsed && <span className="text-sm">Subscription</span>}

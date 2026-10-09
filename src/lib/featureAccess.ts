@@ -17,33 +17,28 @@ export function isAdminRole(role?: string | null): boolean {
 
 export function isLimitedAccess(user?: AccessUser | null): boolean {
   if (!user || isAdminRole(user.role)) return false;
-  return normalizeFeatureAccess(user.feature_access) !== 'FULL';
+  const role = String(user.role ?? '').toLowerCase();
+  if (role !== 'brand') return false;
+  return normalizeFeatureAccess(user.feature_access) === 'LIMITED';
 }
 
 export function portalHome(user?: AccessUser | null): string {
   const role = String(user?.role ?? '').toLowerCase();
   if (isAdminRole(role)) return '/admin-panel';
-  if (isLimitedAccess(user)) return '/grow-business';
+  if (role === 'brand' && isLimitedAccess(user)) return '/my-listing';
   if (role === 'brand') return '/brand-campaign-management';
   return '/campaign-discovery';
 }
 
 export function isLimitedAllowedPath(pathname: string, role?: string | null): boolean {
+  if (role !== 'brand') return true;
   const prefixes = [
     '/grow-business',
     '/my-listing',
     '/subscription',
     '/support',
     '/brand-settings',
-    '/creator-settings',
-    '/creator-profile',
     '/brand-notifications',
-    '/creator-notifications',
   ];
-  if (role === 'brand') {
-    return prefixes
-      .filter((path) => !path.startsWith('/creator-'))
-      .some((path) => pathname === path || pathname.startsWith(`${path}/`));
-  }
   return prefixes.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }

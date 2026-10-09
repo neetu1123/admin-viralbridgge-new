@@ -487,22 +487,47 @@ export const listingApi = {
         name: string;
         slug: string | null;
         photo: string | null;
+        bio: string | null;
         niche: string | null;
+        category: string | null;
         city: string | null;
         followers: number;
         rating: number;
+        reviewCount: number;
+        engagementRate: number;
+        languages: string[];
+        featured: boolean;
         publicPath: string;
         estimatedBudget: string;
       }>;
       relatedProducts: string[];
-      relatedListings: Array<{ id: string; name: string; slug: string; category: string; city: string; publicPath: string }>;
+      relatedListings: Array<{
+        id: string;
+        name: string;
+        slug: string;
+        logo: string;
+        shortDescription: string;
+        category: string;
+        city: string;
+        locationLabel: string;
+        verified: boolean;
+        tags: string[];
+        publicPath: string;
+      }>;
     }>(`/listings/me/suggestions${toQuery({ budgetMin, budgetMax })}`),
   requestAccess: () =>
     apiFetch<{ status: 'FULL' | 'PENDING'; requestedAt: string | null }>('/listings/me/request-access', {
       method: 'POST',
     }),
-  create: (type: 'BUSINESS' | 'CREATOR', name?: string) =>
+  create: (type: 'BUSINESS' | 'CREATOR' = 'BUSINESS', name?: string) =>
     apiFetch<Record<string, unknown>>('/listings', { method: 'POST', body: JSON.stringify({ type, name }) }),
+  uploadImage: (file: File) => {
+    const form = new FormData();
+    form.append('image', file);
+    return apiUpload<{ url: string }>('/listings/upload', form);
+  },
+  getCategories: (type = 'business') =>
+    apiFetch<Array<{ name: string; slug?: string }>>(`/discover/categories${toQuery({ type })}`),
   update: (id: string, body: Record<string, unknown>) =>
     apiFetch<Record<string, unknown>>(`/listings/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   publish: (id: string) => apiFetch<Record<string, unknown>>(`/listings/${id}/publish`, { method: 'POST' }),
