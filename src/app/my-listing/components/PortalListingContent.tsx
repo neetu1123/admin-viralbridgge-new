@@ -279,6 +279,9 @@ export default function PortalListingContent() {
           <p className="text-sm text-slate-500 mt-1">Manage the public Discover profile for this Brand account.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href="/my-listing/performance" className="border text-sm px-4 py-2 rounded-xl">
+            Performance
+          </Link>
           {listing.publicPath ? (
             <a href={`${PUBLIC_SITE}${listing.publicPath}`} className="border text-sm px-4 py-2 rounded-xl" target="_blank" rel="noreferrer">
               View public profile

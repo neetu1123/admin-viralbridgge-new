@@ -534,7 +534,21 @@ export const listingApi = {
   unpublish: (id: string) => apiFetch<Record<string, unknown>>(`/listings/${id}/unpublish`, { method: 'POST' }),
   upgrade: (id: string) => apiFetch<{ listing: Record<string, unknown>; message: string }>(`/listings/${id}/upgrade`, { method: 'POST' }),
   getEnquiries: () => apiFetch<Array<{ id: string; name: string; email: string; phone?: string | null; message: string; created_at: string }>>('/listings/me/enquiries'),
-  getAnalytics: () => apiFetch<{ views: number; enquiries: number; contacts: number; searches: number }>('/listings/me/analytics'),
+  getAnalytics: () =>
+    apiFetch<{
+      listing?: { id: string; name: string; slug: string; status: string } | null;
+      views: number;
+      enquiries: number;
+      contacts: number;
+      searches: number;
+      whatsapp?: number;
+      calls?: number;
+      website?: number;
+      contactClicks?: number;
+      enquiryEvents?: number;
+      last30Days?: Record<string, number>;
+      totals?: Record<string, number>;
+    }>('/listings/me/analytics'),
 };
 
 export interface NotificationItem {

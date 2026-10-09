@@ -7,10 +7,8 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X, Store, Sparkles } from 'lucide-react';
-import { isLimitedAccess } from '@/src/lib/featureAccess';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X, Store, Sparkles, Activity } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
-
 
 interface SidebarProps {
   role?: 'creator' | 'brand' | 'admin';
@@ -32,6 +30,7 @@ const creatorNav = [
 const brandNav = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/brand-campaign-management', badge: null },
   { label: 'My Listing', icon: Store, href: '/my-listing', badge: null },
+  { label: 'Listing Performance', icon: Activity, href: '/my-listing/performance', badge: null },
   { label: 'Grow my business', icon: Sparkles, href: '/grow-business', badge: null },
   { label: 'My Campaigns', icon: Briefcase, href: '/brand-my-campaigns', badge: null },
   { label: 'Create Campaign', icon: Plus, href: '/brand-campaign-management/create', badge: null },
@@ -44,13 +43,6 @@ const brandNav = [
   { label: 'Analytics', icon: BarChart3, href: '/analytics', badge: null },
   { label: 'Campaign Analytics', icon: BarChart3, href: '/analytics/campaigns', badge: null },
   { label: 'Disputes', icon: Scale, href: '/brand-disputes', badge: null },
-];
-
-const limitedBrandNav = [
-  { label: 'Grow my business', icon: Sparkles, href: '/grow-business', badge: null },
-  { label: 'My Listing', icon: Store, href: '/my-listing', badge: null },
-  { label: 'Manage Profile', icon: User, href: '/brand-settings', badge: null },
-  { label: 'Subscription', icon: CreditCard, href: '/subscription', badge: null },
 ];
 
 interface AdminNavSection {
@@ -314,8 +306,7 @@ export default function Sidebar({ role = 'creator', mobileOpen = false, onMobile
   }
 
   // ── Creator / Brand sidebar ──────────────────────────────────
-  const limited = role === 'brand' && isLimitedAccess(currentUser ?? getCurrentUser());
-  const navItems = role === 'brand' ? (limited ? limitedBrandNav : brandNav) : creatorNav;
+  const navItems = role === 'brand' ? brandNav : creatorNav;
 
   return (
     <aside
@@ -337,7 +328,7 @@ export default function Sidebar({ role = 'creator', mobileOpen = false, onMobile
       </div>
       {!showCollapsed && (
         <div className="px-4 pt-3 pb-1">
-          <span className={`text-xs font-600 px-2 py-0.5 rounded-full font-medium ${roleColor}`}>{roleLabel}{limited ? ' · Limited' : ''} Account</span>
+          <span className={`text-xs font-600 px-2 py-0.5 rounded-full font-medium ${roleColor}`}>{roleLabel} Account</span>
         </div>
       )}
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto scrollbar-thin">
@@ -345,7 +336,9 @@ export default function Sidebar({ role = 'creator', mobileOpen = false, onMobile
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
-            (item.href !== '/brand-campaign-management' && pathname.startsWith(`${item.href}/`));
+            (item.href !== '/brand-campaign-management' &&
+              item.href !== '/my-listing' &&
+              pathname.startsWith(`${item.href}/`));
           const Icon = item.icon;
           return (
             <Link
@@ -384,7 +377,7 @@ export default function Sidebar({ role = 'creator', mobileOpen = false, onMobile
             <Settings size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
             {!showCollapsed && <span className="text-sm">Settings</span>}
           </Link>
-          {role === 'brand' && !limited && (
+          {role === 'brand' && (
             <Link href="/subscription" onClick={handleNavClick} className={`group flex items-center gap-3 px-2 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 ${showCollapsed ? 'justify-center' : ''}`} title={showCollapsed ? 'Subscription' : undefined}>
               <CreditCard size={18} className="flex-shrink-0 text-slate-500 group-hover:text-slate-700" />
               {!showCollapsed && <span className="text-sm">Subscription</span>}

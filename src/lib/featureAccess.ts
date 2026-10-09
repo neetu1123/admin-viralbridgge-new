@@ -25,7 +25,6 @@ export function isLimitedAccess(user?: AccessUser | null): boolean {
 export function portalHome(user?: AccessUser | null): string {
   const role = String(user?.role ?? '').toLowerCase();
   if (isAdminRole(role)) return '/admin-panel';
-  if (role === 'brand' && isLimitedAccess(user)) return '/my-listing';
   if (role === 'brand') return '/brand-campaign-management';
   return '/campaign-discovery';
 }

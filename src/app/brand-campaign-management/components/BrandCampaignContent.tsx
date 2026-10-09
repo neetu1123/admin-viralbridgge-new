@@ -273,13 +273,22 @@ export default function BrandCampaignContent() {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Marketing performance, creator intelligence & reach analytics</p>
         </div>
-        <Link
-          href="/brand-campaign-management/create"
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all duration-150 shadow-sm"
-        >
-          <Plus size={16} />
-          Create Campaign
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/my-listing/performance"
+            className="flex items-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-4 py-2.5 rounded-lg text-sm transition-all duration-150 shadow-sm"
+          >
+            <BarChart3 size={16} />
+            Performance
+          </Link>
+          <Link
+            href="/brand-campaign-management/create"
+            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all duration-150 shadow-sm"
+          >
+            <Plus size={16} />
+            Create Campaign
+          </Link>
+        </div>
       </div>
 
       {/* ROW 1 — Executive Metrics (Big Cards) */}
