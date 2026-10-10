@@ -476,11 +476,23 @@ export const listingApi = {
       hasCreatorProfile: boolean;
       upgradeUrl?: string | null;
     }>('/listings/me'),
-  getSuggestions: (budgetMin?: number, budgetMax?: number) =>
+  getSuggestions: (filters?: {
+    budgetMin?: number;
+    budgetMax?: number;
+    city?: string;
+    sort?: string;
+    objective?: string;
+    category?: string;
+    language?: string;
+    featured?: string;
+  }) =>
     apiFetch<{
       listingReady: boolean;
       city: string | null;
+      listingCity?: string | null;
       category: string | null;
+      sort?: string;
+      objective?: string | null;
       budget: { min: number | null; max: number | null; bands: Array<{ label: string; min: number; max: number | null }> };
       nearbyCreators: Array<{
         id: string;
@@ -514,7 +526,7 @@ export const listingApi = {
         tags: string[];
         publicPath: string;
       }>;
-    }>(`/listings/me/suggestions${toQuery({ budgetMin, budgetMax })}`),
+    }>(`/listings/me/suggestions${toQuery(filters)}`),
   requestAccess: () =>
     apiFetch<{ status: 'FULL' | 'PENDING'; requestedAt: string | null }>('/listings/me/request-access', {
       method: 'POST',
