@@ -832,6 +832,23 @@ export const brandApi = {
 };
 
 // ─── Creator APIs ─────────────────────────────────────────────────────────────
+export type LocationOption = { name: string; isoCode: string; countryCode?: string };
+
+export const locationsApi = {
+  countries: (q?: string) =>
+    apiFetch<LocationOption[]>(`/locations/countries${toQuery({ q })}`),
+  states: (countryCode: string, q?: string) =>
+    apiFetch<{ hasStates: boolean; states: LocationOption[] }>(`/locations/states${toQuery({ countryCode, q })}`),
+  cities: (countryCode: string, stateCode?: string, q?: string) =>
+    apiFetch<LocationOption[]>(`/locations/cities${toQuery({ countryCode, stateCode, q })}`),
+  resolve: (country?: string, state?: string) =>
+    apiFetch<{
+      country: LocationOption | null;
+      state: LocationOption | null;
+      hasStates: boolean;
+    }>(`/locations/resolve${toQuery({ country, state })}`),
+};
+
 export const creatorApi = {
   getProfile: () => apiFetch('/creator/profile'),
   updateProfile: (data: Record<string, unknown>) =>

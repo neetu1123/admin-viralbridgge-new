@@ -7,6 +7,7 @@ import Icon from '@/src/components/ui/AppIcon';
 import ProfileCompletionBanner from '@/src/components/ProfileCompletionBanner';
 import CreatorPortfolioSection from '@/src/components/portfolio/CreatorPortfolioSection';
 import { creatorProfileCompletion } from '@/src/lib/profileCompletion';
+import LocationPicker from '@/src/components/location/LocationPicker';
 
 
 
@@ -27,6 +28,16 @@ function formatHandleForDisplay(value: string): string {
   return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
 }
 
+function splitLegacyLocation(locality: string) {
+  const parts = locality.split(',').map((part) => part.trim()).filter(Boolean);
+  if (parts.length >= 3) {
+    return { city: parts[0], state: parts[1], country: parts.slice(2).join(', ') };
+  }
+  if (parts.length === 2) return { city: parts[0], state: '', country: parts[1] };
+  if (parts.length === 1) return { city: parts[0], state: '', country: '' };
+  return { city: '', state: '', country: '' };
+}
+
 function toPortfolioItem(item: unknown, index: number): PortfolioItem {
   const row = item && typeof item === 'object' ? (item as Record<string, unknown>) : {};
   return {
@@ -45,7 +56,9 @@ export default function CreatorProfileContent() {
   const [name, setName] = useState('');
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
-  const [location, setLocation] = useState('');
+  const [country, setCountry] = useState('');
+  const [stateName, setStateName] = useState('');
+  const [city, setCity] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [website, setWebsite] = useState('');
@@ -74,7 +87,19 @@ export default function CreatorProfileContent() {
       const rawHandle = String(profile.handle ?? social.handle ?? (social.instagram ? String(social.instagram).split('/').pop() : ''));
       setHandle(formatHandleForDisplay(rawHandle));
       setBio(String(profile.bio ?? ''));
-      setLocation(String(profile.locality ?? ''));
+      const savedCountry = String(social.country ?? '').trim();
+      const savedState = String(profile.state ?? '').trim();
+      const savedCity = String(profile.city ?? '').trim();
+      if (savedCountry || savedState || savedCity) {
+        setCountry(savedCountry);
+        setStateName(savedState);
+        setCity(savedCity);
+      } else {
+        const parsed = splitLegacyLocation(String(profile.locality ?? ''));
+        setCountry(parsed.country);
+        setStateName(parsed.state);
+        setCity(parsed.city);
+      }
       setEmail(String(profile.contact_email || user.email || ''));
       setPhone(String(profile.phone ?? ''));
       setInstagram(String(social.instagram ?? ''));
@@ -119,6 +144,8 @@ export default function CreatorProfileContent() {
     loadProfile();
   }, [loadProfile]);
 
+  const locationLabel = [city, stateName, country].filter(Boolean).join(', ');
+
   const profileCompletion = creatorProfileCompletion({
     name,
     email,
@@ -126,7 +153,7 @@ export default function CreatorProfileContent() {
     bio,
     photo: photoUrl,
     niche: selectedNiches[0],
-    locality: location,
+    locality: locationLabel,
     instagram,
     youtube,
     tiktok,
@@ -158,7 +185,10 @@ export default function CreatorProfileContent() {
         bio,
         niche: selectedNiches[0] || 'General',
         niches: selectedNiches,
-        locality: location,
+        locality: locationLabel,
+        country,
+        state: stateName,
+        city,
         contactEmail: email,
         phone,
         instagram,
@@ -347,9 +377,19 @@ export default function CreatorProfileContent() {
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Location</label>
-                <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" placeholder="City, Country" />
+              <div className="md:col-span-2">
+                <p className="mb-1.5 text-xs font-semibold text-slate-600">Location</p>
+                <LocationPicker
+                  country={country}
+                  stateName={stateName}
+                  city={city}
+                  onChange={(next) => {
+                    setCountry(next.country);
+                    setStateName(next.state);
+                    setCity(next.city);
+                  }}
+                />
+                {locationLabel ? <p className="mt-2 text-xs text-slate-400">{locationLabel}</p> : null}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Contact Email</label>
