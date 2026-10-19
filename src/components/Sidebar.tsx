@@ -7,7 +7,7 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X, Store, Sparkles, Activity } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X, Store, Sparkles, Activity, UserPlus } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 interface SidebarProps {
@@ -35,6 +35,7 @@ const brandNav = [
   { label: 'My Campaigns', icon: Briefcase, href: '/brand-my-campaigns', badge: null },
   { label: 'Create Campaign', icon: Plus, href: '/brand-campaign-management/create', badge: null },
   { label: 'Applicants', icon: Users, href: '/brand-applicant', badge: null },
+  { label: 'Invited Creators', icon: UserPlus, href: '/brand-applicant#invited', badge: null },
   { label: 'Review Deliverables', icon: Upload, href: '/brand-deliverables', badge: null },
   { label: 'Creator Discovery', icon: Compass, href: '/creator-discovery', badge: null },
   { label: 'My Creators', icon: BookOpen, href: '/my-creators', badge: null },

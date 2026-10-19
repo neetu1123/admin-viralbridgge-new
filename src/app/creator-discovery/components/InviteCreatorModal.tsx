@@ -63,7 +63,7 @@ export default function InviteCreatorModal({
         creatorName: creatorName || displayHandle || 'Creator',
       });
       const label = displayHandle ?? creatorName;
-      toast.success(`Invite sent${label ? ` to ${label}` : ''}! It will show in the creator's notifications and My Campaigns.`);
+      toast.success(`Invite sent${label ? ` to ${label}` : ''}! See the list on Applicants.`);
       onSuccess();
       onClose();
     } catch (error) {

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Eye, User } from 'lucide-react';
+import { Search, ChevronDown, Users, TrendingUp, Star, MessageSquare, UserCheck, Eye, User, Mail } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
 import {
   extractList,
@@ -22,6 +22,13 @@ const applicantStatusConfig: Record<string, { label: string; cls: string }> = {
 
 export default function BrandApplicantsContent() {
   const [applicants, setApplicants] = useState<BrandApplicantRow[]>([]);
+  const [invites, setInvites] = useState<Array<{
+    id: string;
+    campaignTitle: string;
+    creatorName: string;
+    sentAt: string;
+    isRead: boolean;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -30,7 +37,19 @@ export default function BrandApplicantsContent() {
   const loadApplicants = useCallback(async () => {
     setLoading(true);
     try {
-      const campaignsRes = await brandApi.getCampaigns({ limit: 50 });
+      const [campaignsRes, invitesRes] = await Promise.all([
+        brandApi.getCampaigns({ limit: 50 }),
+        brandApi.getInvites().catch(() => ({ data: [] })),
+      ]);
+      setInvites(
+        (invitesRes.data ?? []).map((invite) => ({
+          id: invite.id,
+          campaignTitle: invite.campaignTitle,
+          creatorName: invite.creatorName,
+          sentAt: String(invite.sentAt ?? '').slice(0, 10),
+          isRead: invite.isRead,
+        })),
+      );
       const rawCampaigns = extractList<Record<string, unknown>>(campaignsRes);
 
       const embedded = rawCampaigns.flatMap((campaign) =>
@@ -114,7 +133,42 @@ export default function BrandApplicantsContent() {
       <Toaster position="bottom-right" richColors />
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Applicants</h1>
-        <p className="text-slate-500 text-sm mt-1">Review and manage creator applications across your campaigns</p>
+        <p className="text-slate-500 text-sm mt-1">Invited creators and applications across your campaigns</p>
+      </div>
+
+      <div id="invited" className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-5 scroll-mt-24">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-slate-800">Invited creators</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Creators you invited from Creator Discovery</p>
+          </div>
+          <span className="text-xs font-medium bg-violet-50 text-violet-700 px-2.5 py-1 rounded-full">{invites.length} sent</span>
+        </div>
+        <div className="divide-y divide-slate-50">
+          {invites.length === 0 ? (
+            <div className="px-5 py-8 text-sm text-slate-500">
+              No invites sent yet.{' '}
+              <Link href="/creator-discovery" className="font-semibold text-violet-600 hover:text-violet-700">
+                Invite a creator
+              </Link>
+            </div>
+          ) : (
+            invites.map((invite) => (
+              <div key={invite.id} className="px-5 py-3 flex items-center justify-between gap-3">
+                <div className="flex items-start gap-2 min-w-0">
+                  <Mail size={15} className="text-violet-600 mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{invite.creatorName}</p>
+                    <p className="text-xs text-slate-500 truncate">{invite.campaignTitle}</p>
+                  </div>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${invite.isRead ? 'bg-slate-100 text-slate-600' : 'bg-violet-50 text-violet-700'}`}>
+                  {invite.isRead ? 'Seen' : 'Sent'} · {invite.sentAt || '—'}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Applicants list */}
