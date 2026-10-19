@@ -43,19 +43,19 @@ export default function MyApplicationsContent() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [appsRes, dashRes, notifRes] = await Promise.all([
+      const [appsRes, dashRes, inviteRes] = await Promise.all([
         creatorApi.getApplications({ limit: 100 }),
         creatorApi.getDashboard(),
-        creatorApi.getNotifications({ limit: 20, unread: true }),
+        creatorApi.getInvites().catch(() => creatorApi.getNotifications({ limit: 50, type: 'CAMPAIGN_INVITE' })),
       ]);
       const mapped = extractList<Record<string, unknown>>(appsRes).map(mapCreatorApplication);
       setApplications(mapped);
       const appliedCampaignIds = new Set(mapped.map((a) => a.campaignId));
-      const invites = (notifRes.data ?? []).filter((n) => {
+      const invites = (inviteRes.data ?? []).filter((n) => {
         const url = getNotificationActionUrl(n);
-        if (!url?.includes('campaign-discovery')) return false;
+        if (!url?.includes('campaign-discovery')) return true;
         const campaignId = url.split('apply=')[1]?.split('&')[0];
-        return campaignId && !appliedCampaignIds.has(campaignId);
+        return !campaignId || !appliedCampaignIds.has(campaignId);
       });
       setPendingInvites(invites);
       const dash = dashRes as {
@@ -165,34 +165,45 @@ export default function MyApplicationsContent() {
         <span className="text-xs text-slate-400">{filtered.length} applications</span>
       </div>
 
-      {pendingInvites.length > 0 && (
-        <div className="mb-4 space-y-2">
-          {pendingInvites.map((invite) => {
-            const actionUrl = getNotificationActionUrl(invite);
-            if (!actionUrl) return null;
-            return (
-              <div
-                key={invite.id}
-                className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
-              >
-                <div className="flex items-start gap-2 min-w-0">
-                  <Mail size={16} className="text-violet-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{invite.title}</p>
-                    <p className="text-xs text-slate-500">{invite.message}</p>
-                  </div>
-                </div>
-                <Link
-                  href={actionUrl}
-                  className="text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  Accept Invitation
-                </Link>
-              </div>
-            );
-          })}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-slate-800">Campaign invitations</h2>
+          <Link href="/creator-notifications" className="text-xs font-medium text-violet-600 hover:text-violet-700">
+            View all notifications
+          </Link>
         </div>
-      )}
+        {pendingInvites.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-xl px-4 py-4 text-sm text-slate-500">
+            No campaign invites yet. When a brand invites you, it will appear here.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {pendingInvites.map((invite) => {
+              const actionUrl = getNotificationActionUrl(invite) ?? '/campaign-discovery';
+              return (
+                <div
+                  key={invite.id}
+                  className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+                >
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Mail size={16} className="text-violet-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{invite.title}</p>
+                      <p className="text-xs text-slate-500">{invite.message}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href={actionUrl}
+                    className="text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    View Invitation
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <div className="text-center py-12 text-slate-500 text-sm">Loading applications...</div>

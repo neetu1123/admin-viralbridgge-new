@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, X, Shield, UserPlus, Users, Activity, ShieldCheck, Award } from 'lucide-react';
+import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
 import { rolesApi, adminApi } from '@/src/lib/api';
 
@@ -394,7 +395,14 @@ export default function RolesContent() {
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Shield size={22} className="text-violet-600" /> Admin Roles & Access
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Manage role-based access control and assign administrative privileges</p>
+          <p className="text-slate-500 text-sm mt-1">Staff admin accounts only — not brand or creator marketplace approval</p>
+          <p className="text-xs text-slate-400 mt-1">
+            Brand and creator signups are reviewed on{' '}
+            <Link href="/admin-panel/users" className="text-violet-600 hover:underline font-medium">Users</Link>
+            {' '}and{' '}
+            <Link href="/admin-panel/kyc" className="text-violet-600 hover:underline font-medium">KYC Verification</Link>.
+            Active here means the admin login is enabled.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={openCreateRole} className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium px-4 py-2.5 rounded-xl transition-all shadow-sm">

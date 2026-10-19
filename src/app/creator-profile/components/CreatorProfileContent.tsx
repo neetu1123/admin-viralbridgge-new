@@ -59,6 +59,8 @@ export default function CreatorProfileContent() {
   const [country, setCountry] = useState('');
   const [stateName, setStateName] = useState('');
   const [city, setCity] = useState('');
+  const [area, setArea] = useState('');
+  const [pincode, setPincode] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [website, setWebsite] = useState('');
@@ -100,6 +102,8 @@ export default function CreatorProfileContent() {
         setStateName(parsed.state);
         setCity(parsed.city);
       }
+      setArea(String(profile.area ?? social.area ?? ''));
+      setPincode(String(profile.pincode ?? social.pincode ?? ''));
       setEmail(String(profile.contact_email || user.email || ''));
       setPhone(String(profile.phone ?? ''));
       setInstagram(String(social.instagram ?? ''));
@@ -164,6 +168,27 @@ export default function CreatorProfileContent() {
   });
 
   const saveProfile = async () => {
+    if (!name.trim()) {
+      toast.error('Full name is required');
+      return;
+    }
+    if (!photoUrl) {
+      toast.error('Profile photo is required');
+      return;
+    }
+    if (!bio.trim() || bio.trim().length < 20) {
+      toast.error('Bio is required (at least 20 characters)');
+      return;
+    }
+    const hasSocialLink = [instagram, youtube, twitter, tiktok].some((link) => link.trim());
+    if (!hasSocialLink) {
+      toast.error('Add at least one social link (Instagram, YouTube, Twitter, or TikTok)');
+      return;
+    }
+    if (pincode.trim() && !/^[A-Za-z0-9\s-]{3,12}$/.test(pincode.trim())) {
+      toast.error('Enter a valid pincode / postal code');
+      return;
+    }
     const handleClean = handle.trim();
     if (handleClean && !/^@?[a-zA-Z0-9._-]{2,30}$/.test(handleClean.replace(/^@/, ''))) {
       toast.error('Handle must be 2–30 characters (letters, numbers, . _ -). @ is allowed.');
@@ -181,14 +206,16 @@ export default function CreatorProfileContent() {
     setSaving(true);
     try {
       await creatorApi.updateProfile({
-        fullName: name,
-        bio,
+        fullName: name.trim(),
+        bio: bio.trim(),
         niche: selectedNiches[0] || 'General',
         niches: selectedNiches,
         locality: locationLabel,
         country,
         state: stateName,
         city,
+        area: area.trim(),
+        pincode: pincode.trim(),
         contactEmail: email,
         phone,
         instagram,
@@ -263,13 +290,18 @@ export default function CreatorProfileContent() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800">My Profile</h1>
           <p className="text-slate-500 text-sm mt-1">Update your creator profile, social links, and media kit</p>
+          {!kycVerified && !loading && (
+            <p className="text-xs text-amber-700 mt-1.5">
+              Brands and the public can see this profile only after admin KYC approval.
+            </p>
+          )}
         </div>
         <button
           onClick={saveProfile}
           disabled={saving || loading}
           className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all disabled:opacity-70"
         >
-          <Save size={15} /> {saving ? 'Saving...' : 'Save Profile'}
+          <Save size={15} /> {saving ? 'Saving...' : 'Save All Changes'}
         </button>
       </div>
 
@@ -284,7 +316,7 @@ export default function CreatorProfileContent() {
         <div className="space-y-5">
           {/* Profile photo */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-slate-700 mb-4">Profile Photo</h2>
+            <h2 className="text-sm font-semibold text-slate-700 mb-4">Profile Photo <span className="text-red-500">*</span></h2>
             <div className="flex flex-col items-center">
               <div className="relative mb-4">
                 {photoUrl ? (
@@ -357,7 +389,7 @@ export default function CreatorProfileContent() {
             <h2 className="text-sm font-semibold text-slate-700 mb-4">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Full Name</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Full Name <span className="text-red-500">*</span></label>
                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
               </div>
               <div>
@@ -392,6 +424,27 @@ export default function CreatorProfileContent() {
                 {locationLabel ? <p className="mt-2 text-xs text-slate-400">{locationLabel}</p> : null}
               </div>
               <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Area</label>
+                <input
+                  type="text"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="Neighbourhood / locality"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Pincode</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  placeholder="e.g. 110001"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                />
+              </div>
+              <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Contact Email</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
               </div>
@@ -405,7 +458,7 @@ export default function CreatorProfileContent() {
               </div>
             </div>
             <div className="mt-4">
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Bio</label>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Bio <span className="text-red-500">*</span></label>
               <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 resize-none" placeholder="Tell brands about yourself, your content style, and your audience..." />
               <p className="text-xs text-slate-400 mt-1">{bio.length}/500 characters</p>
             </div>
@@ -413,7 +466,8 @@ export default function CreatorProfileContent() {
 
           {/* Social Links */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-slate-700 mb-4">Social Links</h2>
+            <h2 className="text-sm font-semibold text-slate-700 mb-1">Social Links <span className="text-red-500">*</span></h2>
+            <p className="text-xs text-slate-400 mb-4">At least one social profile is required</p>
             <div className="space-y-3">
               {socialLinks.map(social => (
                 <div key={social.label} className="flex items-center gap-3">

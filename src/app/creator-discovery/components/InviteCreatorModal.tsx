@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import Modal from '@/src/components/ui/Modal';
 import { brandApi } from '@/src/lib/api';
 import { extractList } from '@/src/lib/mappers';
+import { recordSentCampaignInvite } from '@/src/lib/campaignInvites';
 interface InviteCreatorModalProps {
   creatorId: string;
   creatorName?: string;
@@ -54,8 +55,15 @@ export default function InviteCreatorModal({
     setSubmitting(true);
     try {
       await brandApi.inviteCreator(selectedCampaignId, creatorId);
+      const campaign = campaigns.find((c) => c.id === selectedCampaignId);
+      recordSentCampaignInvite({
+        campaignId: selectedCampaignId,
+        campaignTitle: campaign?.title ?? 'Campaign',
+        creatorId,
+        creatorName: creatorName || displayHandle || 'Creator',
+      });
       const label = displayHandle ?? creatorName;
-      toast.success(`Invite sent${label ? ` to ${label}` : ''}!`);
+      toast.success(`Invite sent${label ? ` to ${label}` : ''}! It will show in the creator's notifications and My Campaigns.`);
       onSuccess();
       onClose();
     } catch (error) {

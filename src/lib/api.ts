@@ -742,6 +742,32 @@ export const brandApi = {
   shortlistApplication: (id: string) => apiFetch(`/brand/applications/${id}/shortlist`, { method: 'POST' }),
   inviteCreator: (campaignId: string, creatorId: string) =>
     apiFetch(`/brand/campaigns/${campaignId}/invite/${creatorId}`, { method: 'POST' }),
+  getInvites: () =>
+    apiFetch<{
+      data: Array<{
+        id: string;
+        campaignId: string | null;
+        campaignTitle: string;
+        creatorId: string;
+        creatorName: string;
+        message: string;
+        isRead: boolean;
+        sentAt: string;
+      }>;
+    }>('/brand/invites'),
+  getCampaignInvites: (campaignId: string) =>
+    apiFetch<{
+      data: Array<{
+        id: string;
+        campaignId: string | null;
+        campaignTitle: string;
+        creatorId: string;
+        creatorName: string;
+        message: string;
+        isRead: boolean;
+        sentAt: string;
+      }>;
+    }>(`/brand/campaigns/${campaignId}/invites`),
   getCampaignDetail: (id: string) => apiFetch(`/brand/campaigns/${id}/detail`),
   getCampaignRecommendations: (campaignId: string) =>
     apiFetch<{
@@ -913,6 +939,8 @@ export const creatorApi = {
   getMessages: (conversationId: string) => apiFetch(`/creator/messages/${conversationId}`),
   sendMessage: (data: { conversationId: string; message: string }) =>
     apiFetch('/creator/messages/send', { method: 'POST', body: JSON.stringify(data) }),
+  getInvites: () =>
+    apiFetch<NotificationListResponse>('/creator/invites'),
   getNotifications: (params?: { page?: number; limit?: number; type?: string; unread?: boolean }) =>
     apiFetch<NotificationListResponse>(`/creator/notifications${toQuery(params)}`),
   getBannerNotifications: () =>
