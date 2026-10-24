@@ -4,15 +4,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
-  Bookmark,
   ChevronLeft,
   ChevronRight,
-  Heart,
   MapPin,
   Sparkles,
   Star,
   UserPlus,
   Users,
+  X,
 } from 'lucide-react';
 import {
   AI_RECOMMENDATION_FILTERS,
@@ -21,10 +20,13 @@ import {
 } from '@/src/lib/mock/aiRecommendations';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 
+const COORDINATOR_FEE = 100;
+
 export default function AiRecommendationsSection() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<AiRecommendationFilter>('all');
-  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [hired, setHired] = useState<Set<string>>(new Set());
+  const [hireTarget, setHireTarget] = useState<(typeof MOCK_AI_RECOMMENDATIONS)[number] | null>(null);
   const [scrollRef, setScrollRef] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -47,14 +49,12 @@ export default function AiRecommendationsSection() {
     scrollRef.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' });
   };
 
-  const toggleSave = (id: string) => {
-    setSaved((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-    toast.success(saved.has(id) ? 'Removed from saved' : 'Creator saved');
+  const confirmHire = () => {
+    if (!hireTarget) return;
+    const name = hireTarget.name;
+    setHired((prev) => new Set(prev).add(hireTarget.id));
+    setHireTarget(null);
+    toast.success(`Coordinator hired for ${name} at ₹${COORDINATOR_FEE}`);
   };
 
   return (
@@ -159,36 +159,70 @@ export default function AiRecommendationsSection() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Link
                     href="/creator-discovery"
-                    className="col-span-1 text-center text-[11px] font-semibold py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="text-center text-[11px] font-semibold py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     View Profile
                   </Link>
                   <button
                     type="button"
                     onClick={() => toast.success(`Invite sent to ${creator.name}`)}
-                    className="col-span-1 text-[11px] font-semibold py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-colors inline-flex items-center justify-center gap-1"
+                    className="text-[11px] font-semibold py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-colors inline-flex items-center justify-center gap-1"
                   >
                     <UserPlus size={12} /> Invite
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleSave(creator.id)}
-                    className={`col-span-1 text-[11px] font-semibold py-2 rounded-lg border transition-colors inline-flex items-center justify-center gap-1 ${
-                      saved.has(creator.id) ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    {saved.has(creator.id) ? <Heart size={12} className="fill-violet-600 text-violet-600" /> : <Bookmark size={12} />}
-                    Save
-                  </button>
                 </div>
+                <button
+                  type="button"
+                  disabled={hired.has(creator.id)}
+                  onClick={() => setHireTarget(creator)}
+                  className={`mt-2 w-full text-[11px] font-semibold py-2 rounded-lg border transition-colors ${
+                    hired.has(creator.id)
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-fuchsia-200 bg-fuchsia-600 text-white hover:bg-fuchsia-700'
+                  }`}
+                >
+                  {hired.has(creator.id) ? 'Coordinator hired' : `Hire Coordinator · ₹${COORDINATOR_FEE}`}
+                </button>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {hireTarget && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Hire coordinator</h3>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  A coordinator will manage outreach to {hireTarget.name} for this campaign.
+                </p>
+              </div>
+              <button type="button" onClick={() => setHireTarget(null)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100" aria-label="Close">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              <div className="flex items-center justify-between rounded-xl border border-fuchsia-100 bg-fuchsia-50 px-3 py-3">
+                <span className="text-xs font-semibold text-slate-600">Coordinator fee</span>
+                <span className="text-base font-bold text-fuchsia-700">₹{COORDINATOR_FEE}</span>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-4">
+              <button type="button" onClick={() => setHireTarget(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                Cancel
+              </button>
+              <button type="button" onClick={confirmHire} className="rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700">
+                Hire for ₹{COORDINATOR_FEE}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

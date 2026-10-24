@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Briefcase, Calendar, DollarSign, Plus, Upload, Users } from 'lucide-react';
+import { Briefcase, Calendar, IndianRupee, Plus, Upload, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import Modal from '@/src/components/ui/Modal';
@@ -148,7 +148,7 @@ export default function BrandPreviousCampaignsSection() {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-3 text-xs text-slate-500 mb-3">
-                      <span className="inline-flex items-center gap-1"><DollarSign size={12} /> {campaign.budget}</span>
+                      <span className="inline-flex items-center gap-1"><IndianRupee size={12} /> {campaign.budget}</span>
                       <span className="inline-flex items-center gap-1"><Users size={12} /> {campaign.creatorCount} creators</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5 mb-3">

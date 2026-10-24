@@ -1,11 +1,12 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Users, DollarSign, TrendingUp, Clock, CheckCircle, XCircle, Ban, Search, ArrowUpRight, Eye, Flag, Download, ChevronDown, Activity, Wallet, AlertTriangle, Zap, RefreshCw, Lock, Unlock, RotateCcw, GitMerge, Slash, UserCheck, FileText, Star, ArrowRight, Shield } from 'lucide-react';
+import { Users, IndianRupee, TrendingUp, Clock, CheckCircle, XCircle, Ban, Search, ArrowUpRight, Eye, Flag, Download, ChevronDown, Activity, Wallet, AlertTriangle, Zap, RefreshCw, Lock, Unlock, RotateCcw, GitMerge, Slash, UserCheck, FileText, Star, ArrowRight, Shield } from 'lucide-react';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import AdminPlatformChart from './AdminPlatformChart';
 import { adminApi } from '@/src/lib/api';
+import RejectReasonModal from '@/src/components/admin/RejectReasonModal';
 import { mapAdminUsers, mapAdminDisputes, type AdminPanelUser, type AdminDisputeRow } from '@/src/lib/mappers';
 import { useAuth } from '@/src/lib/useAuth';
 import {
@@ -500,6 +501,11 @@ export default function AdminContent() {
   const [campaignDetailItem, setCampaignDetailItem] = useState<AdminCampaign | null>(null);
   const [txnFilter, setTxnFilter] = useState('all');
   const [disputeFilter, setDisputeFilter] = useState('all');
+  const [rejectPrompt, setRejectPrompt] = useState<
+    | { kind: 'user'; id: string; name: string }
+    | { kind: 'campaign'; id: string; name: string }
+    | null
+  >(null);
 
   const displayUsers = apiUsers ? mapAdminUsers(apiUsers) : [];
 
@@ -521,9 +527,8 @@ export default function AdminContent() {
   const handleUserAction = async (userId: string, action: 'verify' | 'ban' | 'suspend' | 'unsuspend') => {
     try {
       if (action === 'ban') {
-        await adminApi.banUser(userId);
-        toast.success('User banned successfully');
-        loadApiData();
+        toast.error('Add a rejection reason before rejecting this account');
+        return;
       } else if (action === 'unsuspend') {
         await adminApi.unbanUser(userId);
         toast.success('User unsuspended successfully');
@@ -548,7 +553,8 @@ export default function AdminContent() {
       if (action === 'approve') {
         await adminApi.approveCampaign(campId);
       } else if (action === 'reject') {
-        await adminApi.rejectCampaign(campId);
+        toast.error('Add a rejection reason before rejecting this campaign');
+        return;
       }
       setCampaignStatuses(prev => ({ ...prev, [campId]: newStatus }));
       const labels: Record<string, string> = { approve: 'approved', reject: 'rejected', freeze: 'frozen', request_changes: 'sent back for changes' };
@@ -684,7 +690,7 @@ export default function AdminContent() {
         <a href="/admin-panel/transactions" className="group bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
           <div className="flex items-center justify-between mb-3">
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Platform Fees</p>
-            <DollarSign size={15} className="text-emerald-500" />
+            <IndianRupee size={15} className="text-emerald-500" />
           </div>
           <p className="text-3xl font-extrabold text-slate-800 tabular-nums">₹{platformFee.toLocaleString()}</p>
           <p className="text-slate-400 text-xs mt-1">This month</p>
@@ -881,7 +887,7 @@ export default function AdminContent() {
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => handleUserAction(user.id, 'verify')} className="p-1.5 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-slate-400 transition-colors" title="Verify manually"><UserCheck size={14} /></button>
                             <button onClick={() => handleUserAction(user.id, user.status === 'suspended' ? 'unsuspend' : 'suspend')} className="p-1.5 rounded-md hover:bg-amber-50 hover:text-amber-700 text-slate-400 transition-colors" title={user.status === 'suspended' ? 'Unsuspend' : 'Suspend'}><Slash size={14} /></button>
-                            <button onClick={() => handleUserAction(user.id, 'ban')} className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-700 text-slate-400 transition-colors" title="Ban account"><Ban size={14} /></button>
+                            <button onClick={() => setRejectPrompt({ kind: 'user', id: user.id, name: user.name })} className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-700 text-slate-400 transition-colors" title="Reject account"><Ban size={14} /></button>
                             <button onClick={() => setActivityLogUser(user)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 transition-colors" title="View activity log"><FileText size={14} /></button>
                           </div>
                         </td>
@@ -946,7 +952,7 @@ export default function AdminContent() {
                                 </button>
                               )}
                               {(currentStatus === 'pending_approval' || currentStatus === 'flagged' || currentStatus === 'active') && (
-                                <button onClick={() => handleCampaignAction(campaign.id, 'reject')} className="flex items-center gap-1 text-xs px-2 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-md transition-colors">
+                                <button onClick={() => setRejectPrompt({ kind: 'campaign', id: campaign.id, name: campaign.title })} className="flex items-center gap-1 text-xs px-2 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-md transition-colors">
                                   <XCircle size={12} /> Reject
                                 </button>
                               )}
@@ -1080,7 +1086,7 @@ export default function AdminContent() {
                         {isActionable && (
                           <div className="flex flex-col gap-2 flex-shrink-0">
                             <button onClick={() => handleDisputeAction(dispute.id, 'resolve')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg font-medium transition-colors whitespace-nowrap"><CheckCircle size={12} /> Resolve</button>
-                            <button onClick={() => handleDisputeAction(dispute.id, 'partial_payout')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg font-medium transition-colors whitespace-nowrap"><DollarSign size={12} /> Partial Payout</button>
+                            <button onClick={() => handleDisputeAction(dispute.id, 'partial_payout')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg font-medium transition-colors whitespace-nowrap"><IndianRupee size={12} /> Partial Payout</button>
                             <button onClick={() => handleDisputeAction(dispute.id, 'refund')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg font-medium transition-colors whitespace-nowrap"><RotateCcw size={12} /> Refund</button>
                             {currentStatus !== 'escalated' && <button onClick={() => handleDisputeAction(dispute.id, 'escalate')} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg font-medium transition-colors whitespace-nowrap"><ArrowUpRight size={12} /> Escalate</button>}
                           </div>
@@ -1366,6 +1372,29 @@ export default function AdminContent() {
           <LiveActivityFeed />
         </div>
       </div>
+      <RejectReasonModal
+        open={Boolean(rejectPrompt)}
+        title={rejectPrompt?.kind === 'campaign' ? `Reject ${rejectPrompt.name}` : `Reject ${rejectPrompt?.name ?? 'this account'}`}
+        description={
+          rejectPrompt?.kind === 'campaign'
+            ? 'The brand gets a notification and an email that includes this reason.'
+            : 'The brand or creator gets a notification and an email that includes this reason.'
+        }
+        onClose={() => setRejectPrompt(null)}
+        onConfirm={async (reason) => {
+          if (!rejectPrompt) return;
+          if (rejectPrompt.kind === 'user') {
+            await adminApi.banUser(rejectPrompt.id, reason);
+            toast.success(`${rejectPrompt.name} was rejected and notified`);
+          } else {
+            await adminApi.rejectCampaign(rejectPrompt.id, reason);
+            setCampaignStatuses((prev) => ({ ...prev, [rejectPrompt.id]: 'rejected' }));
+            toast.success(`Campaign rejected: ${rejectPrompt.name}`);
+          }
+          setRejectPrompt(null);
+          loadApiData();
+        }}
+      />
     </div>
   );
 }

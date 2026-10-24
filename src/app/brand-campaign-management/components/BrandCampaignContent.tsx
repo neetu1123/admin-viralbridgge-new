@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
-import { Plus, Search, ChevronDown, MoreHorizontal, Users, TrendingUp, Eye, Edit, Trash2, PauseCircle, CheckCircle, BarChart3, Zap, MessageSquare, Star, ArrowRight, Sparkles, Trophy, UserCheck, Shield, Activity, Brain, Target, TrendingDown, Award, ShieldCheck, BadgeCheck, AlertTriangle, Flame, ArrowUpRight, Mail } from 'lucide-react';
+import { Plus, Search, ChevronDown, MoreHorizontal, Users, TrendingUp, Eye, Edit, Trash2, PauseCircle, CheckCircle, BarChart3, Zap, MessageSquare, Star, ArrowRight, Sparkles, Trophy, UserCheck, Shield, Activity, Brain, Target, TrendingDown, Award, ShieldCheck, BadgeCheck, AlertTriangle, Flame, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import ApplicantDrawer from './ApplicantDrawer';
 import CampaignStatsChart from './CampaignStatsChart';
 import AiRecommendationsSection from '@/src/components/brand/AiRecommendationsSection';
+import InvitedCreatorsList, { type BrandInviteRow } from '@/src/components/brand/InvitedCreatorsList';
 import { brandApi, platformApi } from '@/src/lib/api';
 import {
   extractList,
@@ -90,13 +91,7 @@ function Sparkline({ data, color = '#7c3aed' }: { data: number[]; color?: string
 export default function BrandCampaignContent() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
-  const [sentInvites, setSentInvites] = useState<Array<{
-    id: string;
-    campaignTitle: string;
-    creatorName: string;
-    sentAt: string;
-    isRead: boolean;
-  }>>([]);
+  const [sentInvites, setSentInvites] = useState<BrandInviteRow[]>([]);
   const [recommendedCreators, setRecommendedCreators] = useState<AiRecommendedCreator[]>([]);
   const [dashboard, setDashboard] = useState<{
     pendingApprovals?: number;
@@ -147,10 +142,14 @@ export default function BrandCampaignContent() {
       setSentInvites(
         (invitesRes.data ?? []).map((invite) => ({
           id: invite.id,
+          campaignId: invite.campaignId,
           campaignTitle: invite.campaignTitle,
+          creatorId: invite.creatorId,
           creatorName: invite.creatorName,
           sentAt: String(invite.sentAt ?? '').slice(0, 10),
           isRead: invite.isRead,
+          status: invite.status,
+          reminderSentAt: invite.reminderSentAt,
         })),
       );
       const rawCampaigns = extractList<Record<string, unknown>>(campaignsRes);
@@ -771,28 +770,11 @@ export default function BrandCampaignContent() {
             </div>
             <span className="text-xs text-slate-400">{sentInvites.length} sent</span>
           </div>
-          <div className="divide-y divide-slate-50">
-            {sentInvites.length === 0 ? (
-              <div className="px-5 py-8 text-sm text-slate-500">
-                No invites sent yet. Open Discover Creators and use Invite to Campaign.
-              </div>
-            ) : (
-              sentInvites.map((invite) => (
-                <div key={invite.id} className="px-5 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-start gap-2 min-w-0">
-                    <Mail size={15} className="text-violet-600 mt-0.5 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{invite.creatorName}</p>
-                      <p className="text-xs text-slate-500 truncate">{invite.campaignTitle}</p>
-                    </div>
-                  </div>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${invite.isRead ? 'bg-slate-100 text-slate-600' : 'bg-violet-50 text-violet-700'}`}>
-                    {invite.isRead ? 'Seen' : 'Sent'} · {invite.sentAt || '—'}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+          <InvitedCreatorsList
+            invites={sentInvites}
+            onChange={loadData}
+            emptyHint="No invites sent yet. Open Discover Creators and use Invite to Campaign."
+          />
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
           <div className="px-5 py-4 border-b border-slate-100">

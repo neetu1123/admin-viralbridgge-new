@@ -6,6 +6,8 @@ import Sidebar from './Sidebar';
 import BrandCampaignNudge from './BrandCampaignNudge';
 import MobileTopBar from './MobileTopBar';
 import ApproachBanner from './ApproachBanner';
+import BrandTopBar from './brand/BrandTopBar';
+import CreatorStickyStats from './creator/CreatorStickyStats';
 import { authApi } from '@/src/lib/api';
 import { getCurrentUser } from '@/src/lib/useAuth';
 
@@ -83,11 +85,13 @@ export default function AppLayout({ children, role = 'creator', topNavbar }: App
       <Sidebar role={role} mobileOpen={mobileNavOpen} onMobileClose={closeMobileNav} />
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {!navbar && <MobileTopBar role={role} onMenuClick={openMobileNav} />}
+        {role === 'brand' ? <BrandTopBar onMenuClick={openMobileNav} /> : null}
+        {role !== 'brand' && !navbar && <MobileTopBar role={role} onMenuClick={openMobileNav} />}
         {navbar}
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
           <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6">
+            {role === 'creator' && <CreatorStickyStats />}
             {children}
           </div>
         </main>

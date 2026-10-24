@@ -7,7 +7,7 @@ import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { logout } from '@/src/lib/auth';
 import { getCurrentUser } from '@/src/lib/useAuth';
 import { initials } from '@/src/lib/mappers';
-import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, DollarSign, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X, Store, Sparkles, Activity, UserPlus } from 'lucide-react';
+import { Search, Briefcase, Wallet, MessageSquare, ChevronLeft, ChevronRight, Bell, Settings, LogOut, User, Users, FileText, CreditCard, Compass, BarChart3, BookOpen, LayoutDashboard, Flag, Scale, ClipboardList, UserCog, Lock, ChevronDown, ChevronUp, IndianRupee, Loader2, ShieldCheck, Upload, HelpCircle, Plus, Contact, X, Store, Sparkles, Activity, UserPlus } from 'lucide-react';
 import { useUnreadCount } from '@/src/components/NotificationsPanel';
 
 interface SidebarProps {
@@ -68,7 +68,7 @@ const adminNavSections: AdminNavSection[] = [
     items: [
       { label: 'Transactions', icon: CreditCard, href: '/admin-panel/transactions', badge: null },
       { label: 'Escrow', icon: Lock, href: '/admin-panel/escrow', badge: null },
-      { label: 'Payouts', icon: DollarSign, href: '/admin-panel/payouts', badge: '5', badgeColor: 'amber' },
+      { label: 'Payouts', icon: IndianRupee, href: '/admin-panel/payouts', badge: '5', badgeColor: 'amber' },
     ],
   },
   {

@@ -6,6 +6,7 @@ import { Search, ChevronDown, CheckCircle, XCircle, Flag, Eye, Pause, AlertTrian
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import { adminApi } from '@/src/lib/api';
 import AdminCreateCampaignModal from './AdminCreateCampaignModal';
+import RejectReasonModal from '@/src/components/admin/RejectReasonModal';
 
 interface AdminCampaign {
   id: string;
@@ -69,6 +70,7 @@ export default function AdminCampaignsContent() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [detailCampaign, setDetailCampaign] = useState<AdminCampaign | null>(null);
+  const [rejectCampaign, setRejectCampaign] = useState<AdminCampaign | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const loadCampaigns = useCallback(async () => {
@@ -103,15 +105,8 @@ export default function AdminCampaignsContent() {
     }
   };
 
-  const handleReject = async (campaign: AdminCampaign) => {
-    try {
-      await adminApi.rejectCampaign(campaign.id);
-      toast.success(`Campaign rejected: ${campaign.title}`);
-      setDetailCampaign(null);
-      await loadCampaigns();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Reject failed');
-    }
+  const handleReject = (campaign: AdminCampaign) => {
+    setRejectCampaign(campaign);
   };
 
   const filtered = campaigns.filter((c) => {
@@ -282,7 +277,7 @@ export default function AdminCampaignsContent() {
               <div>
                 <h3 className="text-base font-bold text-slate-800">{detailCampaign.title}</h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {detailCampaign.brand} · ${detailCampaign.budget.toLocaleString()}
+                  {detailCampaign.brand} · ₹{detailCampaign.budget.toLocaleString('en-IN')}
                 </p>
               </div>
               <button onClick={() => setDetailCampaign(null)} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
@@ -327,6 +322,20 @@ export default function AdminCampaignsContent() {
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={loadCampaigns}
+      />
+      <RejectReasonModal
+        open={Boolean(rejectCampaign)}
+        title={`Reject ${rejectCampaign?.title ?? 'campaign'}`}
+        description="The brand gets a notification and an email that includes this reason."
+        onClose={() => setRejectCampaign(null)}
+        onConfirm={async (reason) => {
+          if (!rejectCampaign) return;
+          await adminApi.rejectCampaign(rejectCampaign.id, reason);
+          toast.success(`Campaign rejected: ${rejectCampaign.title}`);
+          setRejectCampaign(null);
+          setDetailCampaign(null);
+          await loadCampaigns();
+        }}
       />
     </div>
   );

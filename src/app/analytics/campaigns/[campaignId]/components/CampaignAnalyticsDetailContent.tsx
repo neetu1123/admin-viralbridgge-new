@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowLeft, BarChart3, Eye, Loader2, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { ArrowLeft, BarChart3, Eye, Loader2, TrendingUp, Users, IndianRupee } from 'lucide-react';
 import { brandApi } from '@/src/lib/api';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
@@ -166,7 +166,7 @@ export default function CampaignAnalyticsDetailContent() {
             <p className="text-2xl font-bold">{campaign.applicants}</p>
           </div>
           <div>
-            <p className="text-violet-200 text-xs flex items-center gap-1"><DollarSign size={12} /> Spent</p>
+            <p className="text-violet-200 text-xs flex items-center gap-1"><IndianRupee size={12} /> Spent</p>
             <p className="text-2xl font-bold">₹{campaign.spent.toLocaleString()}</p>
           </div>
         </div>

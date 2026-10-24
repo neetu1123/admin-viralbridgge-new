@@ -6,7 +6,7 @@ import { mapEscrowRows, type EscrowRow } from '@/src/lib/mappers';
 import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
 import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
 import AddFundsModal from '@/src/components/wallet/AddFundsModal';
-import { DollarSign, TrendingUp, Lock, ArrowUpRight, ArrowDownLeft, ChevronDown, Download, Plus, Shield, FileText, Brain, CheckCircle } from 'lucide-react';
+import { IndianRupee, TrendingUp, Lock, ArrowUpRight, ArrowDownLeft, ChevronDown, Download, Plus, Shield, FileText, Brain, CheckCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const spendHistory = [
@@ -175,7 +175,7 @@ export default function BrandWalletContent() {
         <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between mb-3">
             <p className="text-violet-200 text-xs font-semibold uppercase tracking-wide">Available Balance</p>
-            <DollarSign size={18} className="text-violet-300" />
+            <IndianRupee size={18} className="text-violet-300" />
           </div>
           <p className="text-3xl font-black tabular-nums">
             {walletLoading ? '...' : `₹${availableBalance.toLocaleString()}`}

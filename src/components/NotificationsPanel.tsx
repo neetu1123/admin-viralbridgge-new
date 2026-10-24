@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Bell, Briefcase, DollarSign, MessageSquare, ShieldCheck, AlertCircle, Check, Loader2, ArrowRight } from 'lucide-react';
+import { Bell, Briefcase, IndianRupee, MessageSquare, ShieldCheck, AlertCircle, Check, Loader2, ArrowRight } from 'lucide-react';
 import type { NotificationItem } from '@/src/lib/api';
 import { getNotificationSocket } from '@/src/lib/socket';
 import { useNotifications, type NotificationApi } from '@/src/hooks/useNotifications';
@@ -14,10 +14,11 @@ const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: s
   CAMPAIGN_INVITE: { icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
   CAMPAIGN_APPLICATION: { icon: Briefcase, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
   APPLICATION: { icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
-  PAYMENT: { icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  WITHDRAWAL: { icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  PAYMENT: { icon: IndianRupee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  WITHDRAWAL: { icon: IndianRupee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   MESSAGE: { icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50' },
   KYC: { icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
+  ACCOUNT_REJECTION: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' },
   DISPUTE: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' },
   SYSTEM: { icon: Bell, color: 'text-slate-600', bg: 'bg-slate-50' },
 };

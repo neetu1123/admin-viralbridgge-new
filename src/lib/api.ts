@@ -164,7 +164,8 @@ export const adminApi = {
 
   getUser: (id: string) => apiFetch(`/admin/users/${id}`),
 
-  banUser: (id: string) => apiFetch(`/admin/users/${id}/ban`, { method: 'PATCH' }),
+  banUser: (id: string, reason: string) =>
+    apiFetch(`/admin/users/${id}/ban`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
 
   unbanUser: (id: string) => apiFetch(`/admin/users/${id}/unban`, { method: 'PATCH' }),
 
@@ -188,7 +189,8 @@ export const adminApi = {
 
   approveCampaign: (id: string) => apiFetch(`/admin/campaigns/${id}/approve`, { method: 'POST' }),
 
-  rejectCampaign: (id: string) => apiFetch(`/admin/campaigns/${id}/reject`, { method: 'POST' }),
+  rejectCampaign: (id: string, reason: string) =>
+    apiFetch(`/admin/campaigns/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
 
   getTransactions: () =>
     apiFetch<Array<{
@@ -742,6 +744,10 @@ export const brandApi = {
   shortlistApplication: (id: string) => apiFetch(`/brand/applications/${id}/shortlist`, { method: 'POST' }),
   inviteCreator: (campaignId: string, creatorId: string) =>
     apiFetch(`/brand/campaigns/${campaignId}/invite/${creatorId}`, { method: 'POST' }),
+  reinviteCreator: (campaignId: string, creatorId: string) =>
+    apiFetch(`/brand/campaigns/${campaignId}/invite/${creatorId}/reinvite`, { method: 'POST' }),
+  remindCreator: (campaignId: string, creatorId: string) =>
+    apiFetch(`/brand/campaigns/${campaignId}/invite/${creatorId}/remind`, { method: 'POST' }),
   getInvites: () =>
     apiFetch<{
       data: Array<{
@@ -753,6 +759,8 @@ export const brandApi = {
         message: string;
         isRead: boolean;
         sentAt: string;
+        status?: 'added' | 'reinvited' | 'reminded';
+        reminderSentAt?: string | null;
       }>;
     }>('/brand/invites'),
   getCampaignInvites: (campaignId: string) =>
@@ -873,6 +881,15 @@ export const locationsApi = {
       state: LocationOption | null;
       hasStates: boolean;
     }>(`/locations/resolve${toQuery({ country, state })}`),
+  pincode: (pin: string) =>
+    apiFetch<{
+      pincode: string;
+      country: string;
+      state: string;
+      city: string;
+      area: string;
+      district: string;
+    }>(`/locations/pincode${toQuery({ pin })}`),
 };
 
 export const creatorApi = {
@@ -888,6 +905,8 @@ export const creatorApi = {
     apiFetch('/creator/upload-photo', { method: 'POST', body: JSON.stringify({ url }) }),
   uploadMediaKit: (url: string) =>
     apiFetch('/creator/upload-media-kit', { method: 'POST', body: JSON.stringify({ url }) }),
+  submitProfileReview: () =>
+    apiFetch<{ status: 'pending' | 'verified' }>('/creator/profile/submit-review', { method: 'POST' }),
 
   getCampaigns: (params?: Record<string, string | number | boolean | undefined>) =>
     apiFetch(`/creator/campaigns${toQuery(params)}`),

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { Users, Building2, DollarSign, Lock, Loader2, Briefcase, ShieldCheck, TrendingUp, Download, BarChart3, Search } from 'lucide-react';
+import { Users, Building2, IndianRupee, Lock, Loader2, Briefcase, ShieldCheck, TrendingUp, Download, BarChart3, Search } from 'lucide-react';
 import { analyticsApi, type AnalyticsRangeParams } from '@/src/lib/api';
 import PeriodSelector, { formatCurrency, formatPercent, type AnalyticsDateRange } from '@/src/components/analytics/PeriodSelector';
 import { downloadCsv } from '@/src/lib/exportCsv';
@@ -98,7 +98,7 @@ export default function AdminAnalyticsContent() {
   const kpiCards = [
     { label: 'Total Creators', value: String(kpis?.totalCreators ?? 0), icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
     { label: 'Total Brands', value: String(kpis?.totalBrands ?? 0), icon: Building2, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Platform Revenue', value: formatCurrency(kpis?.platformRevenue ?? 0), icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Platform Revenue', value: formatCurrency(kpis?.platformRevenue ?? 0), icon: IndianRupee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Escrow Volume', value: formatCurrency(kpis?.escrowVolume ?? 0), icon: Lock, color: 'text-amber-600', bg: 'bg-amber-50' },
   ];
 

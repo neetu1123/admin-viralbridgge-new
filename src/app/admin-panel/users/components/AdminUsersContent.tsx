@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Search, ChevronDown, CheckCircle, Ban, Eye, X, Activity, Loader2, Unlock, Lock } from 'lucide-react';
 import { adminApi } from '@/src/lib/api';
+import RejectReasonModal from '@/src/components/admin/RejectReasonModal';
 import { mapAdminUsers, type AdminPanelUser } from '@/src/lib/mappers';
 import { downloadCsv } from '@/src/lib/exportCsv';
 
@@ -27,6 +28,7 @@ export default function AdminUsersContent() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [activityUser, setActivityUser] = useState<AdminPanelUser | null>(null);
+  const [rejectUser, setRejectUser] = useState<AdminPanelUser | null>(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -52,8 +54,8 @@ export default function AdminUsersContent() {
         await adminApi.unbanUser(user.id);
         toast.success(`${user.name} unbanned`);
       } else {
-        await adminApi.banUser(user.id);
-        toast.error(`${user.name} banned`);
+        setRejectUser(user);
+        return;
       }
       loadUsers();
     } catch (err: unknown) {
@@ -121,6 +123,19 @@ export default function AdminUsersContent() {
   return (
     <div className="pb-8">
       <Toaster position="bottom-right" richColors />
+      <RejectReasonModal
+        open={Boolean(rejectUser)}
+        title={`Reject ${rejectUser?.name ?? 'this account'}`}
+        description="The brand or creator gets an in-app notification and an email that includes this reason."
+        onClose={() => setRejectUser(null)}
+        onConfirm={async (reason) => {
+          if (!rejectUser) return;
+          await adminApi.banUser(rejectUser.id, reason);
+          toast.success(`${rejectUser.name} was rejected and notified`);
+          setRejectUser(null);
+          await loadUsers();
+        }}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
@@ -268,7 +283,7 @@ export default function AdminUsersContent() {
                           <button
                             onClick={() => handleBan(user)}
                             className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-700 text-slate-500 transition-colors"
-                            title="Ban account"
+                            title="Reject account"
                           >
                             <Ban size={14} />
                           </button>

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { DollarSign, TrendingUp, Briefcase, Target, Loader2, MessageSquare, Mail, Eye, Download } from 'lucide-react';
+import { IndianRupee, TrendingUp, Briefcase, Target, Loader2, MessageSquare, Mail, Eye, Download } from 'lucide-react';
 import { analyticsApi, creatorApi, type AnalyticsRangeParams, type NotificationItem } from '@/src/lib/api';
 import PeriodSelector, { formatCurrency, formatPercent, type AnalyticsDateRange } from '@/src/components/analytics/PeriodSelector';
 import { downloadCsv } from '@/src/lib/exportCsv';
@@ -90,7 +90,7 @@ export default function CreatorAnalyticsContent() {
   );
   const pendingEarningsValue = pendingFromApproved > 0 ? pendingFromApproved : (kpis?.pendingEarnings ?? 0);
   const kpiCards = [
-    { label: 'Total Earnings', value: formatCurrency(kpis?.totalEarnings ?? 0), icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Total Earnings', value: formatCurrency(kpis?.totalEarnings ?? 0), icon: IndianRupee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Pending Earnings', value: formatCurrency(pendingEarningsValue), icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50' },
     { label: 'Campaigns Completed', value: String(kpis?.campaignsCompleted ?? 0), icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
     { label: 'Application Success Rate', value: formatPercent(kpis?.applicationSuccessRate ?? 0), icon: Target, color: 'text-blue-600', bg: 'bg-blue-50' },

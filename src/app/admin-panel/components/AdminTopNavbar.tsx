@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Bell, ChevronDown, Zap, UserPlus, AlertTriangle, ShieldCheck, DollarSign, Flag, Plus, Menu } from 'lucide-react';
+import { Bell, ChevronDown, Zap, UserPlus, AlertTriangle, ShieldCheck, IndianRupee, Flag, Plus, Menu } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -31,7 +31,7 @@ const pageTitles: Record<string, string> = {
 
 const quickActions = [
   { label: 'Approve KYC', icon: ShieldCheck, color: 'text-emerald-700', href: '/admin-panel/kyc?status=PENDING' },
-  { label: 'Approve Withdrawals', icon: DollarSign, color: 'text-blue-700', href: '/admin-panel/payouts?status=PENDING' },
+  { label: 'Approve Withdrawals', icon: IndianRupee, color: 'text-blue-700', href: '/admin-panel/payouts?status=PENDING' },
   { label: 'Review Disputes', icon: AlertTriangle, color: 'text-amber-700', href: '/admin-panel/disputes?status=OPEN' },
   { label: 'Moderate Campaigns', icon: Flag, color: 'text-red-700', href: '/admin-panel/campaigns?status=FLAGGED' },
   { label: 'Invite Admin', icon: UserPlus, color: 'text-violet-700', action: 'invite_admin' as const },

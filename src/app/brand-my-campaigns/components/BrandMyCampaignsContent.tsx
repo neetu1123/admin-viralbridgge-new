@@ -11,7 +11,7 @@ import {
   Clock,
   CheckCircle,
   Briefcase,
-  DollarSign,
+  IndianRupee,
   Users,
   Plus,
 } from 'lucide-react';
@@ -97,7 +97,7 @@ export default function BrandMyCampaignsContent() {
           { label: 'Active Campaigns', value: activeCount, color: 'text-emerald-700', icon: CheckCircle },
           { label: 'Pending Applicants', value: pendingApplicants, color: 'text-amber-700', icon: Clock },
           { label: 'Completed', value: completedCount, color: 'text-violet-700', icon: Briefcase },
-          { label: 'Active Budget', value: `₹${totalBudget.toLocaleString()}`, color: 'text-slate-800', icon: DollarSign },
+          { label: 'Active Budget', value: `₹${totalBudget.toLocaleString()}`, color: 'text-slate-800', icon: IndianRupee },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -180,7 +180,7 @@ export default function BrandMyCampaignsContent() {
                     <div className="flex items-center gap-3 flex-wrap">
                       <PlatformBadge platform={campaign.platform} />
                       <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                        <DollarSign size={11} /> ₹{campaign.budget.toLocaleString()}
+                        <IndianRupee size={11} /> ₹{campaign.budget.toLocaleString()}
                       </span>
                       <span className="text-xs text-slate-500 flex items-center gap-1">
                         <Users size={11} /> {campaign.applicants} applicants · {campaign.accepted} accepted

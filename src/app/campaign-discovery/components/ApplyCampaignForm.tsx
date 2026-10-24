@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { DollarSign, Send } from 'lucide-react';
+import { IndianRupee, Send } from 'lucide-react';
 import { creatorApi } from '@/src/lib/api';
 
 interface ApplyForm {
@@ -95,7 +95,7 @@ export default function ApplyCampaignForm({
         </label>
         <p className="text-xs text-slate-400 mb-1.5">Leave blank to accept the listed rate of ₹{campaign.budget.toLocaleString()}</p>
         <div className="relative">
-          <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <IndianRupee size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             id="apply-price"
             type="number"

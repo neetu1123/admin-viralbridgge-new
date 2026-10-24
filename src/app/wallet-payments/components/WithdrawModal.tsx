@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import Modal from '@/src/components/ui/Modal';
-import { DollarSign, AlertCircle, ShieldCheck } from 'lucide-react';
+import { IndianRupee, AlertCircle, ShieldCheck } from 'lucide-react';
 import { creatorApi } from '@/src/lib/api';
 import { toast } from 'sonner';
 
@@ -85,7 +85,7 @@ export default function WithdrawModal({ availableBalance, onClose, onSuccess }: 
             Withdrawal Amount
           </label>
           <div className="relative">
-            <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <IndianRupee size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               id="wd-amount"
               type="number"

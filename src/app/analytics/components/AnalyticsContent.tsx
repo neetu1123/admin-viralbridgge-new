@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { TrendingUp, DollarSign, Users, Eye, ArrowUpRight, ArrowDownRight, Download, Loader2 } from 'lucide-react';
+import { TrendingUp, IndianRupee, Users, Eye, ArrowUpRight, ArrowDownRight, Download, Loader2 } from 'lucide-react';
 import { downloadCsv } from '@/src/lib/exportCsv';
 import { brandApi } from '@/src/lib/api';
 import { extractList, mapCreatorCard } from '@/src/lib/mappers';
@@ -40,7 +40,7 @@ const topCreatorsFallback = [
 ];
 
 const kpisFallback = [
-  { label: 'Total Spend', value: '₹0', change: '—', up: true, icon: DollarSign, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { label: 'Total Spend', value: '₹0', change: '—', up: true, icon: IndianRupee, color: 'text-violet-600', bg: 'bg-violet-50' },
   { label: 'Applications', value: '0', change: '—', up: true, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   { label: 'Campaigns', value: '0', change: '—', up: true, icon: Eye, color: 'text-blue-600', bg: 'bg-blue-50' },
   { label: 'Creators Hired', value: '0', change: '—', up: true, icon: Users, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -68,7 +68,7 @@ export default function AnalyticsContent() {
       const campaigns = Number(analytics.campaigns) || 0;
 
       setKpis([
-        { label: 'Total Spend', value: `₹${spend.toLocaleString()}`, change: 'Live', up: true, icon: DollarSign, color: 'text-violet-600', bg: 'bg-violet-50' },
+        { label: 'Total Spend', value: `₹${spend.toLocaleString()}`, change: 'Live', up: true, icon: IndianRupee, color: 'text-violet-600', bg: 'bg-violet-50' },
         { label: 'Applications', value: String(apps), change: 'Live', up: true, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { label: 'Campaigns', value: String(campaigns), change: 'Live', up: true, icon: Eye, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Creators Hired', value: String(Math.min(apps, 999)), change: 'Live', up: true, icon: Users, color: 'text-amber-600', bg: 'bg-amber-50' },

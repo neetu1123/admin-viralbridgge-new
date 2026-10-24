@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Sparkles, X } from 'lucide-react';
+import { AlertCircle, Mail, Sparkles, X } from 'lucide-react';
 import type { NotificationItem } from '@/src/lib/api';
 import { adminApi, brandApi, creatorApi } from '@/src/lib/api';
 import { getNotificationSocket } from '@/src/lib/socket';
@@ -10,6 +10,7 @@ import {
   getNotificationActionLabel,
   getNotificationActionUrl,
   isApproachNotification,
+  isRejectionNotification,
   type NotificationRole,
 } from '@/src/lib/notificationNavigation';
 
@@ -42,7 +43,7 @@ export default function ApproachBanner({ role }: ApproachBannerProps) {
     void load();
     const socket = getNotificationSocket();
     const onNew = (notification: NotificationItem) => {
-      if (!isApproachNotification(notification)) return;
+      if (!isApproachNotification(notification) && !isRejectionNotification(notification)) return;
       setQueue((prev) => [notification, ...prev.filter((n) => n.id !== notification.id)]);
     };
     socket?.on('notification:new', onNew);
@@ -86,24 +87,27 @@ export default function ApproachBanner({ role }: ApproachBannerProps) {
   if (!current) return null;
 
   const isInvite = current.type === 'CAMPAIGN_INVITE' || current.title.toLowerCase().includes('invit');
-  const actionLabel = getNotificationActionLabel(current, role) || (isInvite ? 'View Invitation' : 'Review');
+  const isRejection = isRejectionNotification(current);
+  const actionLabel = getNotificationActionLabel(current, role) || (isRejection ? 'See why' : isInvite ? 'View Invitation' : 'Review');
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-3 z-[90] flex justify-center px-3 sm:top-4 lg:top-5">
       <div
-        className={`pointer-events-auto w-full max-w-xl rounded-2xl border border-violet-200 bg-white/95 shadow-xl shadow-violet-200/40 backdrop-blur-md transition-all duration-200 ${
-          leaving ? '-translate-y-3 opacity-0' : 'translate-y-0 opacity-100'
-        }`}
+        className={`pointer-events-auto w-full max-w-xl rounded-2xl border bg-white/95 shadow-xl backdrop-blur-md transition-all duration-200 ${
+          isRejection ? 'border-red-200 shadow-red-200/40' : 'border-violet-200 shadow-violet-200/40'
+        } ${leaving ? '-translate-y-3 opacity-0' : 'translate-y-0 opacity-100'}`}
         role="status"
         aria-live="polite"
       >
         <div className="flex items-start gap-3 px-4 py-3.5">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white">
-            {isInvite ? <Mail size={18} /> : <Sparkles size={18} />}
+          <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white ${
+            isRejection ? 'bg-red-600' : 'bg-gradient-to-br from-violet-600 to-fuchsia-500'
+          }`}>
+            {isRejection ? <AlertCircle size={18} /> : isInvite ? <Mail size={18} /> : <Sparkles size={18} />}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-600">
-              {isInvite ? 'New invitation' : 'New approach'}
+            <p className={`text-[11px] font-semibold uppercase tracking-wider ${isRejection ? 'text-red-600' : 'text-violet-600'}`}>
+              {isRejection ? 'Account update' : isInvite ? 'New invitation' : 'New approach'}
             </p>
             <p className="mt-0.5 text-sm font-semibold text-slate-800">{current.title}</p>
             <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{current.message}</p>
@@ -111,7 +115,9 @@ export default function ApproachBanner({ role }: ApproachBannerProps) {
               <button
                 type="button"
                 onClick={handleAction}
-                className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-700"
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors ${
+                  isRejection ? 'bg-red-600 hover:bg-red-700' : 'bg-violet-600 hover:bg-violet-700'
+                }`}
               >
                 {actionLabel}
               </button>

@@ -162,14 +162,14 @@ export default function CreateCampaignForm({
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="camp-budget">
-            Total Budget ($)
+            Total Budget (₹)
           </label>
           <input
             id="camp-budget"
             type="number"
             placeholder="5000"
             className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 ${errors.budget ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
-            {...register('budget', { required: 'Budget is required', min: { value: 100, message: 'Minimum budget is $100' } })}
+            {...register('budget', { required: 'Budget is required', min: { value: 100, message: 'Minimum budget is ₹100' } })}
           />
           {errors.budget && <p className="text-red-500 text-xs mt-1">{errors.budget.message}</p>}
         </div>

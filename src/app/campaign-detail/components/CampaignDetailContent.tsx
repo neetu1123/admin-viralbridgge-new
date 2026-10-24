@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
-import { ArrowLeft, CheckCircle, XCircle, MessageSquare, Users, DollarSign, Calendar, TrendingUp, Star, CreditCard } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, MessageSquare, Users, IndianRupee, Calendar, TrendingUp, Star, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import StatusBadge from '@/src/components/ui/StatusBadge';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
@@ -212,7 +212,7 @@ export default function CampaignDetailContent() {
             <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Budget Used</p>
-                <DollarSign size={15} className="text-violet-600" />
+                <IndianRupee size={15} className="text-violet-600" />
               </div>
               <p className="text-xl font-bold text-slate-800 tabular-nums">₹{campaign.spent.toLocaleString()}</p>
               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2 mb-1">

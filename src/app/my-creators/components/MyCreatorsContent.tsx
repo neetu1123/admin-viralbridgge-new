@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast, Toaster } from 'sonner';
-import { Search, Users, TrendingUp, Star, MessageSquare, DollarSign, Calendar, ChevronDown, UserCheck, MoreHorizontal, Loader2 } from 'lucide-react';
+import { Search, Users, TrendingUp, Star, MessageSquare, IndianRupee, Calendar, ChevronDown, UserCheck, MoreHorizontal, Loader2 } from 'lucide-react';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import Link from 'next/link';
 import { brandApi } from '@/src/lib/api';
@@ -240,7 +240,7 @@ export default function MyCreatorsContent() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <DollarSign size={13} className="text-violet-500" />
+                      <IndianRupee size={13} className="text-violet-500" />
                       <div>
                         <p className="text-xs font-semibold text-slate-700 tabular-nums">₹{creator.totalPaid.toLocaleString()}</p>
                         <p className="text-xs text-slate-400">total paid</p>

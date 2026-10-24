@@ -4,12 +4,14 @@ import { CheckCircle, XCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
 import { adminApi } from '@/src/lib/api';
+import RejectReasonModal from '@/src/components/admin/RejectReasonModal';
 import { mapFlaggedCampaigns, type FlaggedCampaignRow } from '@/src/lib/mappers';
 
 export default function FlaggedContent() {
   const [items, setItems] = useState<FlaggedCampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [rejectId, setRejectId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,8 +37,8 @@ export default function FlaggedContent() {
         await adminApi.approveCampaign(id);
         toast.success('Campaign approved and restored');
       } else {
-        await adminApi.rejectCampaign(id);
-        toast.success('Campaign rejected');
+        setRejectId(id);
+        return;
       }
       load();
     } catch (error) {
@@ -121,6 +123,19 @@ export default function FlaggedContent() {
           ))}
         </div>
       )}
+      <RejectReasonModal
+        open={Boolean(rejectId)}
+        title="Reject flagged campaign"
+        description="The brand gets a notification and an email that includes this reason."
+        onClose={() => setRejectId(null)}
+        onConfirm={async (reason) => {
+          if (!rejectId) return;
+          await adminApi.rejectCampaign(rejectId, reason);
+          toast.success('Campaign rejected and the brand was notified');
+          setRejectId(null);
+          await load();
+        }}
+      />
     </div>
   );
 }

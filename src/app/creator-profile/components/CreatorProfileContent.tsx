@@ -1,7 +1,7 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast, Toaster } from 'sonner';
-import { creatorApi, kycApi } from '@/src/lib/api';
+import { creatorApi, kycApi, locationsApi } from '@/src/lib/api';
 import { Camera, Save, Star, TrendingUp, Users, Briefcase } from 'lucide-react';
 import Icon from '@/src/components/ui/AppIcon';
 import ProfileCompletionBanner from '@/src/components/ProfileCompletionBanner';
@@ -75,6 +75,9 @@ export default function CreatorProfileContent() {
   const [followersCount, setFollowersCount] = useState(0);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [kycVerified, setKycVerified] = useState(false);
+  const [reviewPending, setReviewPending] = useState(false);
+  const [pinLookup, setPinLookup] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const loadedPin = useRef<string | null>(null);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -103,7 +106,9 @@ export default function CreatorProfileContent() {
         setCity(parsed.city);
       }
       setArea(String(profile.area ?? social.area ?? ''));
-      setPincode(String(profile.pincode ?? social.pincode ?? ''));
+      const savedPin = String(profile.pincode ?? social.pincode ?? '');
+      loadedPin.current = savedPin.trim();
+      setPincode(savedPin);
       setEmail(String(profile.contact_email || user.email || ''));
       setPhone(String(profile.phone ?? ''));
       setInstagram(String(social.instagram ?? ''));
@@ -136,7 +141,13 @@ export default function CreatorProfileContent() {
       }
       setPortfolioItems(portfolioArr.map(toPortfolioItem));
       const kycStatus = kyc && typeof kyc === 'object' ? String((kyc as Record<string, unknown>).status ?? '') : '';
-      setKycVerified(kycStatus === 'APPROVED' || kycStatus === 'VERIFIED');
+      const verified = kycStatus === 'APPROVED' || kycStatus === 'VERIFIED' || user.is_verified === true;
+      setKycVerified(verified);
+      const settings =
+        user.settings && typeof user.settings === 'object' && !Array.isArray(user.settings)
+          ? (user.settings as Record<string, unknown>)
+          : {};
+      setReviewPending(!verified && settings.profileReviewStatus === 'PENDING');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to load profile');
     } finally {
@@ -147,6 +158,37 @@ export default function CreatorProfileContent() {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  useEffect(() => {
+    const pin = pincode.trim();
+    if (pin === loadedPin.current) return;
+    if (!/^\d{6}$/.test(pin)) {
+      setPinLookup('idle');
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setPinLookup('loading');
+      locationsApi
+        .pincode(pin)
+        .then((match) => {
+          if (cancelled) return;
+          setCountry(match.country);
+          setStateName(match.state);
+          setCity(match.city);
+          if (match.area) setArea(match.area);
+          loadedPin.current = pin;
+          setPinLookup('done');
+        })
+        .catch(() => {
+          if (!cancelled) setPinLookup('error');
+        });
+    }, 400);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [pincode]);
 
   const locationLabel = [city, stateName, country].filter(Boolean).join(', ');
 
@@ -229,8 +271,16 @@ export default function CreatorProfileContent() {
         followers: followersCount || undefined,
         languages: ['English'],
       });
-      toast.success('Profile saved successfully!');
+      const review = await creatorApi.submitProfileReview();
+      setReviewPending(review.status === 'pending');
+      setKycVerified(review.status === 'verified');
+      toast.success(
+        review.status === 'verified'
+          ? 'Your profile is already verified.'
+          : 'Profile submitted. Your verification is under process.',
+      );
       setHandle(formatHandleForDisplay(handleClean));
+      window.dispatchEvent(new Event('creator-profile-review'));
       await loadProfile();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to save profile');
@@ -290,9 +340,14 @@ export default function CreatorProfileContent() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800">My Profile</h1>
           <p className="text-slate-500 text-sm mt-1">Update your creator profile, social links, and media kit</p>
-          {!kycVerified && !loading && (
+          {reviewPending && !loading && (
             <p className="text-xs text-amber-700 mt-1.5">
-              Brands and the public can see this profile only after admin KYC approval.
+              Congratulations! You have been successfully registered. Your profile verification is under process. We will notify you once it is completed.
+            </p>
+          )}
+          {!kycVerified && !reviewPending && !loading && (
+            <p className="text-xs text-amber-700 mt-1.5">
+              Review and verify your profile so an admin can approve it. Brands can see it after approval.
             </p>
           )}
         </div>
@@ -301,7 +356,7 @@ export default function CreatorProfileContent() {
           disabled={saving || loading}
           className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-all disabled:opacity-70"
         >
-          <Save size={15} /> {saving ? 'Saving...' : 'Save All Changes'}
+          <Save size={15} /> {saving ? 'Submitting...' : 'Review and Verify'}
         </button>
       </div>
 
@@ -409,6 +464,37 @@ export default function CreatorProfileContent() {
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                 />
               </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Pincode</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="e.g. 110001"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                />
+                <p className={`mt-1 text-xs ${pinLookup === 'error' ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {pinLookup === 'loading'
+                    ? 'Looking up city and state…'
+                    : pinLookup === 'done'
+                      ? 'City, state, and area were filled from this pincode.'
+                      : pinLookup === 'error'
+                        ? 'No match for this pincode. Enter city and state yourself.'
+                        : 'Enter a 6-digit pincode to fill city, state, and area automatically.'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Area</label>
+                <input
+                  type="text"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="Neighbourhood / locality"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                />
+              </div>
               <div className="md:col-span-2">
                 <p className="mb-1.5 text-xs font-semibold text-slate-600">Location</p>
                 <LocationPicker
@@ -422,27 +508,6 @@ export default function CreatorProfileContent() {
                   }}
                 />
                 {locationLabel ? <p className="mt-2 text-xs text-slate-400">{locationLabel}</p> : null}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Area</label>
-                <input
-                  type="text"
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
-                  placeholder="Neighbourhood / locality"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Pincode</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  placeholder="e.g. 110001"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
-                />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Contact Email</label>
@@ -533,7 +598,7 @@ export default function CreatorProfileContent() {
             disabled={saving || loading}
             className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-3 rounded-xl text-sm transition-all disabled:opacity-70"
           >
-            <Save size={15} /> {saving ? 'Saving...' : 'Save All Changes'}
+            <Save size={15} /> {saving ? 'Submitting...' : 'Review and Verify'}
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
-import { CheckCircle, ArrowUpRight, RotateCcw, DollarSign } from 'lucide-react';
+import { CheckCircle, ArrowUpRight, RotateCcw, IndianRupee } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { adminApi } from '@/src/lib/api';
 import { mapAdminDisputes, type AdminDisputeRow } from '@/src/lib/mappers';
@@ -168,7 +168,7 @@ export default function DisputesContent() {
                       onClick={() => handleAction(dispute.id, 'partial_payout', dispute)}
                       className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-50"
                     >
-                      <DollarSign size={12} /> Partial Payout
+                      <IndianRupee size={12} /> Partial Payout
                     </button>
                     <button
                       disabled={busy}

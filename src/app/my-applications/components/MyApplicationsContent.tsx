@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
-import { Search, ChevronDown, MessageSquare, Eye, Clock, CheckCircle, XCircle, Briefcase, DollarSign, Star, AlertTriangle, Upload, Mail } from 'lucide-react';
+import { Search, ChevronDown, MessageSquare, Eye, Clock, CheckCircle, XCircle, Briefcase, IndianRupee, Star, AlertTriangle, Upload, Mail } from 'lucide-react';
 import OpenDisputeModal from '@/src/components/disputes/OpenDisputeModal';
 import MyDisputesPanel from '@/src/components/disputes/MyDisputesPanel';
 import PlatformBadge from '@/src/components/ui/PlatformBadge';
@@ -120,7 +120,7 @@ export default function MyApplicationsContent() {
           { label: 'Active Campaigns', value: stats.approved, color: 'text-emerald-700', icon: CheckCircle },
           { label: 'Pending Review', value: stats.pending, color: 'text-amber-700', icon: Clock },
           { label: 'Completed', value: stats.completed, color: 'text-violet-700', icon: Briefcase },
-          { label: 'Total Earned', value: `₹${stats.totalEarned.toLocaleString()}`, color: 'text-slate-800', icon: DollarSign },
+          { label: 'Total Earned', value: `₹${stats.totalEarned.toLocaleString()}`, color: 'text-slate-800', icon: IndianRupee },
         ].map((stat) => {
           const Icon = stat.icon;
           return (

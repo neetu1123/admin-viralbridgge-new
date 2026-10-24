@@ -41,6 +41,16 @@ export function isApproachNotification(notif: NotificationItem): boolean {
   return isCampaignInviteNotification(notif) || isCampaignApplicationNotification(notif);
 }
 
+export function isRejectionNotification(notif: NotificationItem): boolean {
+  const title = notif.title.toLowerCase();
+  const message = notif.message.toLowerCase();
+  if (title.includes('account restored')) return false;
+  if (notif.type === 'ACCOUNT_REJECTION' || notif.type === 'KYC') {
+    return title.includes('reject') || message.includes('was rejected');
+  }
+  return title.includes('campaign rejected') || title.includes('account rejected');
+}
+
 /** Resolve a deep-link URL for a notification CTA. */
 export function getNotificationActionUrl(
   notif: NotificationItem,
@@ -49,12 +59,21 @@ export function getNotificationActionUrl(
   const { campaignId, applicationId } = getMetaIds(notif);
 
   if (role === 'brand') {
+    if ((notif.type === 'KYC' || notif.type === 'ACCOUNT_REJECTION') && isRejectionNotification(notif)) {
+      return '/brand-settings/verification';
+    }
+    if (isRejectionNotification(notif) && campaignId) return `/campaign-detail?id=${campaignId}`;
+    if (isRejectionNotification(notif)) return '/brand-notifications';
     if (applicationId) return `/brand-applicant/${applicationId}`;
     if (campaignId) return '/brand-applicant';
     if (notif.type === 'MESSAGE') return '/brand-messages';
     if (notif.type === 'PAYMENT' || notif.type === 'WITHDRAWAL') return '/brand-wallet';
     if (notif.type === 'DISPUTE') return '/brand-disputes';
     return null;
+  }
+
+  if (isRejectionNotification(notif)) {
+    return '/creator-settings/verification';
   }
 
   if (isCampaignInviteNotification(notif) && campaignId) {
@@ -89,5 +108,7 @@ export function getNotificationActionLabel(
   if (url.includes('messaging-inbox') || url.includes('brand-messages')) return 'Open Messages';
   if (url.includes('wallet')) return 'View Wallet';
   if (url.includes('disputes')) return 'View Disputes';
+  if (url.includes('verification') || url.includes('notifications')) return 'See why';
+  if (url.includes('campaign-detail') || url.includes('brand-my-campaigns')) return 'View campaign';
   return 'View Details';
 }
